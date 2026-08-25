@@ -78,6 +78,35 @@ let membersPage (model: Model) (dispatch: Message -> unit) =
 let aboutPage (model: Model) (dispatch: Message -> unit) =
     Layout.About().Elt()
 
+/// The Account page renders either the sign-in form (transient state held in
+/// the page's PageModel<AccountForm>, not the root model) or the signed-in
+/// account banner with a Sign out button.
+let accountPage (model: Model) (dispatch: Message -> unit) =
+    cond model.shared.account <| function
+    | Some username ->
+        Layout.AccountSignedIn()
+            .Username(username)
+            .SignOut(fun _ -> dispatch SendSignOut)
+            .Elt()
+    | None ->
+        match model.page with
+        | Account pm ->
+            Layout.SignIn()
+                .Username(pm.Model.username, fun s -> dispatch (SetUsername s))
+                .Password(pm.Model.password, fun s -> dispatch (SetPassword s))
+                .SignIn(fun _ -> dispatch SendSignIn)
+                .ErrorNotification(
+                    cond model.shared.signInFailed <| function
+                    | false -> empty()
+                    | true ->
+                        Layout.ErrorNotification()
+                            .HideClass("is-hidden")
+                            .Text("Sign in failed. Use any username and the password \"password\".")
+                            .Elt()
+                )
+                .Elt()
+        | _ -> Layout.SignIn().Elt()
+
 let menuItem (model: Model) (page: Page) (text: string) =
     Layout.MenuItem()
         .Active(if model.page = page then "is-active" else "")
@@ -94,6 +123,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             menuItem model Tournaments "Tournaments"
             menuItem model Members "Members"
             menuItem model About "About"
+            menuItem model (Account Router.noModel) "Account"
         })
         .Body(
             cond model.page <| function
@@ -103,6 +133,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Tournaments -> tournamentsPage model dispatch
             | Members -> membersPage model dispatch
             | About -> aboutPage model dispatch
+            | Account _ -> accountPage model dispatch
         )
         .Error(
             cond model.shared.error <| function

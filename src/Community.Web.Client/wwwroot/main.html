@@ -108,6 +108,38 @@
         </div>
       </template>
 
+      <template id="SignIn">
+        <h1 class="title">Sign in</h1>
+        <form onsubmit="${SignIn}">
+          <div class="field">
+            <label class="label">Username</label>
+            <div class="control">
+              <input class="input" bind="${Username}" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Password</label>
+            <div class="control">
+              <input class="input" type="password" bind="${Password}" />
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <input type="submit" value="Sign in" class="button is-link" />
+            </div>
+          </div>
+          ${ErrorNotification}
+        </form>
+      </template>
+
+      <template id="AccountSignedIn">
+        <h1 class="title">Account</h1>
+        <p>
+          Signed in as <strong>${Username}</strong>.
+          <button class="button" onclick="${SignOut}">Sign out</button>
+        </p>
+      </template>
+
       <template id="EmptyData">
         <tr><td colspan="5">Loading...</td></tr>
       </template>

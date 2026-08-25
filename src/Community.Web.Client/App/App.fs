@@ -9,7 +9,9 @@ open Community.Web.Client.State
 open Community.Web.Shared.Domain
 open Community.Web.Shared.Remoting
 
-/// Routing endpoints definition — the six gaming-community pages.
+/// Routing endpoints — the six gaming-community pages plus the Account page.
+/// The Account case carries a PageModel: transient sign-in draft state that
+/// must NOT appear in the URL (Phase 8: stateful page — PageModel).
 type Page =
     | [<EndPoint "/">] Home
     | [<EndPoint "/games">] Games
@@ -17,29 +19,31 @@ type Page =
     | [<EndPoint "/tournaments">] Tournaments
     | [<EndPoint "/members">] Members
     | [<EndPoint "/about">] About
+    | [<EndPoint "/account">] Account of PageModel<AccountForm>
 
-/// Ephemeral, page-local state (not persisted across navigation unless it
-/// lives in Shared). For now: the login form input.
-type LocalModel =
+/// Transient, page-local state for the Account page (the sign-in form draft).
+/// Lives in a PageModel so it is excluded from the URL, persists across
+/// in-page updates, and resets when the page is navigated to fresh
+/// (per the state-lifetime rule).
+and AccountForm =
     {
         username: string
         password: string
     }
 
-/// The root model is the single source of truth: Page (active route),
-/// Shared (persistent cross-page state), Local (active page's ephemeral state).
+/// The root model is the single source of truth: Page (active route) and
+/// Shared (persistent cross-page state). Transient page state lives in the
+/// active Page's PageModel, not in the root model.
 type Model =
     {
         page: Page
         shared: SharedModel
-        local: LocalModel
     }
 
 let initModel =
     {
         page = Home
         shared = SharedModel.init
-        local = { username = ""; password = "" }
     }
 
 /// The Elmish application's messages — a small root namespace, per the
@@ -70,9 +74,12 @@ type Message =
     | ClearError
 
 let update remote message model =
+    // Sign-in success refreshes the member list (players) so the Members page
+    // reflects the newly authenticated member, then clears the sign-in form.
     let onSignIn = function
         | Some _ -> Cmd.batch [ Cmd.ofMsg GetPlayers; Cmd.ofMsg ClearLoginForm ]
         | None -> Cmd.none
+
     match message with
     | SetPage page ->
         { model with page = page }, Cmd.none
@@ -107,18 +114,35 @@ let update remote message model =
     | GotPlayers players ->
         { model with shared = { model.shared with players = Loaded (SharedModel.indexById players (fun p -> p.id)) } }, Cmd.none
 
+    // --- Account page: transient state lives in PageModel<AccountForm>. ---
+    // The PageModel is a mutable holder shared with the view; we update it in
+    // place with Router.definePageModel so in-page edits persist across
+    // re-renders but are never written to the URL.
     | SetUsername s ->
-        { model with local = { model.local with username = s } }, Cmd.none
+        match model.page with
+        | Account pm -> Router.definePageModel pm { pm.Model with username = s }
+        | _ -> ()
+        model, Cmd.none
     | SetPassword s ->
-        { model with local = { model.local with password = s } }, Cmd.none
+        match model.page with
+        | Account pm -> Router.definePageModel pm { pm.Model with password = s }
+        | _ -> ()
+        model, Cmd.none
     | ClearLoginForm ->
-        { model with local = { username = ""; password = "" } }, Cmd.none
+        match model.page with
+        | Account pm -> Router.definePageModel pm { pm.Model with username = ""; password = "" }
+        | _ -> ()
+        model, Cmd.none
+
     | GetSignedInAs ->
         model, Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
     | RecvSignedInAs username ->
         { model with shared = { model.shared with account = username } }, onSignIn username
     | SendSignIn ->
-        model, Cmd.OfAsync.either remote.signIn (model.local.username, model.local.password) RecvSignIn Error
+        match model.page with
+        | Account pm ->
+            model, Cmd.OfAsync.either remote.signIn (pm.Model.username, pm.Model.password) RecvSignIn Error
+        | _ -> model, Cmd.none
     | RecvSignIn username ->
         { model with
             shared = { model.shared with account = username; signInFailed = Option.isNone username }
@@ -137,6 +161,13 @@ let update remote message model =
 
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
+///
+/// inferWithModel supplies a default PageModel for the Account page: a fresh
+/// empty AccountForm each time the route is entered (per the state-lifetime
+/// rule, transient page state resets on fresh navigation).
 let router =
-    Router.infer SetPage (fun model -> model.page)
+    let defaultPageModel = function
+        | Account pm -> Router.definePageModel pm { username = ""; password = "" }
+        | _ -> ()
+    Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
     |> Router.withNotFound Home
