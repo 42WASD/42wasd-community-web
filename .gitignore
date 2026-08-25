@@ -1,0 +1,13 @@
+# Python / uv
+projects/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# MkDocs build output
+site/
+
+# OS / editor
+.DS_Store
+*.swp

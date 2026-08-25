@@ -1,0 +1,10 @@
+# Implementation progress status.
+# Keys are the phase/section paths (relative to docs/reference-design/),
+# values are one of: done | in-progress | not-started | blocked | deferred
+#
+# Update this file as work proceeds, then regenerate the page with:
+#   bash scripts/docs/verify.sh
+
+02-step-by-step-implementation/create-the-project-repository: done
+02-step-by-step-implementation/set-up-the-toolchain: not-started
+02-step-by-step-implementation/first-deliverable: not-started

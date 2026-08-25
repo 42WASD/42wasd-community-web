@@ -1,0 +1,34 @@
+# Reading order — SINGLE SOURCE OF TRUTH (SSOT)
+#
+# This manifest is the ONLY place the reading order of the reference docs is
+# defined. The generators (docs-generate-nav.py and
+# docs-generate-implementation.py) read this file and DERIVE every number:
+#
+#   - Part numeral (I, II, III ...)  <- index of the part in `parts`
+#   - Phase number                   <- global position of a tracked section
+#   - tracked (actionable) vs untracked (narrative)  <- the `tracked:` flag
+#
+# Because numbers are DERIVED from list order and never stored in page files,
+# two phases can never collide. To insert/remove/reorder, edit THIS file only,
+# then re-run both generators.
+#
+# Rules:
+#   - `parts` is an ordered list. Each entry is { slug: {tracked, sections} }.
+#   - `slug` = the folder name under docs/reference-design/.
+#   - `sections` = ordered list of direct child folders (slugs) under a part.
+#   - A section may have an optional `subsections` list for deeper nesting.
+#   - A part appears on the Implementation progress page iff `tracked: true`.
+#   - Slugs must match the actual folder names on disk.
+
+parts:
+  - 01-understand-the-system:
+      tracked: false
+      sections:
+        - the-one-sentence-idea
+        - the-target-architecture
+  - 02-step-by-step-implementation:
+      tracked: true
+      sections:
+        - create-the-project-repository
+        - set-up-the-toolchain
+        - first-deliverable
