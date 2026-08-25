@@ -27,30 +27,30 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**5 / 20** phases/sections complete (**25%**).
+**6 / 20** phases/sections complete (**30%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:25.0%"></div></div><div class="progress-pct">25%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:30.0%"></div></div><div class="progress-pct">30%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 5 |
+| ✅ done | 6 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 15 |
+| ⬜ not-started | 14 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 25% — Part III — Step-by-step implementation
+### 30% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:25.0%"></div></div><div class="progress-pct" style="font-size:.85em;">25%</div><div class="tip-box"><strong>Done (5)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:30.0%"></div></div><div class="progress-pct" style="font-size:.85em;">30%</div><div class="tip-box"><strong>Done (6)</strong>
 • Ownership rules
 • Create the solution
 • Repository structure
 • Shared domain types
 • Build routing
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (15)</strong>
 • Root app orchestration
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (14)</strong>
 • Shared application state
 • Home page
 • Stateful page — PageModel
@@ -463,7 +463,100 @@ Phase 5 will add root-app orchestration on top of this routing spine.
 
 </details>
 
-- ⬜ `not-started` — [Phase 5 — Root app orchestration](../reference-design/03-step-by-step-implementation/phase-5-root-app-orchestration/index.md)
+- ✅ `done` — [Phase 5 — Root app orchestration](../reference-design/03-step-by-step-implementation/phase-5-root-app-orchestration/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Root app orchestration</summary>
+
+**Phase 5 complete** — the single root Elmish program is wired up with
+dev-only tracing hooks.
+
+### What this phase required
+
+From the reference spec:
+
+- One `ProgramComponent`.
+- Root `Model` with `Page` + shared state.
+- Root `Msg` with page-change, shared, and local messages.
+- Dev-only Elmish tracing hooks: `withConsoleTrace`, `withErrorHandler`,
+  `withTermination`.
+- The Elmish message trace runs in the **browser console**, not the server
+  terminal (template disables these hooks by default; add them manually).
+
+### Implementation
+
+The root `ProgramComponent` (`MyApp` in `Main.fs`) already existed from the
+template/Phase 1, holding `ProgramComponent<Model, Message>` with the root
+`Model` (containing `Page`) and root `Message`. The `#if DEBUG` block now adds
+the three dev hooks plus hot-reload:
+
+```fsharp
+let program =
+    Program.mkProgram (fun _ -> initModel, Cmd.ofMsg GetSignedInAs) update view
+    |> Program.withRouter router
+#if DEBUG
+program
+|> Program.withConsoleTrace
+|> Program.withErrorHandler (fun (msg, exn) ->
+    printfn $"Elmish error after %A{msg}: {exn}")
+|> Program.withTermination
+    (fun _ -> false)
+    (fun _ -> printfn "Program terminated.")
+|> Program.withHotReload
+#else
+program
+#endif
+```
+
+Notes:
+
+- `withConsoleTrace` logs every message + state change to the browser console.
+- `withErrorHandler` surfaces any `(msg, exn)` raised by the update/view.
+- `withTermination` takes a predicate `'model -> bool` (not an option). The
+  predicate is a pass-through here; the hook is installed for later use.
+- All hooks are `#if DEBUG`-gated so release builds stay lean.
+- Verified against `thirdparty/Bolero` + the restored `Elmish.dll` (4.0.1):
+  the hooks are Elmish `ProgramModule` members (not Bolero's), and the exact
+  signatures are `withConsoleTrace : Program`, `withErrorHandler : (('msg*exn)
+  -> unit) -> Program`, `withTermination : ('model -> bool) -> ('model -> unit)
+  -> Program`.
+
+### Verification
+
+```bash
+dotnet build Community.Web.sln      # Build succeeded, 0 warnings, 0 errors
+```
+
+Live check (Development, browser console capture via Playwright):
+
+```
+log: Initial state:: { page = Home
+log:   games = None ... }
+log: New message:: GetSignedInAs
+log: Updated state:: { page = Home ... }
+log: New message:: RecvSignedInAs None
+log: Updated state:: { ... }
+```
+
+The `withConsoleTrace` output appears in the browser console exactly as the
+reference describes. (The 401 on `/api/getUsername` is expected: `Cmd.OfAuthor
+ized` returns 401 when signed out, correctly yielding `RecvSignedInAs None`.)
+
+### Acceptance (from reference spec)
+
+- [x] Single root `ProgramComponent`
+- [x] Root `Model` with `Page` + shared state
+- [x] Root `Msg` with page-change / shared / local messages
+- [x] `withConsoleTrace` active (browser console trace confirmed)
+- [x] `withErrorHandler` + `withTermination` added (dev-only)
+- [x] Hooks disabled in release (`#if DEBUG`)
+
+### Next
+
+Phase 6 — shared application state.
+
+</details>
+
 - ⬜ `not-started` — [Phase 6 — Shared application state](../reference-design/03-step-by-step-implementation/phase-6-shared-application-state/index.md)
 - ⬜ `not-started` — [Phase 7 — Home page](../reference-design/03-step-by-step-implementation/phase-7-home-page/index.md)
 - ⬜ `not-started` — [Phase 8 — Stateful page — PageModel](../reference-design/03-step-by-step-implementation/phase-8-stateful-page-pagemodel/index.md)

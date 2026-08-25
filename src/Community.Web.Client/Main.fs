@@ -19,8 +19,20 @@ type MyApp() =
     override this.Program =
         let communityApi = this.Remote<CommunityApi>()
         let update = update communityApi
-        Program.mkProgram (fun _ -> initModel, Cmd.ofMsg GetSignedInAs) update view
-        |> Program.withRouter router
+        let program =
+            Program.mkProgram (fun _ -> initModel, Cmd.ofMsg GetSignedInAs) update view
+            |> Program.withRouter router
 #if DEBUG
+        // Dev-only Elmish tracing. The message trace runs in the BROWSER console,
+        // not the server terminal.
+        program
+        |> Program.withConsoleTrace
+        |> Program.withErrorHandler (fun (msg, exn) ->
+            printfn $"Elmish error after %A{msg}: {exn}")
+        |> Program.withTermination
+            (fun _ -> false)
+            (fun _ -> printfn "Program terminated.")
         |> Program.withHotReload
+#else
+        program
 #endif
