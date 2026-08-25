@@ -140,6 +140,41 @@
         </p>
       </template>
 
+      <template id="Profile">
+        <h1 class="title">Your profile</h1>
+        <p>Signed in as <strong>${Username}</strong>.</p>
+        <form onsubmit="${Save}">
+          <div class="field">
+            <label class="label">Handle</label>
+            <div class="control">
+              <input class="input" bind="${Handle}" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Bio</label>
+            <div class="control">
+              <textarea class="textarea" bind="${Bio}"></textarea>
+            </div>
+          </div>
+          <div class="field is-grouped">
+            <div class="control">
+              <input type="submit" value="Save" class="button is-link" />
+            </div>
+            <div class="control">
+              <button class="button" onclick="${SignOut}">Sign out</button>
+            </div>
+          </div>
+        </form>
+      </template>
+
+      <template id="ProfileSignedOut">
+        <div class="content">
+          <h1 class="title">Profile</h1>
+          <p>Sign in to view and edit your profile.</p>
+          <p><a class="button is-link" href="/account">Sign in</a></p>
+        </div>
+      </template>
+
       <template id="EmptyData">
         <tr><td colspan="5">Loading...</td></tr>
       </template>

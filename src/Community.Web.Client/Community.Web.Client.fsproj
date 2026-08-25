@@ -15,6 +15,7 @@
     <Compile Include="Pages/Teams.fs" />
     <Compile Include="Pages/About.fs" />
     <Compile Include="Pages/Account.fs" />
+    <Compile Include="Pages/Profile.fs" />
     <Compile Include="App/App.fs" />
     <Compile Include="Ui/Layout.fs" />
     <Compile Include="Main.fs" />
