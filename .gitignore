@@ -11,6 +11,12 @@ site/
 # Bolero spike workspace (not part of the docs repo)
 BOLERO-SPIKE/
 
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+
 # OS / editor
 .DS_Store
 *.swp
