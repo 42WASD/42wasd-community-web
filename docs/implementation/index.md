@@ -27,23 +27,23 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**10 / 20** phases/sections complete (**50%**).
+**11 / 20** phases/sections complete (**55%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:50.0%"></div></div><div class="progress-pct">50%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:55.0%"></div></div><div class="progress-pct">55%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 10 |
+| ✅ done | 11 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 10 |
+| ⬜ not-started | 9 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 50% — Part III — Step-by-step implementation
+### 55% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:50.0%"></div></div><div class="progress-pct" style="font-size:.85em;">50%</div><div class="tip-box"><strong>Done (10)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:55.0%"></div></div><div class="progress-pct" style="font-size:.85em;">55%</div><div class="tip-box"><strong>Done (11)</strong>
 • Ownership rules
 • Create the solution
 • Repository structure
@@ -54,8 +54,8 @@ assigned a status; a generator renders this page from
 • Home page
 • Stateful page — PageModel
 • Nested page messages
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (10)</strong>
 • Server remoting
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (9)</strong>
 • Feature-owned UI
 • More features
 • Authentication
@@ -1045,7 +1045,130 @@ Phase 10 — (see `_sequence.yaml`).
 
 </details>
 
-- ⬜ `not-started` — [Phase 10 — Server remoting](../reference-design/03-step-by-step-implementation/phase-10-server-remoting/index.md)
+- ✅ `done` — [Phase 10 — Server remoting](../reference-design/03-step-by-step-implementation/phase-10-server-remoting/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Server remoting</summary>
+
+**Phase 10 complete** — server functions are exposed over Bolero remoting and
+the client calls the **same shared `CommunityApi` contract**. The full
+client → remoting endpoint → JSON round-trip is verified with `curl`.
+
+### Goal met
+
+The reference spec asks for:
+
+```text
+configure a remoting service in the server
+client calls shared async functions
+```
+
+Both halves were already established during earlier phases (the app loads all
+data through remoting). This phase verifies the contract with `curl` and
+documents the wiring as the canonical reference.
+
+### The shared contract
+
+`src/Community.Web.Shared/Remoting/CommunityApi.fs` defines the single
+`CommunityApi` record the client and server both compile against. Its
+`BasePath = "/api"` makes each method an `http://host/api/<method>` endpoint.
+No client<->server circular dependency — the contract lives in the shared
+layer (the only Bolero dependency there).
+
+```fsharp
+type CommunityApi =
+    {
+        getGames: unit -> Async<Game[]>
+        getServers: unit -> Async<GameServer[]>
+        getTournaments: unit -> Async<Tournament[]>
+        getNews: unit -> Async<News[]>
+        getPlayers: unit -> Async<Player[]>
+        signIn: string * string -> Async<option<string>>
+        getUsername: unit -> Async<string>
+        signOut: unit -> Async<unit>
+    }
+    interface IRemoteService with
+        member this.BasePath = "/api"
+```
+
+### Server implementation
+
+`src/Community.Web.Server/CommunityApiService.fs` is a `RemoteHandler<CommunityApi>`
+that loads each data set once from JSON and returns it. Auth functions use the
+request context (`ctx.HttpContext.AsyncSignIn` / `AsyncSignOut`); `getUsername`
+is wrapped in `ctx.Authorize` so an unauthenticated call returns `401`.
+
+### Server wiring (`Startup.fs`)
+
+```fsharp
+builder.Services.AddBoleroRemoting<CommunityApiService>()   // register handler
+// ...
+app.MapBoleroRemoting()                                     // expose /api/* routes
+```
+
+### Client wiring (`Main.fs`)
+
+The single root component obtains the remote handler by type and passes it to
+the Elmish `update`, which issues `Cmd.OfAsync.either` / `Cmd.OfAuthorized.either`
+calls:
+
+```fsharp
+let communityApi = this.Remote<CommunityApi>()
+let update = update communityApi
+```
+
+### Verification (curl)
+
+**Note** (from the reference): an F# `unit` argument serializes to JSON `null`
+for remoting — send `-d 'null'`, not `[]` or an empty body.
+
+All data endpoints return their JSON arrays:
+
+```
+POST /api/getGames       -> [{"id":"game-1","name":"Counter-Strike 2",...}]
+POST /api/getServers     -> [{"id":"server-1",...}, ...]
+POST /api/getTournaments -> [{"id":"tournament-1",...}, ...]
+POST /api/getNews        -> [{"id":"news-1",...}, ...]
+POST /api/getPlayers     -> [{"id":"player-1",...}, ...]
+```
+
+The full auth round-trip (cookie jar):
+
+```
+signIn ("user2","password")        -> "user2"
+getUsername                        -> "user2"        // authenticated
+signOut                            -> null
+getUsername (fresh jar)            -> 401            // session cleared
+```
+
+And sign-in failure returns `null` (not an exception):
+
+```
+signIn ("user1","wrong")           -> null
+```
+
+### Verification
+
+```bash
+dotnet build Community.Web.sln      # Build succeeded, 0 warnings, 0 errors
+curl -X POST .../api/getGames -d 'null'   # all endpoints return correct JSON
+```
+
+### Acceptance (from reference spec)
+
+- [x] A remoting service is configured in the server (`AddBoleroRemoting` +
+  `MapBoleroRemoting`)
+- [x] The client calls shared async functions (`this.Remote<CommunityApi>` +
+  `Cmd.OfAsync.either`)
+- [x] `curl` against each remoting endpoint confirms correct JSON
+- [x] `unit` argument sent as JSON `null`, not `[]`/empty body
+
+### Next
+
+Phase 11 — Feature-owned UI (page-specific views move beside their page).
+
+</details>
+
 - ⬜ `not-started` — [Phase 11 — Feature-owned UI](../reference-design/03-step-by-step-implementation/phase-11-feature-owned-ui/index.md)
 - ⬜ `not-started` — [Phase 12 — More features](../reference-design/03-step-by-step-implementation/phase-12-more-features/index.md)
 - ⬜ `not-started` — [Phase 13 — Authentication](../reference-design/03-step-by-step-implementation/phase-13-authentication/index.md)
