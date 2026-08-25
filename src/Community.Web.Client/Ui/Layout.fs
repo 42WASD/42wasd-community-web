@@ -4,6 +4,7 @@ open Bolero
 open Bolero.Html
 open Community.Web.Client.App
 open Community.Web.Client.State
+open Community.Web.Client.Pages
 open Community.Web.Shared.Domain
 
 /// The single shared layout template. Keeps the global `Ui/` folder small:
@@ -78,23 +79,24 @@ let membersPage (model: Model) (dispatch: Message -> unit) =
 let aboutPage (model: Model) (dispatch: Message -> unit) =
     Layout.About().Elt()
 
-/// The Account page renders either the sign-in form (transient state held in
-/// the page's PageModel<AccountForm>, not the root model) or the signed-in
-/// account banner with a Sign out button.
+/// The Account page renders either the sign-in form (transient form state held
+/// in the page's own Account feature Model via PageModel) or the signed-in
+/// account banner with a Sign out button. The form's messages are nested
+/// (Account ...) and the session messages are nested (Shared ...).
 let accountPage (model: Model) (dispatch: Message -> unit) =
     cond model.shared.account <| function
     | Some username ->
         Layout.AccountSignedIn()
             .Username(username)
-            .SignOut(fun _ -> dispatch SendSignOut)
+            .SignOut(fun _ -> dispatch (SharedMsg Shared.SendSignOut))
             .Elt()
     | None ->
         match model.page with
-        | Account pm ->
+        | AccountPage pm ->
             Layout.SignIn()
-                .Username(pm.Model.username, fun s -> dispatch (SetUsername s))
-                .Password(pm.Model.password, fun s -> dispatch (SetPassword s))
-                .SignIn(fun _ -> dispatch SendSignIn)
+                .Username(pm.Model.username, fun s -> dispatch (AccountMsg (Account.SetUsername s)))
+                .Password(pm.Model.password, fun s -> dispatch (AccountMsg (Account.SetPassword s)))
+                .SignIn(fun _ -> dispatch (AccountMsg Account.Submit))
                 .ErrorNotification(
                     cond model.shared.signInFailed <| function
                     | false -> empty()
@@ -123,7 +125,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             menuItem model Tournaments "Tournaments"
             menuItem model Members "Members"
             menuItem model About "About"
-            menuItem model (Account Router.noModel) "Account"
+            menuItem model (AccountPage Router.noModel) "Account"
         })
         .Body(
             cond model.page <| function
@@ -133,7 +135,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Tournaments -> tournamentsPage model dispatch
             | Members -> membersPage model dispatch
             | About -> aboutPage model dispatch
-            | Account _ -> accountPage model dispatch
+            | AccountPage _ -> accountPage model dispatch
         )
         .Error(
             cond model.shared.error <| function
@@ -141,7 +143,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Some err ->
                 Layout.ErrorNotification()
                     .Text(err)
-                    .Hide(fun _ -> dispatch ClearError)
+                    .Hide(fun _ -> dispatch (SharedMsg Shared.ClearError))
                     .Elt()
         )
         .Elt()

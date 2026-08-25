@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="State/RemoteData.fs" />
     <Compile Include="State/Shared.fs" />
+    <Compile Include="Pages/Account.fs" />
     <Compile Include="App/App.fs" />
     <Compile Include="Ui/Layout.fs" />
     <Compile Include="Main.fs" />

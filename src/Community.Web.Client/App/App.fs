@@ -6,12 +6,15 @@ open Bolero
 open Bolero.Remoting
 open Bolero.Remoting.Client
 open Community.Web.Client.State
+open Community.Web.Client.Pages
 open Community.Web.Shared.Domain
 open Community.Web.Shared.Remoting
 
 /// Routing endpoints — the six gaming-community pages plus the Account page.
-/// The Account case carries a PageModel: transient sign-in draft state that
-/// must NOT appear in the URL (Phase 8: stateful page — PageModel).
+/// The AccountPage case carries a PageModel holding the Account feature's own
+/// Model (Phase 8 + Phase 9): transient sign-in draft state excluded from URL.
+/// The case name is `AccountPage` (not `Account`) to avoid colliding with the
+/// `Account` feature module.
 type Page =
     | [<EndPoint "/">] Home
     | [<EndPoint "/games">] Games
@@ -19,21 +22,105 @@ type Page =
     | [<EndPoint "/tournaments">] Tournaments
     | [<EndPoint "/members">] Members
     | [<EndPoint "/about">] About
-    | [<EndPoint "/account">] Account of PageModel<AccountForm>
+    | [<EndPoint "/account">] AccountPage of PageModel<Account.Model>
 
-/// Transient, page-local state for the Account page (the sign-in form draft).
-/// Lives in a PageModel so it is excluded from the URL, persists across
-/// in-page updates, and resets when the page is navigated to fresh
-/// (per the state-lifetime rule).
-and AccountForm =
-    {
-        username: string
-        password: string
-    }
+/// Shared messages — data loading plus session/auth. The reference says do
+/// NOT split Shared into sub-unions prematurely; it only has a handful of
+/// cases, so a single Shared.Msg is right here.
+module Shared =
+
+    type Msg =
+        | GetGames
+        | GotGames of Game[]
+        | GetServers
+        | GotServers of GameServer[]
+        | GetTournaments
+        | GotTournaments of Tournament[]
+        | GetNews
+        | GotNews of News[]
+        | GetPlayers
+        | GotPlayers of Player[]
+        | GetSignedInAs
+        | RecvSignedInAs of option<string>
+        | SendSignIn of string * string
+        | RecvSignIn of option<string>
+        | SendSignOut
+        | RecvSignOut
+        | Error of exn
+        | ClearError
+
+    /// Update shared state for a Shared.Msg. Pure: takes the SharedModel and
+    /// returns the new SharedModel + a command of Shared.Msg (the caller lifts
+    /// it into the root with Cmd.map SharedMsg).
+    let update remote (shared: SharedModel) (msg: Msg) =
+        match msg with
+        | GetGames ->
+            let cmd = Cmd.OfAsync.either remote.getGames () GotGames Error
+            { shared with games = Loading }, cmd
+        | GotGames games ->
+            { shared with games = Loaded (SharedModel.indexById games (fun g -> g.id)) }, Cmd.none
+
+        | GetServers ->
+            let cmd = Cmd.OfAsync.either remote.getServers () GotServers Error
+            { shared with servers = Loading }, cmd
+        | GotServers servers ->
+            { shared with servers = Loaded (SharedModel.indexById servers (fun s -> s.id)) }, Cmd.none
+
+        | GetTournaments ->
+            let cmd = Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
+            { shared with tournaments = Loading }, cmd
+        | GotTournaments tournaments ->
+            { shared with tournaments = Loaded (SharedModel.indexById tournaments (fun t -> t.id)) }, Cmd.none
+
+        | GetNews ->
+            let cmd = Cmd.OfAsync.either remote.getNews () GotNews Error
+            { shared with news = Loading }, cmd
+        | GotNews news ->
+            { shared with news = Loaded (SharedModel.indexById news (fun n -> n.id)) }, Cmd.none
+
+        | GetPlayers ->
+            let cmd = Cmd.OfAsync.either remote.getPlayers () GotPlayers Error
+            { shared with players = Loading }, cmd
+        | GotPlayers players ->
+            { shared with players = Loaded (SharedModel.indexById players (fun p -> p.id)) }, Cmd.none
+
+        | GetSignedInAs ->
+            let cmd = Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
+            shared, cmd
+        | RecvSignedInAs username ->
+            { shared with account = username }, Cmd.none
+
+        | SendSignIn (username, password) ->
+            let cmd = Cmd.OfAsync.either remote.signIn (username, password) RecvSignIn Error
+            shared, cmd
+        | RecvSignIn username ->
+            let shared =
+                { shared with
+                    account = username
+                    signInFailed = Option.isNone username }
+            // Refresh the member list on success (Members reflects the new member).
+            let cmd =
+                match username with
+                | Some _ -> Cmd.ofMsg GetPlayers
+                | None -> Cmd.none
+            shared, cmd
+
+        | SendSignOut ->
+            let cmd = Cmd.OfAsync.either remote.signOut () (fun () -> RecvSignOut) Error
+            shared, cmd
+        | RecvSignOut ->
+            { shared with account = None; signInFailed = false }, Cmd.none
+
+        | Error RemoteUnauthorizedException ->
+            { shared with error = Some "You have been logged out."; account = None }, Cmd.none
+        | Error exn ->
+            { shared with error = Some exn.Message }, Cmd.none
+        | ClearError ->
+            { shared with error = None }, Cmd.none
 
 /// The root model is the single source of truth: Page (active route) and
-/// Shared (persistent cross-page state). Transient page state lives in the
-/// active Page's PageModel, not in the root model.
+/// Shared (persistent cross-page state). The active page's transient state
+/// lives in the page's own feature Model (carried by the route's PageModel).
 type Model =
     {
         page: Page
@@ -41,133 +128,63 @@ type Model =
     }
 
 let initModel =
-    {
-        page = Home
-        shared = SharedModel.init
-    }
+    { page = Home
+      shared = SharedModel.init }
 
-/// The Elmish application's messages — a small root namespace, per the
-/// reference design. Messages grow where they belong (per page/feature),
-/// not as an unbounded flat list at the root.
+/// The root message is an orchestration boundary, not an event dump.
+/// Nested messages are composed into the root and lifted with Cmd.map:
+///   - SharedMsg carries the shared-layer messages (data + session/auth)
+///   - AccountMsg carries the Account page's local messages
+/// (reference: message-organization + the-root-message).
 type Message =
     | SetPage of Page
-    | GetGames
-    | GotGames of Game[]
-    | GetServers
-    | GotServers of GameServer[]
-    | GetTournaments
-    | GotTournaments of Tournament[]
-    | GetNews
-    | GotNews of News[]
-    | GetPlayers
-    | GotPlayers of Player[]
-    | SetUsername of string
-    | SetPassword of string
-    | ClearLoginForm
-    | GetSignedInAs
-    | RecvSignedInAs of option<string>
-    | SendSignIn
-    | RecvSignIn of option<string>
-    | SendSignOut
-    | RecvSignOut
-    | Error of exn
-    | ClearError
+    | SharedMsg of Shared.Msg
+    | AccountMsg of Account.Msg
 
 let update remote message model =
-    // Sign-in success refreshes the member list (players) so the Members page
-    // reflects the newly authenticated member, then clears the sign-in form.
-    let onSignIn = function
-        | Some _ -> Cmd.batch [ Cmd.ofMsg GetPlayers; Cmd.ofMsg ClearLoginForm ]
-        | None -> Cmd.none
-
     match message with
     | SetPage page ->
         { model with page = page }, Cmd.none
 
-    | GetGames ->
-        let cmd = Cmd.OfAsync.either remote.getGames () GotGames Error
-        { model with shared = { model.shared with games = Loading } }, cmd
-    | GotGames games ->
-        { model with shared = { model.shared with games = Loaded (SharedModel.indexById games (fun g -> g.id)) } }, Cmd.none
+    | SharedMsg msg ->
+        let shared, cmd = Shared.update remote model.shared msg
+        // The root orchestrates cross-boundary effects: after a successful
+        // sign-in, also clear the Account page's transient form.
+        let cmd =
+            match msg with
+            | Shared.RecvSignIn (Some _) ->
+                Cmd.batch [ Cmd.map SharedMsg cmd; Cmd.ofMsg (AccountMsg Account.Clear) ]
+            | _ -> Cmd.map SharedMsg cmd
+        { model with shared = shared }, cmd
 
-    | GetServers ->
-        let cmd = Cmd.OfAsync.either remote.getServers () GotServers Error
-        { model with shared = { model.shared with servers = Loading } }, cmd
-    | GotServers servers ->
-        { model with shared = { model.shared with servers = Loaded (SharedModel.indexById servers (fun s -> s.id)) } }, Cmd.none
-
-    | GetTournaments ->
-        let cmd = Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
-        { model with shared = { model.shared with tournaments = Loading } }, cmd
-    | GotTournaments tournaments ->
-        { model with shared = { model.shared with tournaments = Loaded (SharedModel.indexById tournaments (fun t -> t.id)) } }, Cmd.none
-
-    | GetNews ->
-        let cmd = Cmd.OfAsync.either remote.getNews () GotNews Error
-        { model with shared = { model.shared with news = Loading } }, cmd
-    | GotNews news ->
-        { model with shared = { model.shared with news = Loaded (SharedModel.indexById news (fun n -> n.id)) } }, Cmd.none
-
-    | GetPlayers ->
-        let cmd = Cmd.OfAsync.either remote.getPlayers () GotPlayers Error
-        { model with shared = { model.shared with players = Loading } }, cmd
-    | GotPlayers players ->
-        { model with shared = { model.shared with players = Loaded (SharedModel.indexById players (fun p -> p.id)) } }, Cmd.none
-
-    // --- Account page: transient state lives in PageModel<AccountForm>. ---
-    // The PageModel is a mutable holder shared with the view; we update it in
-    // place with Router.definePageModel so in-page edits persist across
-    // re-renders but are never written to the URL.
-    | SetUsername s ->
+    | AccountMsg msg ->
+        // The Account feature's local update runs against its own Model, held
+        // in the route's PageModel (Phase 8). Transient state persists across
+        // in-page updates via the shared PageModel holder. Submit is
+        // interpreted by the root: it issues a Shared session message — a
+        // cross-feature effect translated by the parent (Phase 14, kept minimal).
         match model.page with
-        | Account pm -> Router.definePageModel pm { pm.Model with username = s }
-        | _ -> ()
-        model, Cmd.none
-    | SetPassword s ->
-        match model.page with
-        | Account pm -> Router.definePageModel pm { pm.Model with password = s }
-        | _ -> ()
-        model, Cmd.none
-    | ClearLoginForm ->
-        match model.page with
-        | Account pm -> Router.definePageModel pm { pm.Model with username = ""; password = "" }
-        | _ -> ()
-        model, Cmd.none
-
-    | GetSignedInAs ->
-        model, Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
-    | RecvSignedInAs username ->
-        { model with shared = { model.shared with account = username } }, onSignIn username
-    | SendSignIn ->
-        match model.page with
-        | Account pm ->
-            model, Cmd.OfAsync.either remote.signIn (pm.Model.username, pm.Model.password) RecvSignIn Error
+        | AccountPage pm ->
+            match msg with
+            | Account.Submit ->
+                let send =
+                    Cmd.ofMsg (SharedMsg (Shared.SendSignIn (pm.Model.username, pm.Model.password)))
+                model, send
+            | _ ->
+                let m, cmd = Account.update msg pm.Model
+                Router.definePageModel pm m
+                model, Cmd.map AccountMsg cmd
         | _ -> model, Cmd.none
-    | RecvSignIn username ->
-        { model with
-            shared = { model.shared with account = username; signInFailed = Option.isNone username }
-        }, onSignIn username
-    | SendSignOut ->
-        model, Cmd.OfAsync.either remote.signOut () (fun () -> RecvSignOut) Error
-    | RecvSignOut ->
-        { model with shared = { model.shared with account = None; signInFailed = false } }, Cmd.none
-
-    | Error RemoteUnauthorizedException ->
-        { model with shared = { model.shared with error = Some "You have been logged out."; account = None } }, Cmd.none
-    | Error exn ->
-        { model with shared = { model.shared with error = Some exn.Message } }, Cmd.none
-    | ClearError ->
-        { model with shared = { model.shared with error = None } }, Cmd.none
 
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
 ///
 /// inferWithModel supplies a default PageModel for the Account page: a fresh
-/// empty AccountForm each time the route is entered (per the state-lifetime
+/// empty Account.Model each time the route is entered (per the state-lifetime
 /// rule, transient page state resets on fresh navigation).
 let router =
     let defaultPageModel = function
-        | Account pm -> Router.definePageModel pm { username = ""; password = "" }
+        | AccountPage pm -> Router.definePageModel pm Account.init
         | _ -> ()
     Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
     |> Router.withNotFound Home

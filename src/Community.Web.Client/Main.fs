@@ -23,12 +23,12 @@ type MyApp() =
             Program.mkProgram (fun _ ->
                 initModel,
                 Cmd.batch [
-                    Cmd.ofMsg GetSignedInAs
-                    Cmd.ofMsg GetGames
-                    Cmd.ofMsg GetServers
-                    Cmd.ofMsg GetTournaments
-                    Cmd.ofMsg GetNews
-                    Cmd.ofMsg GetPlayers
+                    Cmd.ofMsg (SharedMsg Shared.GetSignedInAs)
+                    Cmd.ofMsg (SharedMsg Shared.GetGames)
+                    Cmd.ofMsg (SharedMsg Shared.GetServers)
+                    Cmd.ofMsg (SharedMsg Shared.GetTournaments)
+                    Cmd.ofMsg (SharedMsg Shared.GetNews)
+                    Cmd.ofMsg (SharedMsg Shared.GetPlayers)
                 ])
                 update view
             |> Program.withRouter router
