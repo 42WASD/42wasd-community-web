@@ -53,15 +53,64 @@ nav:
 - Home: index.md
 - Reference Design:
   - Overview: reference-design/index.md
-  - I — Understand the system:
-    - Overview: reference-design/01-understand-the-system/index.md
-    - The one-sentence idea: reference-design/01-understand-the-system/the-one-sentence-idea/index.md
-    - The target architecture: reference-design/01-understand-the-system/the-target-architecture/index.md
-  - II — Step-by-step implementation:
-    - Overview: reference-design/02-step-by-step-implementation/index.md
-    - Phase 0 — Create the project repository: reference-design/02-step-by-step-implementation/create-the-project-repository/index.md
-    - Phase 1 — Set up the toolchain: reference-design/02-step-by-step-implementation/set-up-the-toolchain/index.md
-    - Phase 2 — First deliverable: reference-design/02-step-by-step-implementation/first-deliverable/index.md
+  - I — Understand the architecture:
+    - Overview: reference-design/01-understand-the-architecture/index.md
+    - The one-sentence idea: reference-design/01-understand-the-architecture/the-one-sentence-idea/index.md
+    - Why tempting architectures fail: reference-design/01-understand-the-architecture/why-tempting-architectures-fail/index.md
+    - The six-layer mental model: reference-design/01-understand-the-architecture/the-six-layer-mental-model/index.md
+    - The state ownership model: reference-design/01-understand-the-architecture/the-state-ownership-model/index.md
+    - Message organization: reference-design/01-understand-the-architecture/message-organization/index.md
+    - Page and feature organization: reference-design/01-understand-the-architecture/page-and-feature-organization/index.md
+    - Recommended repository structure: reference-design/01-understand-the-architecture/recommended-repository-structure/index.md
+    - Keeping the Ui folder small: reference-design/01-understand-the-architecture/keeping-the-ui-folder-small/index.md
+    - Developer vs gaming community: reference-design/01-understand-the-architecture/developer-vs-gaming-community/index.md
+    - Design language: reference-design/01-understand-the-architecture/design-language/index.md
+  - II — Framework pieces:
+    - Overview: reference-design/02-framework-pieces/index.md
+    - Capability cheat sheet: reference-design/02-framework-pieces/capability-cheat-sheet/index.md
+    - Maturity tiers: reference-design/02-framework-pieces/maturity-tiers/index.md
+    - Verified framework behavior: reference-design/02-framework-pieces/verified-framework-behavior/index.md
+    - Failure modes to design for: reference-design/02-framework-pieces/failure-modes-to-design-for/index.md
+    - Testing boundaries: reference-design/02-framework-pieces/testing-boundaries/index.md
+  - III — Step-by-step implementation:
+    - Overview: reference-design/03-step-by-step-implementation/index.md
+    - Phase 0 — Ownership rules: reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md
+    - Phase 1 — Create the solution: reference-design/03-step-by-step-implementation/phase-1-create-the-solution/index.md
+    - Phase 2 — Repository structure: reference-design/03-step-by-step-implementation/phase-2-repository-structure/index.md
+    - Phase 3 — Shared domain types: reference-design/03-step-by-step-implementation/phase-3-shared-domain-types/index.md
+    - Phase 4 — Build routing: reference-design/03-step-by-step-implementation/phase-4-build-routing/index.md
+    - Phase 5 — Root app orchestration: reference-design/03-step-by-step-implementation/phase-5-root-app-orchestration/index.md
+    - Phase 6 — Shared application state: reference-design/03-step-by-step-implementation/phase-6-shared-application-state/index.md
+    - Phase 7 — Home page: reference-design/03-step-by-step-implementation/phase-7-home-page/index.md
+    - Phase 8 — Stateful page — PageModel: reference-design/03-step-by-step-implementation/phase-8-stateful-page-pagemodel/index.md
+    - Phase 9 — Nested page messages: reference-design/03-step-by-step-implementation/phase-9-nested-page-messages/index.md
+    - Phase 10 — Server remoting: reference-design/03-step-by-step-implementation/phase-10-server-remoting/index.md
+    - Phase 11 — Feature-owned UI: reference-design/03-step-by-step-implementation/phase-11-feature-owned-ui/index.md
+    - Phase 12 — More features: reference-design/03-step-by-step-implementation/phase-12-more-features/index.md
+    - Phase 13 — Authentication: reference-design/03-step-by-step-implementation/phase-13-authentication/index.md
+    - Phase 14 — Cross-feature effects: reference-design/03-step-by-step-implementation/phase-14-cross-feature-effects/index.md
+    - Phase 15 — Rendering optimization: reference-design/03-step-by-step-implementation/phase-15-rendering-optimization/index.md
+    - Phase 16 — Testing ownership boundaries: reference-design/03-step-by-step-implementation/phase-16-testing-ownership-boundaries/index.md
+    - Phase 17 — Design system: reference-design/03-step-by-step-implementation/phase-17-design-system/index.md
+    - Phase 18 — Production hardening: reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md
+    - Phase 19 — Rollout order: reference-design/03-step-by-step-implementation/phase-19-rollout-order/index.md
+  - IV — Technical reference:
+    - Overview: reference-design/04-technical-reference/index.md
+    - The root source of truth model: reference-design/04-technical-reference/the-root-source-of-truth-model/index.md
+    - The root message: reference-design/04-technical-reference/the-root-message/index.md
+    - The recommended page shape: reference-design/04-technical-reference/the-recommended-page-shape/index.md
+    - The recommended RemoteData: reference-design/04-technical-reference/the-recommended-remotedata/index.md
+    - Normalized entity state: reference-design/04-technical-reference/normalized-entity-state/index.md
+    - The events page state: reference-design/04-technical-reference/the-events-page-state/index.md
+    - The dependency rule: reference-design/04-technical-reference/the-dependency-rule/index.md
+    - The routing state rule: reference-design/04-technical-reference/the-routing-state-rule/index.md
+    - The state lifetime rule: reference-design/04-technical-reference/the-state-lifetime-rule/index.md
+    - The functional acceptance test: reference-design/04-technical-reference/the-functional-acceptance-test/index.md
+    - Performance principles: reference-design/04-technical-reference/performance-principles/index.md
+    - Upgrade policy: reference-design/04-technical-reference/upgrade-policy/index.md
+    - Abstraction philosophy: reference-design/04-technical-reference/abstraction-philosophy/index.md
+    - Primary references: reference-design/04-technical-reference/primary-references/index.md
+    - The final recommendation: reference-design/04-technical-reference/the-final-recommendation/index.md
 - Implementation:
   - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<

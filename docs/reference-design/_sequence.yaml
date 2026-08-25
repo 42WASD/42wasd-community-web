@@ -21,14 +21,65 @@
 #   - Slugs must match the actual folder names on disk.
 
 parts:
-  - 01-understand-the-system:
+  - 01-understand-the-architecture:
       tracked: false
       sections:
         - the-one-sentence-idea
-        - the-target-architecture
-  - 02-step-by-step-implementation:
+        - why-tempting-architectures-fail
+        - the-six-layer-mental-model
+        - the-state-ownership-model
+        - message-organization
+        - page-and-feature-organization
+        - recommended-repository-structure
+        - keeping-the-ui-folder-small
+        - developer-vs-gaming-community
+        - design-language
+  - 02-framework-pieces:
+      tracked: false
+      sections:
+        - capability-cheat-sheet
+        - maturity-tiers
+        - verified-framework-behavior
+        - failure-modes-to-design-for
+        - testing-boundaries
+  - 03-step-by-step-implementation:
       tracked: true
       sections:
-        - create-the-project-repository
-        - set-up-the-toolchain
-        - first-deliverable
+        - phase-0-ownership-rules
+        - phase-1-create-the-solution
+        - phase-2-repository-structure
+        - phase-3-shared-domain-types
+        - phase-4-build-routing
+        - phase-5-root-app-orchestration
+        - phase-6-shared-application-state
+        - phase-7-home-page
+        - phase-8-stateful-page-pagemodel
+        - phase-9-nested-page-messages
+        - phase-10-server-remoting
+        - phase-11-feature-owned-ui
+        - phase-12-more-features
+        - phase-13-authentication
+        - phase-14-cross-feature-effects
+        - phase-15-rendering-optimization
+        - phase-16-testing-ownership-boundaries
+        - phase-17-design-system
+        - phase-18-production-hardening
+        - phase-19-rollout-order
+  - 04-technical-reference:
+      tracked: false
+      sections:
+        - the-root-source-of-truth-model
+        - the-root-message
+        - the-recommended-page-shape
+        - the-recommended-remotedata
+        - normalized-entity-state
+        - the-events-page-state
+        - the-dependency-rule
+        - the-routing-state-rule
+        - the-state-lifetime-rule
+        - the-functional-acceptance-test
+        - performance-principles
+        - upgrade-policy
+        - abstraction-philosophy
+        - primary-references
+        - the-final-recommendation

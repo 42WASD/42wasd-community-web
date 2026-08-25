@@ -5,6 +5,23 @@
 # Update this file as work proceeds, then regenerate the page with:
 #   bash scripts/docs/verify.sh
 
-02-step-by-step-implementation/create-the-project-repository: done
-02-step-by-step-implementation/set-up-the-toolchain: not-started
-02-step-by-step-implementation/first-deliverable: not-started
+03-step-by-step-implementation/phase-0-ownership-rules: not-started
+03-step-by-step-implementation/phase-1-create-the-solution: not-started
+03-step-by-step-implementation/phase-2-repository-structure: not-started
+03-step-by-step-implementation/phase-3-shared-domain-types: not-started
+03-step-by-step-implementation/phase-4-build-routing: not-started
+03-step-by-step-implementation/phase-5-root-app-orchestration: not-started
+03-step-by-step-implementation/phase-6-shared-application-state: not-started
+03-step-by-step-implementation/phase-7-home-page: not-started
+03-step-by-step-implementation/phase-8-stateful-page-pagemodel: not-started
+03-step-by-step-implementation/phase-9-nested-page-messages: not-started
+03-step-by-step-implementation/phase-10-server-remoting: not-started
+03-step-by-step-implementation/phase-11-feature-owned-ui: not-started
+03-step-by-step-implementation/phase-12-more-features: not-started
+03-step-by-step-implementation/phase-13-authentication: not-started
+03-step-by-step-implementation/phase-14-cross-feature-effects: not-started
+03-step-by-step-implementation/phase-15-rendering-optimization: not-started
+03-step-by-step-implementation/phase-16-testing-ownership-boundaries: not-started
+03-step-by-step-implementation/phase-17-design-system: not-started
+03-step-by-step-implementation/phase-18-production-hardening: not-started
+03-step-by-step-implementation/phase-19-rollout-order: not-started
