@@ -20,3 +20,6 @@ obj/
 # OS / editor
 .DS_Store
 *.swp
+
+# Scratch design research (not part of the docs/source repo)
+design.md

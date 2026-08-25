@@ -4,3 +4,6 @@
 [submodule "thirdparty/Bolero-Template"]
 	path = thirdparty/Bolero-Template
 	url = https://github.com/42WASD/Bolero-Template.git
+[submodule "thirdparty/radzen-blazor"]
+	path = thirdparty/radzen-blazor
+	url = https://github.com/42WASD/radzen-blazor.git

@@ -12,6 +12,10 @@ let page = doctypeHtml {
         title { "Bolero Application" }
         ``base`` { attr.href "/" }
         link { attr.rel "stylesheet"; attr.href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css" }
+        // Radzen dark base theme — the 42 Abu Dhabi palette (Phase 17) is
+        // applied on top by overriding --rz-* vars in css/index.css.
+        // design.md: load a dark base first, then override vars in our own css.
+        link { attr.rel "stylesheet"; attr.href "_content/Radzen.Blazor/css/material-dark-base.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
         link { attr.rel "stylesheet"; attr.href "Community.Web.Client.styles.css" }
     }
@@ -35,5 +39,7 @@ let page = doctypeHtml {
             comp<Client.Main.MyApp>
         }
         boleroScript
+        // Radzen interactive components need the Radzen.Blazor.js script.
+        script { attr.src "_content/Radzen.Blazor/Radzen.Blazor.min.js" }
     }
 }
