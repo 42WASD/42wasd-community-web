@@ -44,6 +44,7 @@ module Shared =
         | GetTeams
         | GotTeams of Team[]
         | ToggleTournament of string
+        | ToggleFavoriteGame of string
         | GetSignedInAs
         | RecvSignedInAs of option<string>
         | SendSignIn of string * string
@@ -110,6 +111,17 @@ module Shared =
                 | other -> other
             { shared with tournaments = tournaments }, Cmd.none
 
+        | ToggleFavoriteGame gameId ->
+            // A shared effect: add/remove the game id in the favourite set.
+            // Home's "favourite games" stat reads the same set, so it reflects
+            // the change immediately (cross-feature verification).
+            let favorites =
+                if shared.favoriteGames.Contains gameId then
+                    shared.favoriteGames.Remove gameId
+                else
+                    shared.favoriteGames.Add gameId
+            { shared with favoriteGames = favorites }, Cmd.none
+
         | GetSignedInAs ->
             let cmd = Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
             shared, cmd
@@ -167,6 +179,7 @@ type Message =
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
     | TournamentsMsg of Tournaments.Msg
+    | GamesMsg of Games.Msg
 
 let update remote message model =
     match message with
@@ -213,6 +226,14 @@ let update remote message model =
         match msg with
         | Tournaments.ToggleRegistration tournamentId ->
             model, Cmd.ofMsg (SharedMsg (Shared.ToggleTournament tournamentId))
+
+    | GamesMsg msg ->
+        // Same cross-feature pattern as Tournaments: the Games feature emits
+        // its own local message and the root translates it into a shared
+        // effect (favourite games), never mutating Shared directly.
+        match msg with
+        | Games.ToggleFavorite gameId ->
+            model, Cmd.ofMsg (SharedMsg (Shared.ToggleFavoriteGame gameId))
 
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.

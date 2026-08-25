@@ -29,16 +29,18 @@ module Home =
             match shared.players with
             | Loaded m -> m.Count
             | _ -> 0
-        gameCount, onlineNow, openTournaments, memberCount
+        let favoriteCount = shared.favoriteGames.Count
+        gameCount, onlineNow, openTournaments, memberCount, favoriteCount
 
     /// Render the dashboard from the selected shared slices.
     let view (shared: SharedModel) =
-        let gamesCount, onlineNow, openTournaments, memberCount = stats shared
+        let gamesCount, onlineNow, openTournaments, memberCount, favoriteCount = stats shared
         Layout.Home()
             .GamesCount(gamesCount.ToString())
             .OnlineNow(onlineNow.ToString())
             .OpenTournaments(openTournaments.ToString())
             .MembersCount(memberCount.ToString())
+            .Favorites(favoriteCount.ToString())
             .Games(dataRows shared.games <| fun g -> tr { td { g.name }; td { g.genre } })
             .Servers(dataRows shared.servers <| fun s -> tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() } })
             .Tournaments(dataRows shared.tournaments <| fun t -> tr { td { t.name }; td { t.prize } })

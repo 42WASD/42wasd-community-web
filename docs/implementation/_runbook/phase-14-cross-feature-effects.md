@@ -139,13 +139,68 @@ curl -I http://localhost:5023/tournaments # 200
 
 `verify.sh` reports `VERIFY OK`.
 
+### Second cross-feature effect: favourite games
+
+The same pattern powers a second cross-feature effect — favouriting a game on
+the Games page updates a shared favourite set, reflected on Home.
+
+- `State/Shared.fs` `SharedModel` gained `favoriteGames: Set<string>` (init
+  `Set.empty`). This is shared state owned by the Shared layer; the Games
+  feature only dispatches to it.
+- `Shared.Msg` gained `ToggleFavoriteGame of string`. `Shared.update` toggles
+  the id in the set:
+
+  ```fsharp
+  | ToggleFavoriteGame gameId ->
+      let favorites =
+          if shared.favoriteGames.Contains gameId then
+              shared.favoriteGames.Remove gameId
+          else
+              shared.favoriteGames.Add gameId
+      { shared with favoriteGames = favorites }, Cmd.none
+  ```
+
+- `Pages/Games.fs` became feature-owned (`Games.Msg = ToggleFavorite of
+  string`). Each row renders a **Favourite/Unfavourite** button that emits the
+  local message; the view selects the favourite set from Shared to know the
+  current state. The `wwwroot.html` Games template gained an **Actions**
+  column.
+- Root `Message` gained `GamesMsg of Games.Msg`; root `update` translates it
+  to the shared effect:
+
+  ```fsharp
+  | GamesMsg msg ->
+      match msg with
+      | Games.ToggleFavorite gameId ->
+          model, Cmd.ofMsg (SharedMsg (Shared.ToggleFavoriteGame gameId))
+  ```
+
+- `Ui/Layout.fs` passes the Games dispatch; `Home.fs` reads
+  `shared.favoriteGames.Count` and shows a **"X favourite games"** stat (the
+  `Home` template gained a `${Favorites}` slot).
+
+MVU trace (clicking "Favourite" on Counter-Strike 2):
+
+```
+New message:: GamesMsg (ToggleFavorite "game-1")
+New message:: SharedMsg (ToggleFavoriteGame "game-1")
+```
+
+Browser: click "Favourite" on CS2 → button flips to "Unfavourite"; navigate to
+Home → "1 favourite games" stat appears; navigate away to Games → still
+"Unfavourite" (persists in the shared set, no re-fetch).
+
 ### Files changed
 
 ```
-src/Community.Web.Client/App/App.fs                 (+ Shared.ToggleTournament, + TournamentsMsg, update)
+src/Community.Web.Client/App/App.fs                 (+ Shared.ToggleTournament, + Shared.ToggleFavoriteGame,
+                                                     + TournamentsMsg, + GamesMsg, update)
 src/Community.Web.Client/Pages/Tournaments.fs       (feature-owned Msg + toggle row + view)
-src/Community.Web.Client/Ui/Layout.fs               (+ Tournaments dispatch)
-src/Community.Web.Client/wwwroot/main.html          (+ Actions column)
+src/Community.Web.Client/Pages/Games.fs             (feature-owned Msg + favourite button + view)
+src/Community.Web.Client/Pages/Home.fs              (+ favourite count stat)
+src/Community.Web.Client/State/Shared.fs           (+ favoriteGames)
+src/Community.Web.Client/Ui/Layout.fs              (+ Tournaments + Games dispatch)
+src/Community.Web.Client/wwwroot/main.html         (+ Actions columns, ${Favorites} slot)
 docs/implementation/progress.yaml                   (phase-14: done)
 docs/implementation/index.md                       (regenerated)
 docs/implementation/_runbook/phase-14-cross-feature-effects.md  (this file)

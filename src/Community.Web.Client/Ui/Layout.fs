@@ -38,7 +38,7 @@ let view (model: Model) (dispatch: Message -> unit) =
         .Body(
             cond model.page <| function
             | Home -> Home.view model.shared
-            | Games -> Games.view model.shared
+            | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))
             | Servers -> Servers.view model.shared
             | Tournaments ->
                 Tournaments.view model.shared (fun msg -> dispatch (TournamentsMsg msg))

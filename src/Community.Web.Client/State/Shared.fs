@@ -16,6 +16,9 @@ type SharedModel =
         players: RemoteData<Map<string, Player>>
         teams: RemoteData<Map<string, Team>>
         account: option<string>
+        /// The set of game ids the signed-in user has favourited (a shared
+        /// cross-feature value: set on the Games page, reflected on Home).
+        favoriteGames: Set<string>
         error: string option
         signInFailed: bool
     }
@@ -32,6 +35,7 @@ module SharedModel =
             players = NotAsked
             teams = NotAsked
             account = None
+            favoriteGames = Set.empty
             error = None
             signInFailed = false
         }
