@@ -4,6 +4,25 @@ You are working in a MkDocs documentation project built on a
 **Single-Source-of-Truth (SSOT)** reading-order manifest, guarded by a
 deterministic verification toolkit. Follow these conventions.
 
+## Debugging: always use the MVU log trace first
+
+When something is wrong at runtime (data not loading, wrong rendering, a page
+misbehaving, a 401/404, an update not firing, etc.), **always debug with the
+Elmish MVU message trace first** before writing new code or guessing:
+
+1. Open the browser console (the Elmish trace runs there, not the server
+   terminal).
+2. Read the `dispatch` log: which `Message`s fire, in what order, and what they
+   carry (e.g. `GetGames` → `GotGames`). Confirm each expected message is
+   dispatched and arrives.
+3. Use that trace to locate where the flow breaks (message never dispatched, an
+   `Error`/`Recv...` arrives with the wrong payload, an update drops state,
+   etc.) **before** changing any code.
+4. Only after the MVU trace has pinpointed the faulty step do you fix that step.
+
+Rule of thumb: trace first, fix second. Do not skip the console trace and jump
+straight to edits.
+
 ## The core rule: the manifest is the source of truth
 
 `docs/reference-design/_sequence.yaml` is the **only** place ordering is
