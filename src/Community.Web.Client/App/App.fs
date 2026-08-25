@@ -163,11 +163,16 @@ type Model =
     {
         page: Page
         shared: SharedModel
+        /// Whether the RadzenSidebar nav is expanded. Held here (not in a
+        /// page) because the shell is cross-feature UI. Radzen's responsive
+        /// sidebar auto-collapses on small screens via its own media query.
+        sidebarExpanded: bool
     }
 
 let initModel =
     { page = Home
-      shared = SharedModel.init }
+      shared = SharedModel.init
+      sidebarExpanded = true }
 
 /// The root message is an orchestration boundary, not an event dump.
 /// Nested messages are composed into the root and lifted with Cmd.map:
@@ -176,6 +181,7 @@ let initModel =
 /// (reference: message-organization + the-root-message).
 type Message =
     | SetPage of Page
+    | ToggleSidebar
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
     | TournamentsMsg of Tournaments.Msg
@@ -185,6 +191,9 @@ let update remote message model =
     match message with
     | SetPage page ->
         { model with page = page }, Cmd.none
+
+    | ToggleSidebar ->
+        { model with sidebarExpanded = not model.sidebarExpanded }, Cmd.none
 
     | SharedMsg msg ->
         let shared, cmd = Shared.update remote model.shared msg

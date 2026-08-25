@@ -8,7 +8,6 @@
     <Compile Include="State/Shared.fs" />
     <Compile Include="Ui/RenderProbe.fs" />
     <Compile Include="Ui/RadzenUI.fs" />
-    <Compile Include="Ui/Templates.fs" />
     <Compile Include="Pages/Home.fs" />
     <Compile Include="Pages/Games.fs" />
     <Compile Include="Pages/Servers.fs" />

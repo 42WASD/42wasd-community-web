@@ -2180,6 +2180,112 @@ Design confirmed live in the browser: black body background, `--rz-primary`
 
 `verify.sh` reports `VERIFY OK`.
 
+---
+
+### Phase 17b — full Radzen conversion (responsive layout, zero custom CSS)
+
+Follow-up pass (same phase, appended): every page and the app shell are now
+built entirely from Radzen primitives behind the `RadzenUI` wrappers, and
+`index.css` is reduced to palette tokens only. The Bulma templates and the
+HTML template engine are gone.
+
+#### The three design decisions
+
+1. **Layout shell = `RadzenLayout`** (Header + Sidebar + Body + Footer). The
+   sidebar auto-collapses below 768px (`ResponsiveMaxWidth`), and the hamburger
+   (`RadzenSidebarToggle`) flips a `sidebarExpanded` bool held in the root
+   `Model`. Radzen primitives, not custom CSS, provide all responsiveness.
+2. **Radzen primitives + zero custom CSS.** `wwwroot/css/index.css` is cut from
+   ~200 lines of hardcoded layout to ~60 lines of pure `:root` palette tokens
+   plus the typeface rule. No `.sidebar` width, `.box`, `.title`, `.table`,
+   `.server-card`, `.status-dot`, `.navbar` — those were Bulma's responsibility
+   and are now Radzen's.
+3. **All pages, not just the two key pages.** Home, Games, Servers,
+   Tournaments, Members, Teams, About, and Account all render through Radzen
+   wrappers now.
+
+#### What changed
+
+| Area | Before | After |
+|---|---|---|
+| App shell | `Layout` HTML template (`main.html`) | `RadzenLayout` shell in `Ui/Layout.fs` |
+| Nav | `Layout.MenuItem()` template | `RadzenPanelMenuItem` + `RadzenPanelMenu` |
+| Pages | `Layout.Home()/.Games()/...` templates | Radzen `vStack`/`row`/`column`/`card`/`text`/`button`/`skeleton` |
+| Loading | `Layout.EmptyData()` | `RadzenSkeleton` |
+| Errors | `Layout.ErrorNotification()` | `RadzenAlert` (non-dismissible) |
+| Forms | `Layout.SignIn()/.AccountSignedIn()` | `RadzenTextBox`/`RadzenPassword`/`RadzenTextArea`/`RadzenButton` |
+| Templates infra | `Ui/Templates.fs` + `wwwroot/main.html` | **deleted** (no HTML templates remain) |
+| CSS | hardcoded layout rules | `:root` palette tokens only |
+
+#### The new shell (`Ui/Layout.fs`)
+
+```fsharp
+let view (model: Model) (dispatch: Message -> unit) =
+    RadzenUI.layout (concat {
+        RadzenUI.header (concat {
+            RadzenUI.hStackGap "0.5rem" (concat {
+                RadzenUI.sidebarToggle (fun () -> dispatch ToggleSidebar)
+                RadzenUI.text RadzenUI.heading4 "42WASD"
+            })
+        })
+        RadzenUI.sidebarExpanded model.sidebarExpanded (fun _ -> dispatch ToggleSidebar)
+            (RadzenUI.panelMenu (concat { /* menuItem per page */ }))
+        RadzenUI.body (cond model.page <| function
+            | Home -> Home.view model.shared
+            | ... )
+        RadzenUI.footer (cond model.shared.error <| function
+            | Some err -> RadzenUI.alert RadzenUI.dangerAlert err
+            | None -> empty())
+    })
+```
+
+`ToggleSidebar` was added to the root `Message` and `sidebarExpanded` to the
+root `Model` — the only state-ownership change, and it's shell-only (sidebar
+state is cross-feature UI, so it belongs at the root, not in any page).
+
+#### Radzen API notes (verified in vendored source)
+
+- `RadzenSidebarToggle.Click` is `EventCallback<EventArgs>` (not
+  `MouseEventArgs`); `RadzenButton.Click` IS `EventCallback<MouseEventArgs>`.
+- `RadzenAlert.Close` is a non-generic `EventCallback` — Bolero's
+  `attr.callback` produces `EventCallback<'T>`, so the shared error alert is
+  non-dismissible (`AllowClose=false`) to avoid the cast mismatch.
+- `RadzenSidebar.Expanded`/`ExpandedChanged` is the two-way binding; the
+  wrapper passes both to keep the shell controlled by Elmish state.
+- `RadzenColumn` `SizeXS/SM/MD/LG` provide the responsive 12-col grid.
+- `RadzenSkeleton` `SkeletonVariant` uses `Text/Circular/Rectangular` (not
+  `Circle`/`Rectangle`).
+
+#### Phase 17b files changed
+
+```
+src/Community.Web.Client/Ui/RadzenUI.fs    (+ alert, panel menu/menu item,
+                                             sidebarExpanded, password wrappers)
+src/Community.Web.Client/Ui/Layout.fs      (rewritten: RadzenLayout shell)
+src/Community.Web.Client/Ui/Templates.fs   (deleted — no templates remain)
+src/Community.Web.Client/wwwroot/main.html (deleted — no templates remain)
+src/Community.Web.Client/Community.Web.Client.fsproj  (- Templates.fs)
+src/Community.Web.Client/App/App.fs        (+ ToggleSidebar, sidebarExpanded)
+src/Community.Web.Client/Pages/*.fs        (all 8 pages → Radzen primitives)
+src/Community.Web.Server/Index.fs          (- Bulma navbar; keeps Radzen css/js)
+src/Community.Web.Client/wwwroot/css/index.css  (slim to palette tokens)
+```
+
+#### Phase 17b verification
+
+```bash
+dotnet build Community.Web.sln        # 0 warnings, 0 errors
+dotnet test tests/Community.Client.Tests/  # all 21 still pass
+```
+
+Confirmed live in the browser: the `RadzenLayout` shell renders with the
+sidebar, the hamburger collapses/expands the nav, and all eight pages render
+through Radzen cards/grid/buttons — including sign-in, favourite toggle, and
+tournament registration (the cross-feature effects still update the shared
+canonical caches exactly as before).
+
+`verify.sh` reports `VERIFY OK`.
+
 </details>
 
 - ⬜ `not-started` — [Phase 18 — Production hardening](../reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md)

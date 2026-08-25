@@ -4,7 +4,6 @@ open Bolero
 open Bolero.Html
 open Community.Web.Client.State
 open Community.Web.Client.Ui
-open Community.Web.Client.Ui.Templates
 open Community.Web.Shared.Domain
 
 /// Tournaments page — feature-owned view. Selects the canonical Tournaments
@@ -25,26 +24,29 @@ module Tournaments =
     /// ToggleRegistration (owned by this feature); the root turns it into a
     /// shared-cache update.
     let card (tournament: Tournament) (dispatch: Msg -> unit) =
-        RadzenUI.card RadzenUI.outlinedCard (concat {
-            div {
-                attr.``class`` "tournament-card"
-                h3 { attr.``class`` "title is-5"; tournament.name }
-                div { attr.``class`` "tournament-prize"; tournament.prize }
-                div { attr.``class`` "tournament-date"; tournament.startsAt.ToString("yyyy-MM-dd") }
-                if tournament.registrationOpen then
-                    RadzenUI.button "Close registration" RadzenUI.dangerButton (fun () -> ToggleRegistration tournament.id) dispatch
-                else
-                    RadzenUI.button "Reopen registration" RadzenUI.successButton (fun () -> ToggleRegistration tournament.id) dispatch
-            }
+        RadzenUI.cardOutlined (concat {
+            RadzenUI.vStackGap "0.5rem" (concat {
+                RadzenUI.text RadzenUI.heading6 tournament.name
+                RadzenUI.text RadzenUI.overline tournament.prize
+                RadzenUI.text RadzenUI.caption (tournament.startsAt.ToString("yyyy-MM-dd"))
+            })
+            if tournament.registrationOpen then
+                RadzenUI.button "Close registration" RadzenUI.dangerButton (fun () -> ToggleRegistration tournament.id) dispatch
+            else
+                RadzenUI.button "Reopen registration" RadzenUI.successButton (fun () -> ToggleRegistration tournament.id) dispatch
         })
 
-    /// The Tournaments page view. Selects the canonical cache; if it isn't
-    /// loaded yet, falls back to the shared loading/empty row.
+    /// The Tournaments page view. Selects the canonical cache; renders a
+    /// responsive row of tournament cards.
     let view (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.tournaments <| function
-        | NotAsked | Loading -> Layout.Tournaments().Rows(Layout.EmptyData().Elt()).Elt()
-        | Failed _ -> Layout.Tournaments().Rows(Layout.EmptyData().Elt()).Elt()
+        | NotAsked | Loading ->
+            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+        | Failed _ ->
+            RadzenUI.text RadzenUI.body1 "Couldn't load tournaments."
         | Loaded m ->
-            Layout.Tournaments()
-                .Rows(forEach (Map.toArray m) (fun (_, t) -> card t dispatch))
-                .Elt()
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.text RadzenUI.display3 "Tournaments"
+                RadzenUI.rowGap "1rem" (forEach (Map.toArray m) (fun (_, t) ->
+                    RadzenUI.columnResponsive 12 6 4 (card t dispatch)))
+            })
