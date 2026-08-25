@@ -1,6 +1,9 @@
 namespace Community.Web.Client.Pages
 
+open Bolero
+open Bolero.Html
 open Elmish
+open Community.Web.Client.Ui.Templates
 
 /// The Account page feature — owns the transient sign-in form draft.
 /// (Phase 9: nested page messages.) This module holds its own Model, Msg,
@@ -46,3 +49,34 @@ module Account =
         | SetPassword s -> { model with password = s }, Cmd.none
         | Clear -> init, Cmd.none
         | Submit -> model, Cmd.none
+
+    /// The Account page's feature-owned view. It takes the slices of Shared it
+    /// needs (the authenticated username + sign-in failure flag) *selected*,
+    /// not duplicated, plus the live transient form draft (from the active
+    /// PageModel). Local form messages are dispatched to the local dispatcher;
+    /// the sign-out action is passed in as a callback because it is a
+    /// cross-feature (session) effect owned by the root/Shared.
+    let view (form: Model) (username: option<string>) (signInFailed: bool) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
+        cond username <| function
+        | Some name ->
+            Layout.AccountSignedIn()
+                .Username(name)
+                .SignOut(fun _ -> signOut ())
+                .Elt()
+        | None ->
+            // The form draft comes from the live transient form (the active
+            // page's PageModel value) supplied by the caller.
+            Layout.SignIn()
+                .Username(form.username, fun s -> localDispatch (SetUsername s))
+                .Password(form.password, fun s -> localDispatch (SetPassword s))
+                .SignIn(fun _ -> localDispatch Submit)
+                .ErrorNotification(
+                    cond signInFailed <| function
+                    | false -> empty()
+                    | true ->
+                        Layout.ErrorNotification()
+                            .HideClass("is-hidden")
+                            .Text("Sign in failed. Use any username and the password \"password\".")
+                            .Elt()
+                )
+                .Elt()
