@@ -1,3 +1,103 @@
 :root {
   /* Optional custom theme overrides for your docs site. */
 }
+
+/* ------------------------------------------------------------------ */
+/* Implementation progress bars (generated HTML in implementation/)     */
+/* ------------------------------------------------------------------ */
+
+/* Outer wrapper for the overall bar. */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The bar track (grey background). */
+.progress-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--md-default-fg-color--lightest);
+  overflow: hidden;
+  min-width: 120px;
+}
+
+/* The filled portion; width is driven by the inline `--w` variable. */
+.progress-fill {
+  position: relative;
+  height: 100%;
+  width: var(--w, 0%);
+  border-radius: 7px;
+  background: var(--md-primary-fg-color);
+  transition: width 0.4s ease;
+}
+
+/* Animated shimmer variant for the overall bar. */
+.progress-fill--shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--md-primary-fg-color) 30%,
+    var(--md-primary-fg-color--light) 50%,
+    var(--md-primary-fg-color) 70%
+  );
+  background-size: 200% 100%;
+  animation: progress-shimmer 2.2s linear infinite;
+}
+
+@keyframes progress-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* The percentage readout next to a bar. */
+.progress-pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--md-typeset-color);
+}
+
+/* The hover tooltip listing done vs pending phases. */
+.tip {
+  position: relative;
+}
+
+.tip-box {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 50;
+  min-width: 260px;
+  max-width: 460px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  font-size: 0.85em;
+  line-height: 1.45;
+  white-space: normal;
+  color: var(--md-typeset-color);
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tip:hover .tip-box,
+.tip:focus-within .tip-box {
+  display: block;
+}
+
+/* The runbook collapsible details blocks. */
+details.runbook {
+  margin: 0.4rem 0 0.8rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  padding: 0 0.8rem;
+  background: var(--md-code-bg-color);
+}
