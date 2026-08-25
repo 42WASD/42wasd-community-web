@@ -28,23 +28,23 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
 
     override this.Handler =
         {
-            getGames = ctx.Authorize <| fun () -> async {
+            getGames = fun () -> async {
                 return games
             }
 
-            getServers = ctx.Authorize <| fun () -> async {
+            getServers = fun () -> async {
                 return servers
             }
 
-            getTournaments = ctx.Authorize <| fun () -> async {
+            getTournaments = fun () -> async {
                 return tournaments
             }
 
-            getNews = ctx.Authorize <| fun () -> async {
+            getNews = fun () -> async {
                 return news
             }
 
-            getPlayers = ctx.Authorize <| fun () -> async {
+            getPlayers = fun () -> async {
                 return players
             }
 

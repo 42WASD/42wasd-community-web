@@ -18,8 +18,33 @@ let dataRows (rd: RemoteData<Map<string, 'T>>) (render: 'T -> Node) =
         | Loaded m -> forEach (Map.toArray m) (fun (_, t) -> render t)
         | Failed _ -> Layout.EmptyData().Elt()
 
+/// Compute community stats from shared state (0 when not loaded yet).
+let stats (shared: SharedModel) =
+    let gameCount =
+        match shared.games with
+        | Loaded m -> m.Count
+        | _ -> 0
+    let onlineNow =
+        match shared.servers with
+        | Loaded m -> m.Values |> Seq.sumBy (fun s -> s.onlinePlayers)
+        | _ -> 0
+    let openTournaments =
+        match shared.tournaments with
+        | Loaded m -> m.Values |> Seq.filter (fun t -> t.registrationOpen) |> Seq.length
+        | _ -> 0
+    let memberCount =
+        match shared.players with
+        | Loaded m -> m.Count
+        | _ -> 0
+    gameCount, onlineNow, openTournaments, memberCount
+
 let homePage (model: Model) (dispatch: Message -> unit) =
+    let gamesCount, onlineNow, openTournaments, memberCount = stats model.shared
     Layout.Home()
+        .GamesCount(gamesCount.ToString())
+        .OnlineNow(onlineNow.ToString())
+        .OpenTournaments(openTournaments.ToString())
+        .MembersCount(memberCount.ToString())
         .Games(dataRows model.shared.games <| fun g -> tr { td { g.name }; td { g.genre } })
         .Servers(dataRows model.shared.servers <| fun s -> tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() } })
         .Tournaments(dataRows model.shared.tournaments <| fun t -> tr { td { t.name }; td { t.prize } })
