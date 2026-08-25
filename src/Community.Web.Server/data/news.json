@@ -1,0 +1,14 @@
+[
+  {
+    "id": "news-1",
+    "title": "Welcome to the new community site",
+    "body": "We are excited to launch our new community hub.",
+    "publishedAt": "2026-06-01T00:00:00"
+  },
+  {
+    "id": "news-2",
+    "title": "CS2 Summer Cup registrations open",
+    "body": "Sign up now for the upcoming tournament.",
+    "publishedAt": "2026-06-20T00:00:00"
+  }
+]

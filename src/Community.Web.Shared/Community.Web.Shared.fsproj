@@ -4,8 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Contracts/Books.fs" />
-    <Compile Include="Contracts/CommunityApi.fs" />
+    <Compile Include="Domain/Game.fs" />
+    <Compile Include="Domain/Player.fs" />
+    <Compile Include="Domain/Team.fs" />
+    <Compile Include="Domain/GameServer.fs" />
+    <Compile Include="Domain/Tournament.fs" />
+    <Compile Include="Domain/News.fs" />
+    <Compile Include="Remoting/CommunityApi.fs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Core Bolero (shared remoting contract), NOT Bolero.Server/Bolero.Client.

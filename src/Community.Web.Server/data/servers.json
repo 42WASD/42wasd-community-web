@@ -1,0 +1,29 @@
+[
+  {
+    "id": "server-1",
+    "name": "CS2 Competitive",
+    "gameId": "game-1",
+    "address": "cs2.42wasd.gg:27015",
+    "onlinePlayers": 8,
+    "maxPlayers": 12,
+    "status": "online"
+  },
+  {
+    "id": "server-2",
+    "name": "Dota 2 Ladder",
+    "gameId": "game-2",
+    "address": "dota.42wasd.gg:27016",
+    "onlinePlayers": 20,
+    "maxPlayers": 50,
+    "status": "online"
+  },
+  {
+    "id": "server-3",
+    "name": "Survival SMP",
+    "gameId": "game-3",
+    "address": "mc.42wasd.gg:25565",
+    "onlinePlayers": 12,
+    "maxPlayers": 20,
+    "status": "online"
+  }
+]

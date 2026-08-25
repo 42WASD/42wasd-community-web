@@ -24,7 +24,7 @@ let main args =
     builder.Services.AddAuthorization()
         .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie()
-    builder.Services.AddBoleroRemoting<BookService>()
+    builder.Services.AddBoleroRemoting<CommunityApiService>()
     builder.Services.AddBoleroHost(server = false)
 #if DEBUG
     builder.Services.AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../Community.Web.Client")

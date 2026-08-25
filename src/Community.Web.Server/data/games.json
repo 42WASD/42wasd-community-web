@@ -1,0 +1,20 @@
+[
+  {
+    "id": "game-1",
+    "name": "Counter-Strike 2",
+    "genre": "FPS",
+    "description": "Tactical team-based first-person shooter."
+  },
+  {
+    "id": "game-2",
+    "name": "Dota 2",
+    "genre": "MOBA",
+    "description": "5v5 multiplayer online battle arena."
+  },
+  {
+    "id": "game-3",
+    "name": "Minecraft",
+    "genre": "Sandbox",
+    "description": "Open-world sandbox survival game."
+  }
+]

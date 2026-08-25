@@ -3,7 +3,7 @@ module Community.Web.Client.Ui.Layout
 open Bolero
 open Bolero.Html
 open Community.Web.Client.App
-open Community.Web.Shared.Contracts
+open Community.Web.Shared.Domain
 
 /// The single shared layout template. Keeps the global `Ui/` folder small:
 /// only cross-feature UI lives here (per the reference design). Page-specific
@@ -11,48 +11,55 @@ open Community.Web.Shared.Contracts
 type Layout = Template<"wwwroot/main.html">
 
 let homePage (model: Model) (dispatch: Message -> unit) =
-    Layout.Home().Elt()
-
-let counterPage (model: Model) (dispatch: Message -> unit) =
-    Layout.Counter()
-        .Decrement(fun _ -> dispatch Decrement)
-        .Increment(fun _ -> dispatch Increment)
-        .Value(model.counter, fun v -> dispatch (SetCounter v))
+    Layout.Home()
+        .Games(cond model.games <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some games -> forEach games <| fun g -> tr { td { g.name }; td { g.genre } })
+        .Servers(cond model.servers <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some servers -> forEach servers <| fun s -> tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() } })
+        .Tournaments(cond model.tournaments <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some ts -> forEach ts <| fun t -> tr { td { t.name }; td { t.prize } })
+        .News(cond model.news <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some ns -> forEach ns <| fun n -> tr { td { n.title }; td { n.publishedAt.ToString("yyyy-MM-dd") } })
         .Elt()
 
-let dataPage (model: Model) (username: string) (dispatch: Message -> unit) =
-    Layout.Data()
-        .Reload(fun _ -> dispatch GetBooks)
-        .Username(username)
-        .SignOut(fun _ -> dispatch SendSignOut)
-        .Rows(cond model.books <| function
-            | None ->
-                Layout.EmptyData().Elt()
-            | Some books ->
-                forEach books <| fun book ->
-                    tr {
-                        td { book.title }
-                        td { book.author }
-                        td { book.publishDate.ToString("yyyy-MM-dd") }
-                        td { book.isbn }
-                    })
+let gamesPage (model: Model) (dispatch: Message -> unit) =
+    Layout.Games()
+        .Rows(cond model.games <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some games -> forEach games <| fun g ->
+                tr { td { g.name }; td { g.genre }; td { g.description } })
         .Elt()
 
-let signInPage (model: Model) (dispatch: Message -> unit) =
-    Layout.SignIn()
-        .Username(model.username, fun s -> dispatch (SetUsername s))
-        .Password(model.password, fun s -> dispatch (SetPassword s))
-        .SignIn(fun _ -> dispatch SendSignIn)
-        .ErrorNotification(
-            cond model.signInFailed <| function
-            | false -> empty()
-            | true ->
-                Layout.ErrorNotification()
-                    .HideClass("is-hidden")
-                    .Text("Sign in failed. Use any username and the password \"password\".")
-                    .Elt()
-        )
+let serversPage (model: Model) (dispatch: Message -> unit) =
+    Layout.Servers()
+        .Rows(cond model.servers <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some servers -> forEach servers <| fun s ->
+                tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() }; td { s.status } })
         .Elt()
+
+let tournamentsPage (model: Model) (dispatch: Message -> unit) =
+    Layout.Tournaments()
+        .Rows(cond model.tournaments <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some ts -> forEach ts <| fun t ->
+                tr { td { t.name }; td { t.prize }; td { t.startsAt.ToString("yyyy-MM-dd") } })
+        .Elt()
+
+let membersPage (model: Model) (dispatch: Message -> unit) =
+    Layout.Members()
+        .Rows(cond model.players <| function
+            | None -> Layout.EmptyData().Elt()
+            | Some players -> forEach players <| fun p ->
+                tr { td { p.username }; td { defaultArg p.discord "" } })
+        .Elt()
+
+let aboutPage (model: Model) (dispatch: Message -> unit) =
+    Layout.About().Elt()
 
 let menuItem (model: Model) (page: Page) (text: string) =
     Layout.MenuItem()
@@ -65,17 +72,20 @@ let view (model: Model) (dispatch: Message -> unit) =
     Layout()
         .Menu(concat {
             menuItem model Home "Home"
-            menuItem model Counter "Counter"
-            menuItem model Data "Download data"
+            menuItem model Games "Games"
+            menuItem model Servers "Servers"
+            menuItem model Tournaments "Tournaments"
+            menuItem model Members "Members"
+            menuItem model About "About"
         })
         .Body(
             cond model.page <| function
             | Home -> homePage model dispatch
-            | Counter -> counterPage model dispatch
-            | Data ->
-                cond model.signedInAs <| function
-                | Some username -> dataPage model username dispatch
-                | None -> signInPage model dispatch
+            | Games -> gamesPage model dispatch
+            | Servers -> serversPage model dispatch
+            | Tournaments -> tournamentsPage model dispatch
+            | Members -> membersPage model dispatch
+            | About -> aboutPage model dispatch
         )
         .Error(
             cond model.error <| function

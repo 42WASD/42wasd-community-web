@@ -7,7 +7,7 @@ open Bolero.Remoting.Client
 open Bolero.Templating.Client
 open Community.Web.Client.App
 open Community.Web.Client.Ui.Layout
-open Community.Web.Shared.Contracts
+open Community.Web.Shared.Remoting
 
 /// The single root ProgramComponent. Content is defined by the Elmish
 /// program composed in App (state + update + router) and Ui (view).
@@ -17,8 +17,8 @@ type MyApp() =
     override _.CssScope = CssScopes.MyApp
 
     override this.Program =
-        let bookService = this.Remote<BookService>()
-        let update = update bookService
+        let communityApi = this.Remote<CommunityApi>()
+        let update = update communityApi
         Program.mkProgram (fun _ -> initModel, Cmd.ofMsg GetSignedInAs) update view
         |> Program.withRouter router
 #if DEBUG

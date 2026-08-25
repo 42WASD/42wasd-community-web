@@ -3,22 +3,30 @@ module Community.Web.Client.App
 open System
 open Elmish
 open Bolero
+open Bolero.Remoting
 open Bolero.Remoting.Client
-open Community.Web.Shared.Contracts
+open Community.Web.Shared.Domain
+open Community.Web.Shared.Remoting
 
-/// Routing endpoints definition.
+/// Routing endpoints definition — the six gaming-community pages.
 type Page =
     | [<EndPoint "/">] Home
-    | [<EndPoint "/counter">] Counter
-    | [<EndPoint "/data">] Data
+    | [<EndPoint "/games">] Games
+    | [<EndPoint "/servers">] Servers
+    | [<EndPoint "/tournaments">] Tournaments
+    | [<EndPoint "/members">] Members
+    | [<EndPoint "/about">] About
 
 /// The Elmish application's model — the root orchestrates routing and
 /// delegates page/session concerns downward (per the reference design).
 type Model =
     {
         page: Page
-        counter: int
-        books: Book[] option
+        games: Game[] option
+        servers: GameServer[] option
+        tournaments: Tournament[] option
+        news: News[] option
+        players: Player[] option
         error: string option
         username: string
         password: string
@@ -29,8 +37,11 @@ type Model =
 let initModel =
     {
         page = Home
-        counter = 0
-        books = None
+        games = None
+        servers = None
+        tournaments = None
+        news = None
+        players = None
         error = None
         username = ""
         password = ""
@@ -43,11 +54,16 @@ let initModel =
 /// not as an unbounded flat list at the root.
 type Message =
     | SetPage of Page
-    | Increment
-    | Decrement
-    | SetCounter of int
-    | GetBooks
-    | GotBooks of Book[]
+    | GetGames
+    | GotGames of Game[]
+    | GetServers
+    | GotServers of GameServer[]
+    | GetTournaments
+    | GotTournaments of Tournament[]
+    | GetNews
+    | GotNews of News[]
+    | GetPlayers
+    | GotPlayers of Player[]
     | SetUsername of string
     | SetPassword of string
     | ClearLoginForm
@@ -60,35 +76,60 @@ type Message =
     | Error of exn
     | ClearError
 
+/// Load the shared home-page data: games, servers, tournaments, news.
+let loadHomeData remote =
+    Cmd.batch
+        [
+            Cmd.OfAsync.either remote.getGames () GotGames Error
+            Cmd.OfAsync.either remote.getServers () GotServers Error
+            Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
+            Cmd.OfAsync.either remote.getNews () GotNews Error
+        ]
+
 let update remote message model =
     let onSignIn = function
-        | Some _ -> Cmd.batch [ Cmd.ofMsg GetBooks; Cmd.ofMsg ClearLoginForm ]
+        | Some _ -> Cmd.batch [ Cmd.ofMsg GetPlayers; Cmd.ofMsg ClearLoginForm ]
         | None -> Cmd.none
     match message with
     | SetPage page ->
         { model with page = page }, Cmd.none
 
-    | Increment ->
-        { model with counter = model.counter + 1 }, Cmd.none
-    | Decrement ->
-        { model with counter = model.counter - 1 }, Cmd.none
-    | SetCounter value ->
-        { model with counter = value }, Cmd.none
+    | GetGames ->
+        let cmd = Cmd.OfAsync.either remote.getGames () GotGames Error
+        { model with games = None }, cmd
+    | GotGames games ->
+        { model with games = Some games }, Cmd.none
 
-    | GetBooks ->
-        let cmd = Cmd.OfAsync.either remote.getBooks () GotBooks Error
-        { model with books = None }, cmd
-    | GotBooks books ->
-        { model with books = Some books }, Cmd.none
+    | GetServers ->
+        let cmd = Cmd.OfAsync.either remote.getServers () GotServers Error
+        { model with servers = None }, cmd
+    | GotServers servers ->
+        { model with servers = Some servers }, Cmd.none
+
+    | GetTournaments ->
+        let cmd = Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
+        { model with tournaments = None }, cmd
+    | GotTournaments tournaments ->
+        { model with tournaments = Some tournaments }, Cmd.none
+
+    | GetNews ->
+        let cmd = Cmd.OfAsync.either remote.getNews () GotNews Error
+        { model with news = None }, cmd
+    | GotNews news ->
+        { model with news = Some news }, Cmd.none
+
+    | GetPlayers ->
+        let cmd = Cmd.OfAsync.either remote.getPlayers () GotPlayers Error
+        { model with players = None }, cmd
+    | GotPlayers players ->
+        { model with players = Some players }, Cmd.none
 
     | SetUsername s ->
         { model with username = s }, Cmd.none
     | SetPassword s ->
         { model with password = s }, Cmd.none
     | ClearLoginForm ->
-        { model with
-            username = ""
-            password = "" }, Cmd.none
+        { model with username = ""; password = "" }, Cmd.none
     | GetSignedInAs ->
         model, Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
     | RecvSignedInAs username ->

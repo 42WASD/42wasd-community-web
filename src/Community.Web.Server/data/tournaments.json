@@ -1,0 +1,18 @@
+[
+  {
+    "id": "tournament-1",
+    "name": "CS2 Summer Cup",
+    "gameId": "game-1",
+    "startsAt": "2026-07-01T00:00:00",
+    "prize": "$500",
+    "registrationOpen": true
+  },
+  {
+    "id": "tournament-2",
+    "name": "Dota 2 Community League",
+    "gameId": "game-2",
+    "startsAt": "2026-08-15T00:00:00",
+    "prize": "$1000",
+    "registrationOpen": true
+  }
+]
