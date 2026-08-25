@@ -31,6 +31,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             menuItem model Servers "Servers"
             menuItem model Tournaments "Tournaments"
             menuItem model Members "Members"
+            menuItem model Teams "Teams"
             menuItem model About "About"
             menuItem model (AccountPage Router.noModel) "Account"
         })
@@ -41,6 +42,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Servers -> Servers.view model.shared
             | Tournaments -> Tournaments.view model.shared
             | Members -> Members.view model.shared
+            | Teams -> Teams.view model.shared
             | About -> About.view ()
             | AccountPage pm ->
                 Account.view pm.Model model.shared.account model.shared.signInFailed

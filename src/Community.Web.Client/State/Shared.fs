@@ -14,6 +14,7 @@ type SharedModel =
         tournaments: RemoteData<Map<string, Tournament>>
         news: RemoteData<Map<string, News>>
         players: RemoteData<Map<string, Player>>
+        teams: RemoteData<Map<string, Team>>
         account: option<string>
         error: string option
         signInFailed: bool
@@ -29,6 +30,7 @@ module SharedModel =
             tournaments = NotAsked
             news = NotAsked
             players = NotAsked
+            teams = NotAsked
             account = None
             error = None
             signInFailed = false

@@ -25,6 +25,7 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
     let tournaments = Loaders.loadJson<Tournament> env "tournaments.json"
     let news = Loaders.loadJson<News> env "news.json"
     let players = Loaders.loadJson<Player> env "players.json"
+    let teams = Loaders.loadJson<Team> env "teams.json"
 
     override this.Handler =
         {
@@ -46,6 +47,10 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
 
             getPlayers = fun () -> async {
                 return players
+            }
+
+            getTeams = fun () -> async {
+                return teams
             }
 
             signIn = fun (username, password) -> async {

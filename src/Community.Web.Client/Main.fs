@@ -29,6 +29,7 @@ type MyApp() =
                     Cmd.ofMsg (SharedMsg Shared.GetTournaments)
                     Cmd.ofMsg (SharedMsg Shared.GetNews)
                     Cmd.ofMsg (SharedMsg Shared.GetPlayers)
+                    Cmd.ofMsg (SharedMsg Shared.GetTeams)
                 ])
                 update view
             |> Program.withRouter router

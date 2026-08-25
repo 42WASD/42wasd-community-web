@@ -12,6 +12,7 @@
     <Compile Include="Pages/Servers.fs" />
     <Compile Include="Pages/Tournaments.fs" />
     <Compile Include="Pages/Members.fs" />
+    <Compile Include="Pages/Teams.fs" />
     <Compile Include="Pages/About.fs" />
     <Compile Include="Pages/Account.fs" />
     <Compile Include="App/App.fs" />

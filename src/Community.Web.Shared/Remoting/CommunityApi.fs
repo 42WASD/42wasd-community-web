@@ -27,6 +27,9 @@ type CommunityApi =
         /// Community players, used by the Members page.
         getPlayers: unit -> Async<Player[]>
 
+        /// Community teams, used by the Teams page.
+        getTeams: unit -> Async<Team[]>
+
         /// Sign into the application.
         signIn: string * string -> Async<option<string>>
 

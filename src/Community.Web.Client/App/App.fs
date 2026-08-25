@@ -21,6 +21,7 @@ type Page =
     | [<EndPoint "/servers">] Servers
     | [<EndPoint "/tournaments">] Tournaments
     | [<EndPoint "/members">] Members
+    | [<EndPoint "/teams">] Teams
     | [<EndPoint "/about">] About
     | [<EndPoint "/account">] AccountPage of PageModel<Account.Model>
 
@@ -40,6 +41,8 @@ module Shared =
         | GotNews of News[]
         | GetPlayers
         | GotPlayers of Player[]
+        | GetTeams
+        | GotTeams of Team[]
         | GetSignedInAs
         | RecvSignedInAs of option<string>
         | SendSignIn of string * string
@@ -83,6 +86,12 @@ module Shared =
             { shared with players = Loading }, cmd
         | GotPlayers players ->
             { shared with players = Loaded (SharedModel.indexById players (fun p -> p.id)) }, Cmd.none
+
+        | GetTeams ->
+            let cmd = Cmd.OfAsync.either remote.getTeams () GotTeams Error
+            { shared with teams = Loading }, cmd
+        | GotTeams teams ->
+            { shared with teams = Loaded (SharedModel.indexById teams (fun t -> t.id)) }, Cmd.none
 
         | GetSignedInAs ->
             let cmd = Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
