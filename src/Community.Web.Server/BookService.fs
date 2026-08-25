@@ -8,14 +8,14 @@ open Microsoft.AspNetCore.Hosting
 open Bolero
 open Bolero.Remoting
 open Bolero.Remoting.Server
-open Community.Web
+open Community.Web.Shared.Contracts
 
 type BookService(ctx: IRemoteContext, env: IWebHostEnvironment) =
-    inherit RemoteHandler<Client.Main.BookService>()
+    inherit RemoteHandler<Community.Web.Shared.Contracts.BookService>()
 
     let books =
         let json = Path.Combine(env.ContentRootPath, "data/books.json") |> File.ReadAllText
-        JsonSerializer.Deserialize<Client.Main.Book[]>(json)
+        JsonSerializer.Deserialize<Book[]>(json)
         |> ResizeArray
 
     override this.Handler =

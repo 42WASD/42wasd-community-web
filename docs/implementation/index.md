@@ -27,27 +27,27 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**2 / 20** phases/sections complete (**10%**).
+**3 / 20** phases/sections complete (**15%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:10.0%"></div></div><div class="progress-pct">10%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:15.0%"></div></div><div class="progress-pct">15%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 2 |
+| ✅ done | 3 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 18 |
+| ⬜ not-started | 17 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 10% — Part III — Step-by-step implementation
+### 15% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:10.0%"></div></div><div class="progress-pct" style="font-size:.85em;">10%</div><div class="tip-box"><strong>Done (2)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:15.0%"></div></div><div class="progress-pct" style="font-size:.85em;">15%</div><div class="tip-box"><strong>Done (3)</strong>
 • Ownership rules
 • Create the solution
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (18)</strong>
 • Repository structure
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (17)</strong>
 • Shared domain types
 • Build routing
 • Root app orchestration
@@ -190,7 +190,99 @@ without rewriting the framework machinery.
 
 </details>
 
-- ⬜ `not-started` — [Phase 2 — Repository structure](../reference-design/03-step-by-step-implementation/phase-2-repository-structure/index.md)
+- ✅ `done` — [Phase 2 — Repository structure](../reference-design/03-step-by-step-implementation/phase-2-repository-structure/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Repository structure</summary>
+
+**Phase 2 complete** — the repository was restructured into the feature-oriented
+layout from the reference design, and both client and server now depend on a
+shared contracts project.
+
+### New structure
+
+```text
+src/
+├── Community.Web.Shared/          # shared contracts (no server/client deps)
+│   ├── Community.Web.Shared.fsproj
+│   └── Contracts/
+│       ├── Books.fs               # canonical Book entity
+│       └── CommunityApi.fs        # BookService remoting contract
+├── Community.Web.Client/
+│   ├── Community.Web.Client.fsproj
+│   ├── App/
+│   │   └── App.fs                 # orchestration: Page, Model, Message, update, router, init
+│   ├── Ui/
+│   │   └── Layout.fs              # cross-feature UI (shared layout template + views)
+│   ├── Main.fs                    # root ProgramComponent (ProgramRouter + program wiring)
+│   ├── Startup.fs
+│   └── wwwroot/
+└── Community.Web.Server/
+    ├── Community.Web.Server.fsproj
+    ├── Startup.fs
+    ├── Index.fs
+    ├── BookService.fs             # server-side remoting handler
+    └── data/books.json
+```
+
+### Design decisions
+
+- **`Community.Web.Shared`**: holds the `Book` entity and the `BookService`
+  remoting contract. This is the single contract type both client and server
+  compile against — no client<->server circular dependency.
+- **Dependency direction**: `Community.Web.Shared` is depended on by both
+  Client and Server; Client is referenced by Server (to host the WASM app);
+  Server does NOT reference Client's internal logic.
+- **App/Ui split**: the root `Model`/`Msg`/`update`/router live in `App/`;
+  cross-feature UI (the shared template + view composition) lives in `Ui/`.
+  Page-specific UI will move beside its page in a later phase (feature-owned
+  UI), keeping the global `Ui/` folder deliberately small per the reference.
+- **No top-level `Model/`/`Msg/`/`Update/` split** — state, messages, and views
+  are organized by concern/feature, not by technical type.
+- **Start shallow**: no empty placeholder directories (`State/`, `Pages/`,
+  `Infrastructure/`) were created for hypothetical features. They will be added
+  in later phases when they have real content.
+
+### Remoting contract moved to Shared
+
+The template's `BookService` + `Book` were lifted out of `Client.Main` into
+`Community.Web.Shared/Contracts`. The server's `RemoteHandler` now inherits
+`RemoteHandler<Community.Web.Shared.Contracts.BookService>` (the shared
+contract), so it no longer depends on the client's internal `Main` type.
+
+### Verification
+
+```bash
+dotnet build Community.Web.sln      # Build succeeded, 0 warnings, 0 errors
+```
+
+Live checks against `http://localhost:5023` (Development):
+
+| Route | Result |
+|---|---|
+| `/` | 200 |
+| `/counter` | 200 |
+| `/data` | 200 |
+| `/books/getBooks` (remoting) | 200 |
+
+Both client and server reference the shared project successfully.
+
+### Acceptance (from reference design)
+
+- [x] Shared has no server-only or client-only dependencies
+- [x] Both client and server depend on `Community.Web.Shared` contracts
+- [x] Feature folders, not top-level `Model/View/Update` split
+- [x] Each directory has a clear ownership rule
+- [x] No global `Models/Msgs/Updates` directories
+- [x] No feature-specific UI dumped into `Ui/`
+
+### Next
+
+Phase 3 will define the shared domain types (`Community.Web.Shared/Domain` +
+remoting service interfaces) needed for the first community slice.
+
+</details>
+
 - ⬜ `not-started` — [Phase 3 — Shared domain types](../reference-design/03-step-by-step-implementation/phase-3-shared-domain-types/index.md)
 - ⬜ `not-started` — [Phase 4 — Build routing](../reference-design/03-step-by-step-implementation/phase-4-build-routing/index.md)
 - ⬜ `not-started` — [Phase 5 — Root app orchestration](../reference-design/03-step-by-step-implementation/phase-5-root-app-orchestration/index.md)
