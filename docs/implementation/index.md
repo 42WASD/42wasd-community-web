@@ -27,26 +27,25 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**0 / 20** phases/sections complete (**0%**).
+**1 / 20** phases/sections complete (**5%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:0.0%"></div></div><div class="progress-pct">0%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:5.0%"></div></div><div class="progress-pct">5%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 0 |
+| ✅ done | 1 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 20 |
+| ⬜ not-started | 19 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 0% — Part III — Step-by-step implementation
+### 5% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:0.0%"></div></div><div class="progress-pct" style="font-size:.85em;">0%</div><div class="tip-box"><strong>Done (0)</strong>
-—
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (20)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:5.0%"></div></div><div class="progress-pct" style="font-size:.85em;">5%</div><div class="tip-box"><strong>Done (1)</strong>
 • Ownership rules
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (19)</strong>
 • Create the solution
 • Repository structure
 • Shared domain types
@@ -67,7 +66,50 @@ assigned a status; a generator renders this page from
 • Production hardening
 • Rollout order</div></div>
 
-- ⬜ `not-started` — [Phase 0 — Ownership rules](../reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md)
+- ✅ `done` — [Phase 0 — Ownership rules](../reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Ownership rules</summary>
+
+**Agreed ownership rules** — Phase 0 delivers the written statement of the rules
+that every later phase follows. Nothing in this phase introduces application
+code; it is a documented contract that anchors the whole implementation.
+
+### The rules (agreed)
+
+```text
+1. Shared.Model owns persistent cross-page application state.
+2. PageLocal owns state that exists only on one page.
+3. A page-local Model may hold UI/transient state but must not duplicate
+   canonical shared entities.
+4. Navigation changes the Page route in the root model, never arbitrary UI
+   flags.
+5. Effects that reach the server belong in the Server boundary (remoting), not
+   scattered in views.
+```
+
+### How these rules will be enforced
+
+- **Rule 1 — `Shared.Model`**: cross-page state (authenticated user, entity
+  caches, community metadata) lives in `Community.Client/State/Shared.fs`.
+  Pages select from it; they never own a canonical copy.
+- **Rule 2 — `PageLocal`**: a page that needs ephemeral state keeps it in its
+  own page-local `Model` (and `PageModel<'T>` for route-transient state).
+- **Rule 3 — no duplicate entities**: pages reference canonical entities by
+  `Id` and read them from `Shared`; they never copy an entity into a page-local
+  model.
+- **Rule 4 — navigation via route**: only `PageChanged` changes the active
+  route in the root model. No arbitrary UI flags drive navigation.
+- **Rule 5 — effects in the Server boundary**: server-touching effects are
+  isolated behind a remoting API module; views never call the server directly.
+
+### Acceptance
+
+This phase is done when the rules above are written down and agreed. The
+progress page marks Phase 0 as `done`; no code is required yet.
+
+</details>
+
 - ⬜ `not-started` — [Phase 1 — Create the solution](../reference-design/03-step-by-step-implementation/phase-1-create-the-solution/index.md)
 - ⬜ `not-started` — [Phase 2 — Repository structure](../reference-design/03-step-by-step-implementation/phase-2-repository-structure/index.md)
 - ⬜ `not-started` — [Phase 3 — Shared domain types](../reference-design/03-step-by-step-implementation/phase-3-shared-domain-types/index.md)
