@@ -33,6 +33,7 @@ module Account =
         | SetPassword of string
         | SetHandle of string
         | SetBio of string
+        | SaveProfile
         | Clear
         | Submit
 
@@ -50,6 +51,7 @@ module Account =
         | SetPassword s -> { model with password = s }, Cmd.none
         | SetHandle h -> { model with handle = h }, Cmd.none
         | SetBio b -> { model with bio = b }, Cmd.none
+        | SaveProfile -> model, Cmd.none
         | Clear -> init, Cmd.none
         | Submit -> model, Cmd.none
 
@@ -74,7 +76,7 @@ module Account =
             RadzenUI.textBox form.handle (fun h -> localDispatch (SetHandle h))
             RadzenUI.textArea form.bio (fun b -> localDispatch (SetBio b))
             RadzenUI.hStackGap "0.5rem" (concat {
-                RadzenUI.button "Save" RadzenUI.primaryButton (fun () -> Submit) localDispatch
+                RadzenUI.button "Save" RadzenUI.primaryButton (fun () -> SaveProfile) localDispatch
                 RadzenUI.button "Sign out" RadzenUI.lightButton (fun () -> signOut ()) (fun _ -> ())
             })
         })
