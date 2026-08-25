@@ -8,6 +8,9 @@ __pycache__/
 # MkDocs build output
 site/
 
+# Bolero spike workspace (not part of the docs repo)
+BOLERO-SPIKE/
+
 # OS / editor
 .DS_Store
 *.swp

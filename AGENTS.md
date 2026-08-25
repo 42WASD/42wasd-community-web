@@ -91,3 +91,15 @@ dependency, a failure surface, and warning risk against `--strict`.
 
 Read `scripts/docs/README.md` for the full technique and the four verification
 layers.
+
+## Bolero work — REUSE before you write
+
+When working with the Bolero codebase or writing F# for it:
+
+1. **Read the Bolero source first** (`thirdparty/Bolero`) — it is the
+   authoritative reference for how anything works.
+2. **Reuse Bolero's existing functions/patterns** (Elmish hooks, Router,
+   RemoteHandler, `Cmd` helpers). Do not write new F# functions before checking
+   what Bolero already provides.
+3. Debugging: the Elmish message trace runs in the **browser console**, not the
+   server terminal.

@@ -1,0 +1,6 @@
+[submodule "thirdparty/Bolero"]
+	path = thirdparty/Bolero
+	url = https://github.com/42WASD/Bolero.git
+[submodule "thirdparty/Bolero-Template"]
+	path = thirdparty/Bolero-Template
+	url = https://github.com/42WASD/Bolero-Template.git
