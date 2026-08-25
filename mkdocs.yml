@@ -51,6 +51,19 @@ theme:
 # >>> nav-autogen (generated) >>>
 nav:
 - Home: index.md
+- Reference Design:
+  - Overview: reference-design/index.md
+  - I — Understand the system:
+    - Overview: reference-design/01-understand-the-system/index.md
+    - The one-sentence idea: reference-design/01-understand-the-system/the-one-sentence-idea/index.md
+    - The target architecture: reference-design/01-understand-the-system/the-target-architecture/index.md
+  - II — Step-by-step implementation:
+    - Overview: reference-design/02-step-by-step-implementation/index.md
+    - Phase 0 — Create the project repository: reference-design/02-step-by-step-implementation/create-the-project-repository/index.md
+    - Phase 1 — Set up the toolchain: reference-design/02-step-by-step-implementation/set-up-the-toolchain/index.md
+    - Phase 2 — First deliverable: reference-design/02-step-by-step-implementation/first-deliverable/index.md
+- Implementation:
+  - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<
 
 # Extra stylesheets
