@@ -20,7 +20,17 @@ type MyApp() =
         let communityApi = this.Remote<CommunityApi>()
         let update = update communityApi
         let program =
-            Program.mkProgram (fun _ -> initModel, Cmd.ofMsg GetSignedInAs) update view
+            Program.mkProgram (fun _ ->
+                initModel,
+                Cmd.batch [
+                    Cmd.ofMsg GetSignedInAs
+                    Cmd.ofMsg GetGames
+                    Cmd.ofMsg GetServers
+                    Cmd.ofMsg GetTournaments
+                    Cmd.ofMsg GetNews
+                    Cmd.ofMsg GetPlayers
+                ])
+                update view
             |> Program.withRouter router
 #if DEBUG
         // Dev-only Elmish tracing. The message trace runs in the BROWSER console,

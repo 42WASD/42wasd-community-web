@@ -3,6 +3,7 @@ module Community.Web.Client.Ui.Layout
 open Bolero
 open Bolero.Html
 open Community.Web.Client.App
+open Community.Web.Client.State
 open Community.Web.Shared.Domain
 
 /// The single shared layout template. Keeps the global `Ui/` folder small:
@@ -10,52 +11,43 @@ open Community.Web.Shared.Domain
 /// views will move beside their page in a later phase.
 type Layout = Template<"wwwroot/main.html">
 
+/// Render a RemoteData<Map<string,'T>> as table rows via a row renderer.
+let dataRows (rd: RemoteData<Map<string, 'T>>) (render: 'T -> Node) =
+    cond rd <| function
+        | NotAsked | Loading -> Layout.EmptyData().Elt()
+        | Loaded m -> forEach (Map.toArray m) (fun (_, t) -> render t)
+        | Failed _ -> Layout.EmptyData().Elt()
+
 let homePage (model: Model) (dispatch: Message -> unit) =
     Layout.Home()
-        .Games(cond model.games <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some games -> forEach games <| fun g -> tr { td { g.name }; td { g.genre } })
-        .Servers(cond model.servers <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some servers -> forEach servers <| fun s -> tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() } })
-        .Tournaments(cond model.tournaments <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some ts -> forEach ts <| fun t -> tr { td { t.name }; td { t.prize } })
-        .News(cond model.news <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some ns -> forEach ns <| fun n -> tr { td { n.title }; td { n.publishedAt.ToString("yyyy-MM-dd") } })
+        .Games(dataRows model.shared.games <| fun g -> tr { td { g.name }; td { g.genre } })
+        .Servers(dataRows model.shared.servers <| fun s -> tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() } })
+        .Tournaments(dataRows model.shared.tournaments <| fun t -> tr { td { t.name }; td { t.prize } })
+        .News(dataRows model.shared.news <| fun n -> tr { td { n.title }; td { n.publishedAt.ToString("yyyy-MM-dd") } })
         .Elt()
 
 let gamesPage (model: Model) (dispatch: Message -> unit) =
     Layout.Games()
-        .Rows(cond model.games <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some games -> forEach games <| fun g ->
-                tr { td { g.name }; td { g.genre }; td { g.description } })
+        .Rows(dataRows model.shared.games <| fun g ->
+            tr { td { g.name }; td { g.genre }; td { g.description } })
         .Elt()
 
 let serversPage (model: Model) (dispatch: Message -> unit) =
     Layout.Servers()
-        .Rows(cond model.servers <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some servers -> forEach servers <| fun s ->
-                tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() }; td { s.status } })
+        .Rows(dataRows model.shared.servers <| fun s ->
+            tr { td { s.name }; td { s.address }; td { s.onlinePlayers.ToString() }; td { s.status } })
         .Elt()
 
 let tournamentsPage (model: Model) (dispatch: Message -> unit) =
     Layout.Tournaments()
-        .Rows(cond model.tournaments <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some ts -> forEach ts <| fun t ->
-                tr { td { t.name }; td { t.prize }; td { t.startsAt.ToString("yyyy-MM-dd") } })
+        .Rows(dataRows model.shared.tournaments <| fun t ->
+            tr { td { t.name }; td { t.prize }; td { t.startsAt.ToString("yyyy-MM-dd") } })
         .Elt()
 
 let membersPage (model: Model) (dispatch: Message -> unit) =
     Layout.Members()
-        .Rows(cond model.players <| function
-            | None -> Layout.EmptyData().Elt()
-            | Some players -> forEach players <| fun p ->
-                tr { td { p.username }; td { defaultArg p.discord "" } })
+        .Rows(dataRows model.shared.players <| fun p ->
+            tr { td { p.username }; td { defaultArg p.discord "" } })
         .Elt()
 
 let aboutPage (model: Model) (dispatch: Message -> unit) =
@@ -88,7 +80,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             | About -> aboutPage model dispatch
         )
         .Error(
-            cond model.error <| function
+            cond model.shared.error <| function
             | None -> empty()
             | Some err ->
                 Layout.ErrorNotification()

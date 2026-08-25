@@ -5,6 +5,7 @@ open Elmish
 open Bolero
 open Bolero.Remoting
 open Bolero.Remoting.Client
+open Community.Web.Client.State
 open Community.Web.Shared.Domain
 open Community.Web.Shared.Remoting
 
@@ -17,36 +18,28 @@ type Page =
     | [<EndPoint "/members">] Members
     | [<EndPoint "/about">] About
 
-/// The Elmish application's model — the root orchestrates routing and
-/// delegates page/session concerns downward (per the reference design).
+/// Ephemeral, page-local state (not persisted across navigation unless it
+/// lives in Shared). For now: the login form input.
+type LocalModel =
+    {
+        username: string
+        password: string
+    }
+
+/// The root model is the single source of truth: Page (active route),
+/// Shared (persistent cross-page state), Local (active page's ephemeral state).
 type Model =
     {
         page: Page
-        games: Game[] option
-        servers: GameServer[] option
-        tournaments: Tournament[] option
-        news: News[] option
-        players: Player[] option
-        error: string option
-        username: string
-        password: string
-        signedInAs: option<string>
-        signInFailed: bool
+        shared: SharedModel
+        local: LocalModel
     }
 
 let initModel =
     {
         page = Home
-        games = None
-        servers = None
-        tournaments = None
-        news = None
-        players = None
-        error = None
-        username = ""
-        password = ""
-        signedInAs = None
-        signInFailed = false
+        shared = SharedModel.init
+        local = { username = ""; password = "" }
     }
 
 /// The Elmish application's messages — a small root namespace, per the
@@ -76,16 +69,6 @@ type Message =
     | Error of exn
     | ClearError
 
-/// Load the shared home-page data: games, servers, tournaments, news.
-let loadHomeData remote =
-    Cmd.batch
-        [
-            Cmd.OfAsync.either remote.getGames () GotGames Error
-            Cmd.OfAsync.either remote.getServers () GotServers Error
-            Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
-            Cmd.OfAsync.either remote.getNews () GotNews Error
-        ]
-
 let update remote message model =
     let onSignIn = function
         | Some _ -> Cmd.batch [ Cmd.ofMsg GetPlayers; Cmd.ofMsg ClearLoginForm ]
@@ -96,59 +79,61 @@ let update remote message model =
 
     | GetGames ->
         let cmd = Cmd.OfAsync.either remote.getGames () GotGames Error
-        { model with games = None }, cmd
+        { model with shared = { model.shared with games = Loading } }, cmd
     | GotGames games ->
-        { model with games = Some games }, Cmd.none
+        { model with shared = { model.shared with games = Loaded (SharedModel.indexById games (fun g -> g.id)) } }, Cmd.none
 
     | GetServers ->
         let cmd = Cmd.OfAsync.either remote.getServers () GotServers Error
-        { model with servers = None }, cmd
+        { model with shared = { model.shared with servers = Loading } }, cmd
     | GotServers servers ->
-        { model with servers = Some servers }, Cmd.none
+        { model with shared = { model.shared with servers = Loaded (SharedModel.indexById servers (fun s -> s.id)) } }, Cmd.none
 
     | GetTournaments ->
         let cmd = Cmd.OfAsync.either remote.getTournaments () GotTournaments Error
-        { model with tournaments = None }, cmd
+        { model with shared = { model.shared with tournaments = Loading } }, cmd
     | GotTournaments tournaments ->
-        { model with tournaments = Some tournaments }, Cmd.none
+        { model with shared = { model.shared with tournaments = Loaded (SharedModel.indexById tournaments (fun t -> t.id)) } }, Cmd.none
 
     | GetNews ->
         let cmd = Cmd.OfAsync.either remote.getNews () GotNews Error
-        { model with news = None }, cmd
+        { model with shared = { model.shared with news = Loading } }, cmd
     | GotNews news ->
-        { model with news = Some news }, Cmd.none
+        { model with shared = { model.shared with news = Loaded (SharedModel.indexById news (fun n -> n.id)) } }, Cmd.none
 
     | GetPlayers ->
         let cmd = Cmd.OfAsync.either remote.getPlayers () GotPlayers Error
-        { model with players = None }, cmd
+        { model with shared = { model.shared with players = Loading } }, cmd
     | GotPlayers players ->
-        { model with players = Some players }, Cmd.none
+        { model with shared = { model.shared with players = Loaded (SharedModel.indexById players (fun p -> p.id)) } }, Cmd.none
 
     | SetUsername s ->
-        { model with username = s }, Cmd.none
+        { model with local = { model.local with username = s } }, Cmd.none
     | SetPassword s ->
-        { model with password = s }, Cmd.none
+        { model with local = { model.local with password = s } }, Cmd.none
     | ClearLoginForm ->
-        { model with username = ""; password = "" }, Cmd.none
+        { model with local = { username = ""; password = "" } }, Cmd.none
     | GetSignedInAs ->
         model, Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
     | RecvSignedInAs username ->
-        { model with signedInAs = username }, onSignIn username
+        { model with shared = { model.shared with account = username } }, onSignIn username
     | SendSignIn ->
-        model, Cmd.OfAsync.either remote.signIn (model.username, model.password) RecvSignIn Error
+        model, Cmd.OfAsync.either remote.signIn (model.local.username, model.local.password) RecvSignIn Error
     | RecvSignIn username ->
-        { model with signedInAs = username; signInFailed = Option.isNone username }, onSignIn username
+        { model with
+            shared = { model.shared with account = username; signInFailed = Option.isNone username }
+        }, onSignIn username
     | SendSignOut ->
         model, Cmd.OfAsync.either remote.signOut () (fun () -> RecvSignOut) Error
     | RecvSignOut ->
-        { model with signedInAs = None; signInFailed = false }, Cmd.none
+        { model with shared = { model.shared with account = None; signInFailed = false } }, Cmd.none
 
     | Error RemoteUnauthorizedException ->
-        { model with error = Some "You have been logged out."; signedInAs = None }, Cmd.none
+        { model with shared = { model.shared with error = Some "You have been logged out."; account = None } }, Cmd.none
     | Error exn ->
-        { model with error = Some exn.Message }, Cmd.none
+        { model with shared = { model.shared with error = Some exn.Message } }, Cmd.none
     | ClearError ->
-        { model with error = None }, Cmd.none
+        { model with shared = { model.shared with error = None } }, Cmd.none
 
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
