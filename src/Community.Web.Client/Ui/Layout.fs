@@ -40,7 +40,8 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Home -> Home.view model.shared
             | Games -> Games.view model.shared
             | Servers -> Servers.view model.shared
-            | Tournaments -> Tournaments.view model.shared
+            | Tournaments ->
+                Tournaments.view model.shared (fun msg -> dispatch (TournamentsMsg msg))
             | Members -> Members.view model.shared
             | Teams -> Teams.view model.shared
             | About -> About.view ()

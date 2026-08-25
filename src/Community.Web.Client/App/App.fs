@@ -43,6 +43,7 @@ module Shared =
         | GotPlayers of Player[]
         | GetTeams
         | GotTeams of Team[]
+        | ToggleTournament of string
         | GetSignedInAs
         | RecvSignedInAs of option<string>
         | SendSignIn of string * string
@@ -92,6 +93,22 @@ module Shared =
             { shared with teams = Loading }, cmd
         | GotTeams teams ->
             { shared with teams = Loaded (SharedModel.indexById teams (fun t -> t.id)) }, Cmd.none
+
+        | ToggleTournament tournamentId ->
+            // A shared effect: flip registrationOpen in the canonical
+            // tournaments cache. Other pages reading that cache (e.g. Home's
+            // "open tournaments" stat) reflect the change immediately — the
+            // cross-feature verification.
+            let tournaments =
+                match shared.tournaments with
+                | Loaded m ->
+                    match m.TryFind tournamentId with
+                    | Some t ->
+                        let t' = { t with registrationOpen = not t.registrationOpen }
+                        Loaded (m.Add(tournamentId, t'))
+                    | None -> Loaded m
+                | other -> other
+            { shared with tournaments = tournaments }, Cmd.none
 
         | GetSignedInAs ->
             let cmd = Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
@@ -149,6 +166,7 @@ type Message =
     | SetPage of Page
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
+    | TournamentsMsg of Tournaments.Msg
 
 let update remote message model =
     match message with
@@ -184,6 +202,17 @@ let update remote message model =
                 Router.definePageModel pm m
                 model, Cmd.map AccountMsg cmd
         | _ -> model, Cmd.none
+
+    | TournamentsMsg msg ->
+        // A cross-feature effect: the Tournaments feature does not mutate
+        // shared state directly. It emits its own local message, and the root
+        // translates it into a shared effect message that the Shared layer
+        // owns (reference: "a shared update is dispatched, not reached into").
+        // Tournaments owns no local Model, so every message maps straight to a
+        // Shared.ToggleTournament.
+        match msg with
+        | Tournaments.ToggleRegistration tournamentId ->
+            model, Cmd.ofMsg (SharedMsg (Shared.ToggleTournament tournamentId))
 
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
