@@ -27,29 +27,29 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**4 / 20** phases/sections complete (**20%**).
+**5 / 20** phases/sections complete (**25%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:20.0%"></div></div><div class="progress-pct">20%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:25.0%"></div></div><div class="progress-pct">25%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 4 |
+| ✅ done | 5 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 16 |
+| ⬜ not-started | 15 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 20% — Part III — Step-by-step implementation
+### 25% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:20.0%"></div></div><div class="progress-pct" style="font-size:.85em;">20%</div><div class="tip-box"><strong>Done (4)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:25.0%"></div></div><div class="progress-pct" style="font-size:.85em;">25%</div><div class="tip-box"><strong>Done (5)</strong>
 • Ownership rules
 • Create the solution
 • Repository structure
 • Shared domain types
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (16)</strong>
 • Build routing
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (15)</strong>
 • Root app orchestration
 • Shared application state
 • Home page
@@ -382,7 +382,87 @@ hero, stats, games, active servers, tournaments, and news sections.
 
 </details>
 
-- ⬜ `not-started` — [Phase 4 — Build routing](../reference-design/03-step-by-step-implementation/phase-4-build-routing/index.md)
+- ✅ `done` — [Phase 4 — Build routing](../reference-design/03-step-by-step-implementation/phase-4-build-routing/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Build routing</summary>
+
+**Phase 4 complete** — routing is established with a `Page` union bound to the
+URL, and unknown URLs fall back predictably to the Home page.
+
+### What this phase required
+
+From the reference design: a `Page` DU bound to routes, `Page` stored in the
+root model, a page-changing message, `Router.infer` binding route `<->` Page,
+and predictable fallback for wrong URLs.
+
+### Already in place (from Phase 3)
+
+The routing skeleton was largely established while building the shared-domain
+slice:
+
+```fsharp
+// App/App.fs
+type Page =
+    | [<EndPoint "/">] Home
+    | [<EndPoint "/games">] Games
+    | [<EndPoint "/servers">] Servers
+    | [<EndPoint "/tournaments">] Tournaments
+    | [<EndPoint "/members">] Members
+    | [<EndPoint "/about">] About
+```
+
+- `Page` lives in the root `Model`.
+- `SetPage` is the only message that changes the route.
+- `Router.infer SetPage (fun model -> model.page)` maps route `<-> Page`.
+
+### Added in this phase
+
+**Explicit unknown-route fallback.** `Router.infer` sets `notFound = None` by
+default; the server `MapFallbackToBolero` shell already served a predictable
+HTTP 200 for unknown paths. To make the *client-side* intent explicit and
+consistent with the reference ("Wrong URLs fall back predictably"), the router
+now declares:
+
+```fsharp
+let router =
+    Router.infer SetPage (fun model -> model.page)
+    |> Router.withNotFound Home
+```
+
+So any route that isn't one of the six pages resolves to the Home page instead
+of a blank/undefined endpoint.
+
+### Verification
+
+```bash
+dotnet build Community.Web.sln      # Build succeeded, 0 warnings, 0 errors
+```
+
+Live checks against `http://localhost:5023` (Development):
+
+| Route | Result |
+|---|---|
+| `/` | 200 |
+| `/games` | 200 |
+| `/servers` | 200 |
+| `/nonexistent-route` | 200 (falls back predictably) |
+| `/totally-bogus` | 200 (falls back predictably) |
+
+### Acceptance (from reference spec)
+
+- [x] `Page` is a union whose cases map to routes
+- [x] The route lives in the root model
+- [x] A single message (`SetPage`) changes the route
+- [x] `Router.infer` binds route `<-> Page`
+- [x] Wrong URLs fall back predictably (`Router.withNotFound Home` + shell)
+
+### Next
+
+Phase 5 will add root-app orchestration on top of this routing spine.
+
+</details>
+
 - ⬜ `not-started` — [Phase 5 — Root app orchestration](../reference-design/03-step-by-step-implementation/phase-5-root-app-orchestration/index.md)
 - ⬜ `not-started` — [Phase 6 — Shared application state](../reference-design/03-step-by-step-implementation/phase-6-shared-application-state/index.md)
 - ⬜ `not-started` — [Phase 7 — Home page](../reference-design/03-step-by-step-implementation/phase-7-home-page/index.md)

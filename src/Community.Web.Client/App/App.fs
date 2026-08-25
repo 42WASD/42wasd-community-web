@@ -151,4 +151,7 @@ let update remote message model =
         { model with error = None }, Cmd.none
 
 /// Connects the routing system to the Elmish application.
-let router = Router.infer SetPage (fun model -> model.page)
+/// Unknown/wrong URLs fall back predictably to the Home page.
+let router =
+    Router.infer SetPage (fun model -> model.page)
+    |> Router.withNotFound Home
