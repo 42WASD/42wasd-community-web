@@ -56,9 +56,15 @@ never hand-edited.
 ### The F# wrappers
 
 `Ui/RadzenUI.fs` is the thin cross-feature wrapper module (this is the *only*
-place the app touches Radzen directly; pages reuse the wrappers):
+place the app touches Radzen directly; pages reuse the wrappers and never
+`open Radzen`). Even the Radzen enums are re-exported so pages stay oblivious
+to the component library's object model:
 
 ```
+let dangerButton = ButtonStyle.Danger     // re-exported enum values
+let successButton = ButtonStyle.Success
+let outlinedCard  = Variant.Outlined
+
 let button text style onClick dispatch = comp<RadzenButton> {
     "Text" => text; "ButtonStyle" => style
     attr.callback "Click" (fun (_: MouseEventArgs) -> dispatch (onClick ())) }
@@ -66,11 +72,19 @@ let card variant children = comp<RadzenCard> { "Variant" => variant; children }
 let serverCard (server: GameServer) = ...  // RadzenCard Outlined + status dot
 ```
 
+Pages consume only these names (`RadzenUI.button`, `RadzenUI.card`,
+`RadzenUI.dangerButton`, ...) — the `open Radzen` / `Variant.` / `ButtonStyle.`
+leaks at call sites are gone.
+
 Notes verified in Radzen source:
 - `RadzenButton.Click` is `EventCallback<MouseEventArgs>` → needs
   `open Microsoft.AspNetCore.Components.Web`.
 - `RadzenCard` takes a `Variant` param and wraps children as `ChildContent`.
 - The `comp<T>` builder wraps child nodes as `ChildContent`.
+- Radzen is **view-only**: the wrappers return `Node`s and only ever render;
+  `Startup.fs` registers DI, and no `DialogService`/`NotificationService` is
+  invoked from `update`/`init`/`Cmd`. Any future Radzen side effect must be
+  emitted as an async `Cmd`, never called in `view`.
 
 ### Reusable surfaces
 

@@ -2,7 +2,6 @@ namespace Community.Web.Client.Pages
 
 open Bolero
 open Bolero.Html
-open Radzen
 open Community.Web.Client.State
 open Community.Web.Client.Ui
 open Community.Web.Client.Ui.Templates
@@ -26,16 +25,16 @@ module Tournaments =
     /// ToggleRegistration (owned by this feature); the root turns it into a
     /// shared-cache update.
     let card (tournament: Tournament) (dispatch: Msg -> unit) =
-        RadzenUI.card Variant.Outlined (concat {
+        RadzenUI.card RadzenUI.outlinedCard (concat {
             div {
                 attr.``class`` "tournament-card"
                 h3 { attr.``class`` "title is-5"; tournament.name }
                 div { attr.``class`` "tournament-prize"; tournament.prize }
                 div { attr.``class`` "tournament-date"; tournament.startsAt.ToString("yyyy-MM-dd") }
                 if tournament.registrationOpen then
-                    RadzenUI.button "Close registration" ButtonStyle.Danger (fun () -> ToggleRegistration tournament.id) dispatch
+                    RadzenUI.button "Close registration" RadzenUI.dangerButton (fun () -> ToggleRegistration tournament.id) dispatch
                 else
-                    RadzenUI.button "Reopen registration" ButtonStyle.Success (fun () -> ToggleRegistration tournament.id) dispatch
+                    RadzenUI.button "Reopen registration" RadzenUI.successButton (fun () -> ToggleRegistration tournament.id) dispatch
             }
         })
 

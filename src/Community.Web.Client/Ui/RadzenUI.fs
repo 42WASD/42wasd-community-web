@@ -21,6 +21,15 @@ open Community.Web.Shared.Domain
 /// async Cmd (per design.md section 4). Views themselves remain pure.
 module RadzenUI =
 
+    /// The Radzen button semantic colors we use, re-exported so pages never
+    /// `open Radzen` and stay oblivious to the component library's object model.
+    /// (F# enum values can't be `[<Literal>]`, so these are module-level lets.)
+    let dangerButton = ButtonStyle.Danger
+    let successButton = ButtonStyle.Success
+
+    /// The card variant we use (sharp, square brutalist edges).
+    let outlinedCard = Variant.Outlined
+
     /// A Radzen button. `style` controls the semantic color (Primary/Success/
     /// Danger/...), `onClickMsg` is the Elmish message to dispatch on click.
     let button (text: string) (style: ButtonStyle) (onClickMsg: unit -> 'Msg) (dispatch: 'Msg -> unit) =
@@ -47,7 +56,7 @@ module RadzenUI =
             | "online" -> "status-dot status-online"
             | "maintenance" -> "status-dot status-maintenance"
             | _ -> "status-dot status-offline"
-        card Variant.Outlined (concat {
+        card outlinedCard (concat {
             div {
                 attr.``class`` "server-card"
                 div { attr.``class`` "server-name"; server.name }
@@ -67,7 +76,7 @@ module RadzenUI =
     /// A tournament card (gaming-community direction): a Radzen card with the
     /// name, prize in neon-cyan mono, and the start date.
     let tournamentCard (tournament: Tournament) =
-        card Variant.Outlined (concat {
+        card outlinedCard (concat {
             div {
                 attr.``class`` "tournament-card"
                 h3 { attr.``class`` "title is-5"; tournament.name }
