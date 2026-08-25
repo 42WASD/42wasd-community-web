@@ -16,51 +16,67 @@ open Community.Web.Client.Ui.Templates
 /// SharedModel.account and reads the form draft from here.
 module Account =
 
-    /// The Account page's transient, page-local state (the sign-in form).
+    /// The Account page's transient, page-local state. Holds the sign-in form
+    /// draft and the profile-edit draft (both discarded on leaving the page).
     type Model =
         {
+            /// Sign-in form draft.
             username: string
             password: string
+            /// Profile-edit draft (handle + bio).
+            handle: string
+            bio: string
         }
 
-    /// The Account page's local messages — form draft editing, plus a Submit
-    /// intent that the root translates into a Shared session message. These
-    /// are lifted into the root with Cmd.map. No message here reaches into
-    /// Shared or another owner's state.
+    /// The Account page's local messages — form/profile draft editing, plus a
+    /// Submit intent that the root translates into a Shared session message.
+    /// These are lifted into the root with Cmd.map. No message here reaches
+    /// into Shared or another owner's state.
     type Msg =
         | SetUsername of string
         | SetPassword of string
+        | SetHandle of string
+        | SetBio of string
         | Clear
         | Submit
 
-    /// A fresh, empty sign-in form (the default PageModel value).
+    /// A fresh, empty page state (the default PageModel value).
     let init =
         {
             username = ""
             password = ""
+            handle = ""
+            bio = ""
         }
 
-    /// The Account page's local update. Purely updates the transient form
-    /// draft; emits no commands (session effects live on the root, which
-    /// interprets Submit by issuing a Shared.SendSignIn).
+    /// The Account page's local update. Purely updates the transient drafts;
+    /// emits no commands (session effects live on the root, which interprets
+    /// Submit by issuing a Shared.SendSignIn).
     let update msg model =
         match msg with
         | SetUsername s -> { model with username = s }, Cmd.none
         | SetPassword s -> { model with password = s }, Cmd.none
+        | SetHandle h -> { model with handle = h }, Cmd.none
+        | SetBio b -> { model with bio = b }, Cmd.none
         | Clear -> init, Cmd.none
         | Submit -> model, Cmd.none
 
     /// The Account page's feature-owned view. It takes the slices of Shared it
     /// needs (the authenticated username + sign-in failure flag) *selected*,
-    /// not duplicated, plus the live transient form draft (from the active
-    /// PageModel). Local form messages are dispatched to the local dispatcher;
-    /// the sign-out action is passed in as a callback because it is a
-    /// cross-feature (session) effect owned by the root/Shared.
+    /// not duplicated, plus the live transient page state (from the active
+    /// PageModel). When signed out it renders the sign-in form; when signed in
+    /// it renders the current user's profile editor. Local messages are
+    /// dispatched to the local dispatcher; sign-out is a callback because it
+    /// is a cross-feature (session) effect owned by the root/Shared.
     let view (form: Model) (username: option<string>) (signInFailed: bool) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
         cond username <| function
         | Some name ->
+            // Auth-gated: a signed-in user edits their profile here.
             Layout.AccountSignedIn()
                 .Username(name)
+                .Handle(form.handle, fun h -> localDispatch (SetHandle h))
+                .Bio(form.bio, fun b -> localDispatch (SetBio b))
+                .Save(fun _ -> localDispatch Submit)
                 .SignOut(fun _ -> signOut ())
                 .Elt()
         | None ->

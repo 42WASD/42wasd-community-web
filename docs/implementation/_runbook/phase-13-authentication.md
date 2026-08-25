@@ -2,149 +2,136 @@
 phase: 03-step-by-step-implementation/phase-13-authentication
 ---
 
-**Phase 13 complete — added authentication + an auth-gated `/profile` page.**
-The session contract (`signIn`, `getUsername`, `signOut`) and the Account
-(sign-in) page already existed from earlier phases. This phase made auth
-meaningful by adding a second, **auth-gated** page: `/profile`, which shows a
-profile editor to signed-in users and a sign-in prompt to everyone else.
+**Phase 13 complete — authentication with a single auth-gated `/account`
+page.** The session contract (`signIn`, `getUsername`, `signOut`) and cookie
+persistence already existed from earlier phases. This phase added the auth
+gate UI: the `/account` page shows a **sign-in form when signed out** and the
+**current user's profile editor when signed in**.
 
 ### Reference
 
-The reference asks for pages that are only reachable by signed-in users — a
-gate that renders different content based on session state. The obvious fit
-for the gaming community was a personal **profile** page: you must be signed
-in to view or edit your own profile.
+The reference asks for sign in / sign out, account state that survives refresh
+(persistent lifetime), and auth-gated pages that show a sign-in prompt when
+logged out.
 
-Design decision (user choice): **New `/profile` page (gated)** rather than
-gating an existing page, so we demonstrate the gate on a purpose-built page.
+Design decision (user choice, mid-phase refactor): we initially built a
+separate `/profile` page, but recognized that **Profile duplicated Account**
+(both showed "Signed in as X" + sign out when signed in). We merged the gated
+profile editor into `/account` and **removed `/profile`** — one page that logs
+you in when signed out and shows your profile when signed in.
 
-### Session contract (unchanged)
+### Session contract + service (unchanged)
 
-`Community.Web.Shared/Remoting/CommunityApi.fs` already exposed:
+`CommunityApi.Shared` already has `signIn`, `getUsername`, `signOut`.
+`CommunityApiService` implements them (signIn returns `Some username` for
+`password = "password"`; `getUsername` is wrapped in `ctx.Authorize`, 401 when
+signed out). The session persists via an auth cookie, so a full page refresh
+keeps you signed in. **No contract/service change was needed.**
 
-```fsharp
-signIn: string * string -> Async<option<string>>
-getUsername: unit -> Async<string>
-signOut: unit -> Async<unit>
-```
+### Auth gate (single feature-owned view)
 
-`Community.Web.Server/CommunityApiService.fs` implements them (sign-in
-returns `Some username` for `password = "password"`; `getUsername` is wrapped
-in `ctx.Authorize`, returning the identity name or 401). The session persists
-via an auth cookie, so a full page refresh keeps you signed in. **No change to
-the contract or service was needed this phase** — auth already existed.
-
-### Auth gate templates
-
-`wwwroot/main.html` gained two templates:
-
-- `Profile` — "Your profile" title, "Signed in as **${Username}**", a form with
-  `${Handle}` (input) and `${Bio}` (textarea) bound fields, a Save submit
-  (`onsubmit="${Save}"`), and a Sign out button (`onclick="${SignOut}"`).
-- `ProfileSignedOut` — "Profile" title, "Sign in to view and edit your
-  profile.", and a "Sign in" link (`href="/account"`).
-
-### Feature-owned page
-
-`Pages/Profile.fs` — the feature-owned, auth-gated page:
+`Pages/Account.fs` — the Account feature's `Model` holds the sign-in form draft
+**and** the profile-edit draft:
 
 ```fsharp
-module Profile =
-    type Model = { handle: string; bio: string }
-    type Msg =
-        | SetHandle of string
-        | SetBio of string
-        | Save
+type Model =
+    { username: string; password: string   // sign-in form draft
+      handle: string; bio: string }         // profile-edit draft
 
-    let init = { handle = ""; bio = "" }
-
-    let update msg model =
-        match msg with
-        | SetHandle h -> { model with handle = h }, Cmd.none
-        | SetBio b -> { model with bio = b }, Cmd.none
-        | Save -> model, Cmd.none
-
-    let view (form: Model) (username: option<string>)
-             (localDispatch: Msg -> unit) (signOut: unit -> unit) =
-        cond username <| function
-        | None ->
-            Layout.ProfileSignedOut().Elt()   // auth gate
-        | Some name ->
-            Layout.Profile().Username(name).Handle(...).Bio(...)
-                .Save(...).SignOut(...).Elt()
+type Msg =
+    | SetUsername of string
+    | SetPassword of string
+    | SetHandle of string
+    | SetBio of string
+    | Clear
+    | Submit
 ```
 
-The page owns only the profile-edit draft (transient, carried by the route's
-PageModel). Session state (who is signed in) lives on the root
-`SharedModel.account`; sign-out is passed in as a callback — a cross-feature
-session effect owned by the root/Shared.
+`init` seeds all fields empty. `update` is pure (edits the drafts; `Submit` is
+interpreted by the root). `view` is the auth gate — it reads the root session
+state (`username: option<string>`, selected from `SharedModel.account`):
 
-### Wiring (same shape as the Account PageModel page)
-
-- `.fsproj` — registered `Pages/Profile.fs` before `App/App.fs`.
-- `App/App.fs` `Page` union — added `| [<EndPoint "/profile">] ProfilePage of
-  PageModel<Profile.Model>`.
-- `App/App.fs` `Message` — added `| ProfileMsg of Profile.Msg`, with an
-  `update` case that matches `model.page` on `ProfilePage pm`, runs
-  `Profile.update msg pm.Model`, calls `Router.definePageModel pm m`, and lifts
-  with `Cmd.map ProfileMsg` (mirroring `AccountMsg`).
-- `App/App.fs` router `defaultPageModel` — added `ProfilePage pm ->
-  Router.definePageModel pm Profile.init` so a fresh empty draft is supplied on
-  route entry (state-lifetime rule).
-- `Ui/Layout.fs` — added the "Profile" menu item and the
-  `| ProfilePage pm -> Profile.view pm.Model model.shared.account ...` body
-  case. The gate reads `model.shared.account` (the root's session state).
-
-The `/profile` route shares the `PageModel` pattern established for the
-Account page, so the profile-edit draft is transient and resets on fresh
-navigation.
-
-### MVU verification (browser console trace)
-
-Signed out:
-
-```
-New message:: SharedMsg GetSignedInAs        // on app start
-New message:: SharedMsg (RecvSignedInAs ...) // 401 -> None -> gate renders
+```fsharp
+let view (form: Model) (username: option<string>) (signInFailed: bool)
+         (localDispatch: Msg -> unit) (signOut: unit -> unit) =
+    match username with
+    | Some name ->
+        // Signed in: profile editor.
+        Layout.AccountSignedIn()
+            .Username(name)
+            .Handle(form.handle, fun h -> localDispatch (SetHandle h))
+            .Bio(form.bio, fun b -> localDispatch (SetBio b))
+            .Save(fun _ -> localDispatch Submit)
+            .SignOut(fun _ -> signOut ())
+            .Elt()
+    | None ->
+        // Signed out: sign-in form.
+        Layout.SignIn()...
 ```
 
-Navigate to `/profile` → renders "Sign in to view and edit your profile." with
-a Sign in link.
+### Templates
 
-Sign in (on `/account`, username + password, press Enter to submit):
+`wwwroot/main.html` — the `SignIn` template is unchanged. The shallow
+`AccountSignedIn` plus the now-removed `Profile`/`ProfileSignedOut` templates
+were consolidated into a single richer `AccountSignedIn` template: "Signed in
+as **Username**" plus a form with `Handle` (bound input) and `Bio` (bound
+textarea), a **Save** button (`onsubmit="${Save}"`) and a **Sign out** button
+(`onclick="${SignOut}"`).
 
-```
-New message:: SharedMsg (SendSignIn ("alice", "password"))
-New message:: SharedMsg (RecvSignIn (Some "alice"))
-New message:: AccountMsg Clear               // root clears the form on success
-```
+### Root orchestration
 
-Navigate to `/profile`: renders the editor — "Signed in as **alice**", Handle +
-Bio fields, Save + Sign out buttons.
+- `App.fs` `Page` keeps `| [<EndPoint "/account">] AccountPage of
+  PageModel<Account.Model>`. The `ProfilePage`/`ProfileMsg` additions were
+  **removed**.
+- `App.fs` `Message` = `SetPage | SharedMsg | AccountMsg`.
+- `App.fs` root `update` already translates `Account.Submit` into
+  `SharedMsg (Shared.SendSignIn (...))` (cross-feature effect), and on
+  `Shared.RecvSignIn (Some _)` clears the Account form (`AccountMsg
+  Account.Clear`).
+- `App.fs` `defaultPageModel` supplies a fresh `Account.init` on each entry
+  (state-lifetime rule — transient drafts reset on fresh navigation).
+- `Ui/Layout.fs` has a single **Account** menu item + body case; the Profile
+  menu/body were removed.
+- `.fsproj` no longer references `Pages/Profile.fs` (file deleted).
 
-Full page refresh on `/profile`: session cookie persists, so the editor still
-renders (still signed in as alice). A logged-out refresh stays on the gate.
+The `/profile` URL now falls back to Home (`DefaultNotFound Home`).
+
+### MVU verification (browser console)
+
+Signed out (app start): `GetSignedInAs` → `RecvSignedInAs` (401 → `account =
+ None`) → `/account` renders the sign-in form.
+
+Sign in (username + `password`, submit): `SendSignIn ("bob","password")` →
+`RecvSignIn (Some "bob")` → `AccountMsg Clear` → `/account` re-renders to the
+profile editor.
+
+Refresh: the Http cookie persists → `getUsername` returns "bob" → still signed
+in. Sign out: `SendSignOut` → session cleared → `/account` returns to the
+sign-in form.
+
+Removed route: `/profile` → `withNotFound Home` redirects to `/`.
 
 ### Verification
 
 ```bash
 dotnet build Community.Web.sln        # 0 warnings, 0 errors
 # dev server http://localhost:5023
-curl -I http://localhost:5023/profile # 200 (SPA route)
+curl -I http://localhost:5023/account # 200 (SPA route)
+curl -I http://localhost:5023/profile # 200 (SPA fallback -> Home)
 ```
 
-Browser: `/profile` gated when signed out, editor when signed in, session
-survives refresh. `verify.sh` reports `VERIFY OK`.
+Browser: `/account` shows the sign-in form when logged out, the profile editor
+when signed in; refresh persists the session; `/profile` no longer exists
+(falls back to Home). `verify.sh` reports `VERIFY OK`.
 
-### Files changed
+### Files changed (relative to the initial Phase 13 commit)
 
-```
-src/Community.Web.Client/Pages/Profile.fs        (new)
-src/Community.Web.Client/wwwroot/main.html        (+ Profile, ProfileSignedOut)
-src/Community.Web.Client/App/App.fs               (+ ProfilePage, ProfileMsg)
-src/Community.Web.Client/Ui/Layout.fs             (+ Profile menu + body case)
-src/Community.Web.Client/Community.Web.Client.fsproj
-docs/implementation/progress.yaml                 (phase-13: done)
-docs/implementation/index.md                     (regenerated)
-docs/implementation/_runbook/phase-13-authentication.md  (this file)
+```text
+src/Community.Web.Client/Pages/Profile.fs              (deleted)
+src/Community.Web.Client/Pages/Account.fs               (+ handle/bio state, gate view)
+src/Community.Web.Client/wwwroot/main.html              (merged AccountSignedIn; -Profile/-ProfileSignedOut)
+src/Community.Web.Client/App/App.fs                    (-ProfilePage/-ProfileMsg)
+src/Community.Web.Client/Ui/Layout.fs                  (-Profile menu/body)
+src/Community.Web.Client/Community.Web.Client.fsproj   (-Pages/Profile.fs)
+docs/implementation/_runbook/phase-13-authentication.md  (this file, rewritten)
 ```

@@ -22,7 +22,6 @@ type Page =
     | [<EndPoint "/tournaments">] Tournaments
     | [<EndPoint "/members">] Members
     | [<EndPoint "/teams">] Teams
-    | [<EndPoint "/profile">] ProfilePage of PageModel<Profile.Model>
     | [<EndPoint "/about">] About
     | [<EndPoint "/account">] AccountPage of PageModel<Account.Model>
 
@@ -150,7 +149,6 @@ type Message =
     | SetPage of Page
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
-    | ProfileMsg of Profile.Msg
 
 let update remote message model =
     match message with
@@ -187,17 +185,6 @@ let update remote message model =
                 model, Cmd.map AccountMsg cmd
         | _ -> model, Cmd.none
 
-    | ProfileMsg msg ->
-        // The Profile feature's local update runs against its own Model, held
-        // in the route's PageModel. Its Save is a stub for now (a real save
-        // would be a session effect owned by the root/Shared).
-        match model.page with
-        | ProfilePage pm ->
-            let m, cmd = Profile.update msg pm.Model
-            Router.definePageModel pm m
-            model, Cmd.map ProfileMsg cmd
-        | _ -> model, Cmd.none
-
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
 ///
@@ -207,7 +194,6 @@ let update remote message model =
 let router =
     let defaultPageModel = function
         | AccountPage pm -> Router.definePageModel pm Account.init
-        | ProfilePage pm -> Router.definePageModel pm Profile.init
         | _ -> ()
     Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
     |> Router.withNotFound Home

@@ -33,7 +33,6 @@ let view (model: Model) (dispatch: Message -> unit) =
             menuItem model Members "Members"
             menuItem model Teams "Teams"
             menuItem model About "About"
-            menuItem model (ProfilePage Router.noModel) "Profile"
             menuItem model (AccountPage Router.noModel) "Account"
         })
         .Body(
@@ -45,10 +44,6 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Members -> Members.view model.shared
             | Teams -> Teams.view model.shared
             | About -> About.view ()
-            | ProfilePage pm ->
-                Profile.view pm.Model model.shared.account
-                    (fun msg -> dispatch (ProfileMsg msg))
-                    (fun () -> dispatch (SharedMsg Shared.SendSignOut))
             | AccountPage pm ->
                 Account.view pm.Model model.shared.account model.shared.signInFailed
                     (fun msg -> dispatch (AccountMsg msg))
