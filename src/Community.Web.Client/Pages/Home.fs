@@ -43,8 +43,8 @@ module Home =
             }))
         })
 
-    /// A compact live-server row: name, status badge, and a capacity bar.
-    /// The online count comes straight from the canonical servers cache.
+    /// A compact live-server row: name, status badge, and a circular capacity
+    /// gauge. The online count comes straight from the canonical servers cache.
     let serverStatusRow (s: GameServer) =
         RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
@@ -54,10 +54,17 @@ module Home =
                 | "maintenance" -> RadzenUI.badgePill RadzenUI.warningBadge "maintenance"
                 | _ -> RadzenUI.badgePill RadzenUI.darkBadge "offline"
             })
-            RadzenUI.progressBarValue (float s.onlinePlayers) (float s.maxPlayers)
-                (if s.onlinePlayers >= s.maxPlayers then RadzenUI.progressBarDanger
-                 elif float s.onlinePlayers / float (max s.maxPlayers 1) >= 0.8 then RadzenUI.progressBarWarning
-                 else RadzenUI.progressBarSuccess)
+            RadzenUI.hStackGap "1rem" (concat {
+                RadzenUI.progressBarCircular (float s.onlinePlayers) (float s.maxPlayers)
+                    RadzenUI.circularMedium true
+                    (if s.onlinePlayers >= s.maxPlayers then RadzenUI.progressBarDanger
+                     elif float s.onlinePlayers / float (max s.maxPlayers 1) >= 0.8 then RadzenUI.progressBarWarning
+                     else RadzenUI.progressBarSuccess)
+                RadzenUI.vStackGap "0.25rem" (concat {
+                    RadzenUI.text RadzenUI.caption "capacity"
+                    RadzenUI.text RadzenUI.body1 (sprintf "%d / %d online" s.onlinePlayers s.maxPlayers)
+                })
+            })
         }))
 
     /// The "latest news" section rendered as a vertical RadzenTimeline, so the

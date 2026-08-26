@@ -20,7 +20,7 @@ type Page =
     | [<EndPoint "/games">] Games
     | [<EndPoint "/servers">] Servers
     | [<EndPoint "/tournaments">] Tournaments
-    | [<EndPoint "/members">] Members
+    | [<EndPoint "/members">] MembersPage of PageModel<Members.Model>
     | [<EndPoint "/teams">] Teams
     | [<EndPoint "/about">] About
     | [<EndPoint "/account">] AccountPage of PageModel<Account.Model>
@@ -178,6 +178,7 @@ type Message =
     | SetPage of Page
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
+    | MembersMsg of Members.Msg
     | TournamentsMsg of Tournaments.Msg
     | GamesMsg of Games.Msg
 
@@ -216,6 +217,16 @@ let update remote message model =
                 model, Cmd.map AccountMsg cmd
         | _ -> model, Cmd.none
 
+    | MembersMsg msg ->
+        // The Members feature's local update runs against its own Model, held
+        // in the route's PageModel (same transient-state pattern as Account).
+        match model.page with
+        | MembersPage pm ->
+            let m, cmd = Members.update msg pm.Model
+            Router.definePageModel pm m
+            model, Cmd.map MembersMsg cmd
+        | _ -> model, Cmd.none
+
     | TournamentsMsg msg ->
         // A cross-feature effect: the Tournaments feature does not mutate
         // shared state directly. It emits its own local message, and the root
@@ -244,6 +255,7 @@ let update remote message model =
 let router =
     let defaultPageModel = function
         | AccountPage pm -> Router.definePageModel pm Account.init
+        | MembersPage pm -> Router.definePageModel pm Members.init
         | _ -> ()
     Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
     |> Router.withNotFound Home

@@ -7,24 +7,23 @@ open Community.Web.Client.Ui
 open Community.Web.Shared.Domain
 
 /// Teams page — feature-owned view. Selects the canonical Teams cache from
-/// Shared and renders each team as a responsive card with its roster. Follows
-/// the same shape as the other pages: no page-local Model, loading/loaded/
-/// failed handled by pattern-matching the canonical cache. Built on Radzen.
+/// Shared and renders it as a RadzenDataList — a card list rather than a
+/// table, demonstrating a different presentation shape. Follows the same
+/// loading/loaded/failed pattern as the other pages, with no page-local state.
 module Teams =
 
-    /// Render one team card: name + its player roster.
+    /// Render one team as a DataList card: name + its player roster.
     let teamCard (team: Team) =
-        RadzenUI.columnResponsive 12 6 4 (concat {
-            RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-                RadzenUI.text RadzenUI.heading6 team.name
-                for player in team.players do
-                    let discord = defaultArg player.discord ""
-                    RadzenUI.text RadzenUI.caption (player.username + " · " + discord)
-            }))
-        })
+        RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.text RadzenUI.heading6 team.name
+            for player in team.players do
+                let discord = defaultArg player.discord ""
+                RadzenUI.text RadzenUI.caption (player.username + " · " + discord)
+        }))
 
-    /// The Teams page view. Card layout (not a table) demonstrating a
-    /// different presentation shape while still reading the canonical cache.
+    /// The Teams page view. A `RadzenDataList` lays the team cards out as a
+    /// responsive card grid (not table rows), while still reading the
+    /// canonical teams cache.
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
@@ -34,5 +33,8 @@ module Teams =
         | Loaded m ->
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Teams"
-                RadzenUI.rowGap "1rem" (forEach (Map.toArray m) (fun (_, team) -> teamCard team))
+                RadzenUI.dataList<Team>
+                    (Map.toArray m |> Array.map snd)
+                    true
+                    teamCard
             })

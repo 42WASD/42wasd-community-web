@@ -73,6 +73,10 @@ module RadzenUI =
     let progressBarInfo = ProgressBarStyle.Info
     let progressBarDark = ProgressBarStyle.Dark
 
+    let circularSmall = ProgressBarCircularSize.Small
+    let circularMedium = ProgressBarCircularSize.Medium
+    let circularLarge = ProgressBarCircularSize.Large
+
     let pointPrimary = PointStyle.Primary
     let pointSecondary = PointStyle.Secondary
     let pointSuccess = PointStyle.Success
@@ -422,6 +426,27 @@ module RadzenUI =
                 onLogin (user, pass))
         }
 
+    /// A RadzenAutoComplete — a search box that suggests/filters as you type.
+    /// `data` is the item collection; `textProperty` is the record field shown
+    /// in the suggestions (e.g. "username"). `minLength` gates when the
+    /// suggestions appear. `onSelectedItem` fires with the picked object when
+    /// the user chooses a suggestion.
+    let autoComplete<'data> (data: seq<'data>) (textProperty: string) (value: string) (onValueChanged: string -> unit) =
+        comp<RadzenAutoComplete> {
+            "Data" => data
+            "TextProperty" => textProperty
+            "Value" => value
+            "MinLength" => 0
+            "OpenOnFocus" => true
+            attr.callback "ValueChanged" (fun (v: string) -> onValueChanged v)
+            // RadzenAutoComplete's ValueChanged binds to the `onchange` event
+            // (fires only on Enter/blur/select). For LIVE filtering as you type,
+            // capture the bubbling `input` event on the wrapper element.
+            attr.callback "oninput" (fun (e: Microsoft.AspNetCore.Components.ChangeEventArgs) ->
+                let v = if isNull e.Value then "" else string e.Value
+                onValueChanged v)
+        }
+
     // ---------------------------------------------------------------- cards
 
     /// A tournament card (gaming-community).
@@ -507,6 +532,18 @@ module RadzenUI =
             "Value" => value
             "Max" => max
             "ShowValue" => true
+            "ProgressBarStyle" => style
+        }
+
+    /// A determinate RadzenProgressBarCircular — a compact ring showing
+    /// `value`/`max` with the value inside the circle. `size` is one of the
+    /// `circular*` enums; `showValue` displays the percentage in the center.
+    let progressBarCircular (value: float) (max: float) (size: ProgressBarCircularSize) (showValue: bool) (style: ProgressBarStyle) =
+        comp<RadzenProgressBarCircular> {
+            "Value" => value
+            "Max" => max
+            "Size" => size
+            "ShowValue" => showValue
             "ProgressBarStyle" => style
         }
 
@@ -644,3 +681,43 @@ module RadzenUI =
             "Filterable" => true
             "ShowCellDataAsTooltip" => showTooltip
         }
+
+    /// A RadzenDataGridColumn with a custom cell template instead of a raw
+    /// `Property` binding — for rendering a value that isn't a plain string
+    /// (e.g. an F# `option<string>`). `title` is the header; `cell` maps each
+    /// row to the Node shown in that cell. Built with `attr.fragmentWith`
+    /// because the column `Template` is a `RenderFragment<'T>`.
+    let dataGridTemplateColumn<'T when 'T : not null> (title: string) (cell: 'T -> Node) =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenDataGridColumn<'T>>(i)
+            let n = i + 1
+            b.AddAttribute(n, "Title", title)
+            b.AddAttribute(n + 1, "Sortable", true)
+            b.AddAttribute(n + 2, "Filterable", false)
+            let template =
+                RenderFragment<'T>(fun ctx ->
+                    RenderFragment(fun rt ->
+                        (cell ctx).Invoke(c, rt, 0) |> ignore))
+            b.AddAttribute(n + 3, "Template", template)
+            b.CloseComponent()
+            n + 4)
+
+    // ---------------------------------------------------------------- data list
+
+    /// A RadzenDataList rendering items with a custom card template instead of
+    /// table rows. `renderItem` maps each `'T` to a Node (the card). The
+    /// `Template` is a `RenderFragment<'T>`, built with `attr.fragmentWith`.
+    /// `wrapItems` flows items horizontally; otherwise they stack vertically.
+    let dataList<'T> (data: seq<'T>) (wrapItems: bool) (itemTemplate: 'T -> Node) =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenDataList<'T>>(i)
+            let n = i + 1
+            b.AddAttribute(n, "Data", data)
+            b.AddAttribute(n + 1, "WrapItems", wrapItems)
+            let renderTemplate =
+                RenderFragment<'T>(fun ctx ->
+                    RenderFragment(fun rt ->
+                        (itemTemplate ctx).Invoke(c, rt, 0) |> ignore))
+            b.AddAttribute(n + 2, "Template", renderTemplate)
+            b.CloseComponent()
+            n + 3)

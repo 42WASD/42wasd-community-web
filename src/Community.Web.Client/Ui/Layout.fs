@@ -37,13 +37,16 @@ let view (model: Model) (dispatch: Message -> unit) =
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
                 RadzenUI.text RadzenUI.heading4 "42WASD"
-                RadzenUI.menu true (concat {
+                RadzenUI.menu false (concat {
                     navItem Home "Home"
                     navItem Games "Games"
                     navItem Servers "Servers"
                     navItem Tournaments "Tournaments"
-                    navItem Members "Members"
-                    navItem Teams "Teams"
+                    // Community is a flyout submenu holding Members + Teams.
+                    RadzenUI.menuSubmenu "Community" (concat {
+                        navItem (MembersPage Router.noModel) "Members"
+                        navItem Teams "Teams"
+                    })
                     navItem About "About"
                     navItem (AccountPage Router.noModel) "Account"
                 })
@@ -68,7 +71,8 @@ let view (model: Model) (dispatch: Message -> unit) =
             | Servers -> Servers.view model.shared
             | Tournaments ->
                 Tournaments.view model.shared (fun msg -> dispatch (TournamentsMsg msg))
-            | Members -> Members.view model.shared
+            | MembersPage pm ->
+                Members.view pm.Model model.shared (fun msg -> dispatch (MembersMsg msg))
             | Teams -> Teams.view model.shared
             | About -> About.view ()
             | AccountPage pm ->
