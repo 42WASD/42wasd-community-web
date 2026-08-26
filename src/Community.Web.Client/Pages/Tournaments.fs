@@ -74,7 +74,7 @@ module Tournaments =
             })
             // Prize — a clearly-labelled value column with equal height.
             RadzenUI.columnResponsiveClass 12 5 3 "rz-p-4 rz-display-flex rz-align-items-center rz-justify-content-between" (concat {
-                RadzenUI.vStackGap "0.15rem" (concat {
+                RadzenUI.vStackGap "0.25rem" (concat {
                     RadzenUI.text RadzenUI.overline "Prize"
                     RadzenUI.text RadzenUI.subtitle1 tournament.prize
                 })

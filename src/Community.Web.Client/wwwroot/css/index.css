@@ -232,6 +232,19 @@ button.rz-primary.rz-button {
   padding-top: 0.75rem;
 }
 
+/* =========================================================================
+   Vertical DataList card separation (Tournaments)
+   -------------------------------------------------------------------------
+   Radzen's default `--rz-datalist-item-margin-block` is 0.5rem → adjacent
+   vertical cards sit only 8px apart (margins collapse). That is half the
+   1rem (16px) gutter used by the card grids on Games and Home, so the
+   "vertical card list" reads tighter than every other card surface. Override
+   it to 1rem so every card-to-card separation across the app is 16px.
+   ========================================================================= */
+.rz-datalist-data > li {
+  --rz-datalist-item-margin-block: 1rem;
+}
+
 /* Teams splitter: each pane's card fills the pane so uneven rosters balance
    into a dashboard-like layout with no dead vertical space. */
 .rz-splitter-pane > .rz-card {

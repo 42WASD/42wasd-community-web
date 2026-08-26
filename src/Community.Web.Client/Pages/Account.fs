@@ -55,7 +55,7 @@ module Account =
 
     /// The sign-in form (signed out), built on RadzenLogin.
     let signInForm (_form: Model) (signInFailed: bool) (dispatch: Msg -> unit) =
-        RadzenUI.vStackGap "1rem" (concat {
+        RadzenUI.vStackGap "1.5rem" (concat {
             RadzenUI.text RadzenUI.display3 "Sign in"
             RadzenUI.text RadzenUI.subtitle1 "Use any username and the password \"password\"."
             // A single message carries both fields — no sequential
@@ -69,7 +69,7 @@ module Account =
 
     /// The profile editor (signed in).
     let profileForm (form: Model) (name: string) (profileSaved: bool) (profileError: string option) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
-        RadzenUI.vStackGap "1rem" (concat {
+        RadzenUI.vStackGap "1.5rem" (concat {
             RadzenUI.text RadzenUI.display3 "Account"
             RadzenUI.text RadzenUI.subtitle1 ("Signed in as " + name)
             RadzenUI.text RadzenUI.caption "Display handle"

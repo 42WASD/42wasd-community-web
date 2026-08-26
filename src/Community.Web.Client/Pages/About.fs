@@ -10,7 +10,7 @@ open Community.Web.Client.Ui
 module About =
 
     let view () =
-        RadzenUI.vStackGap "1rem" (concat {
+        RadzenUI.vStackGap "1.5rem" (concat {
             RadzenUI.rise (RadzenUI.text RadzenUI.display3 "About")
             RadzenUI.card (RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.text RadzenUI.subtitle1
