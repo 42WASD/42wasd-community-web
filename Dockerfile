@@ -12,7 +12,7 @@
 # Runtime stage: aspnet -> run the published DLL as a non-root user on :8080
 # ---------------------------------------------------------------------------
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.400 AS build
 WORKDIR /src
 
 # Restore with the solution first (caches NuGet layers).
