@@ -30,7 +30,7 @@ spec:
           # Pinned to the immutable digest (not :main tag) to satisfy the
           # Kyverno "prefer-immutable-digest-in-prod" policy. GHCR package is
           # public, so no imagePullSecrets are needed.
-          image: ghcr.io/42wasd/42wasd-community-web@sha256:fb728a7f9e7797c43d041f188bd5b65e50926d065fa279e30788031dfa2ca20c
+          image: ghcr.io/42wasd/42wasd-community-web@sha256:509548b51acc561fd33ef17f79c751cc3148b62b2afa92f6b643dba6c87578c4
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
