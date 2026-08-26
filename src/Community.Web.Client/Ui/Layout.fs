@@ -20,6 +20,26 @@ open Community.Web.Shared.Domain
 let menuItem (model: Model) (page: Page) (text: string) =
     RadzenUI.panelMenuItem text (router.Link page) (page = Home)
 
+/// The human-readable name of the active page, used in the header breadcrumb.
+let pageTitle (page: Page) =
+    match page with
+    | Home -> "Home"
+    | Games -> "Games"
+    | Servers -> "Servers"
+    | Tournaments -> "Tournaments"
+    | Members -> "Members"
+    | Teams -> "Teams"
+    | About -> "About"
+    | AccountPage _ -> "Account"
+
+/// A RadzenBreadCrumb showing Home / current page, so the user always knows
+/// where they are in the app.
+let breadcrumb (page: Page) =
+    RadzenUI.breadcrumb (concat {
+        RadzenUI.breadcrumbItem "Home" (Some "")
+        RadzenUI.breadcrumbItem (pageTitle page) None
+    })
+
 /// The single root view. Only the layout shell lives here; each page renders
 /// itself via its owning feature module. The shared error notification is
 /// cross-feature UI and stays here.
@@ -33,6 +53,18 @@ let view (model: Model) (dispatch: Message -> unit) =
                 RadzenUI.sidebarToggle (fun () -> dispatch ToggleSidebar)
                 RadzenUI.text RadzenUI.heading4 "42WASD"
             })
+            // A profile menu appears in the header when signed in.
+            cond model.shared.account <| function
+            | None -> empty()
+            | Some name ->
+                RadzenUI.profileMenu
+                    (RadzenUI.text RadzenUI.subtitle1 name)
+                    (fun action ->
+                        if action = "signout" then
+                            dispatch (SharedMsg Shared.SendSignOut))
+                    (concat {
+                        RadzenUI.profileMenuItem "Sign out" "signout"
+                    })
         })
         RadzenUI.sidebarExpanded model.sidebarExpanded (fun _ -> dispatch ToggleSidebar) (concat {
             RadzenUI.panelMenu (concat {
@@ -47,6 +79,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             })
         })
         RadzenUI.body (concat {
+            breadcrumb model.page
             cond model.page <| function
             | Home -> Home.view model.shared
             | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))

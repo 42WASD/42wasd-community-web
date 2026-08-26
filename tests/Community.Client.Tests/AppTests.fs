@@ -68,3 +68,21 @@ module AppTests =
         | _ -> Assert.True(false, "Expected AccountPage")
         // The shared account is untouched (still signed out / no session change).
         Assert.Equal(initModel.shared.account, after.shared.account)
+
+    // --- Tournaments split-button action routing (regression) ---------------
+    // RadzenSplitButtonItem has NO per-item click handler — item clicks bubble
+    // to the parent's `Click` with the item's Value. We route on that Value so
+    // "View details" must NEVER toggle registration. These prove the routing.
+
+    [<Fact>]
+    let ``split action "details" is a no-op, not a toggle`` () =
+        Assert.False(Tournaments.isToggleAction (Some "details"))
+
+    [<Fact>]
+    let ``split action main button and toggle item both toggle`` () =
+        Assert.True(Tournaments.isToggleAction None)
+        Assert.True(Tournaments.isToggleAction (Some "toggle"))
+
+    [<Fact>]
+    let ``split action unknown value is a safe no-op`` () =
+        Assert.False(Tournaments.isToggleAction (Some "unexpected"))

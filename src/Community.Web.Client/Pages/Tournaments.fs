@@ -20,10 +20,24 @@ module Tournaments =
     type Msg =
         | ToggleRegistration of string
 
-    /// Render one tournament card. The Radzen button dispatches a local
-    /// ToggleRegistration (owned by this feature); the root turns it into a
-    /// shared-cache update.
+    /// Decide whether a split-button action should toggle registration. The
+    /// Radzen split button's `Click` fires with the chosen item's `Value` —
+    /// `None` for the main button, `Some "toggle"` for the toggle item, `Some
+    /// "details"` for "View details". Pure and unit-testable so "View details"
+    /// can never accidentally toggle registration.
+    let isToggleAction (action: string option) =
+        match action with
+        | None | Some "toggle" -> true
+        | Some _ -> false
+
+    /// Render one tournament card. The Radzen split button's dropdown has two
+    /// actions: close/reopen registration (main button + first item) and
+    /// "View details" (a no-op placeholder). Because RadzenSplitButtonItem has
+    /// no per-item click, the parent's `Click` receives the item's `Value`.
     let card (tournament: Tournament) (dispatch: Msg -> unit) =
+        let run action =
+            if isToggleAction action then
+                ToggleRegistration tournament.id |> dispatch
         RadzenUI.cardOutlined (concat {
             RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.text RadzenUI.heading6 tournament.name
@@ -34,19 +48,19 @@ module Tournaments =
                 RadzenUI.splitButton
                     "Close registration"
                     RadzenUI.dangerButton
-                    (fun () -> ToggleRegistration tournament.id |> dispatch)
+                    run
                     (concat {
-                        RadzenUI.splitButtonItem "Close registration" (fun () -> ToggleRegistration tournament.id |> dispatch)
-                        RadzenUI.splitButtonItem "View details" (fun () -> ())
+                        RadzenUI.splitButtonItem "Close registration" "toggle"
+                        RadzenUI.splitButtonItem "View details" "details"
                     })
             else
                 RadzenUI.splitButton
                     "Reopen registration"
                     RadzenUI.successButton
-                    (fun () -> ToggleRegistration tournament.id |> dispatch)
+                    run
                     (concat {
-                        RadzenUI.splitButtonItem "Reopen registration" (fun () -> ToggleRegistration tournament.id |> dispatch)
-                        RadzenUI.splitButtonItem "View details" (fun () -> ())
+                        RadzenUI.splitButtonItem "Reopen registration" "toggle"
+                        RadzenUI.splitButtonItem "View details" "details"
                     })
         })
 

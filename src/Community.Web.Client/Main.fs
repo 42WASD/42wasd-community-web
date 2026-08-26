@@ -59,6 +59,11 @@ type MyApp() =
         // not the server terminal.
         program
         |> Program.withConsoleTrace
+        |> Program.withTrace (fun (msg: Message) (model: Model) _subs ->
+            // Max-explicit trace: log every message + the resulting page so the
+            // browser console shows the full MVU flow (per AGENTS.md: trace the
+            // dispatch log before fixing a runtime issue).
+            printfn "TRACE msg=%A -> page=%A" msg model.page)
         |> Program.withErrorHandler (fun (msg, exn) ->
             printfn $"Elmish error after %A{msg}: {exn}")
         |> Program.withTermination

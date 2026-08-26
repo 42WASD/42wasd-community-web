@@ -325,6 +325,21 @@ module RadzenUI =
             "Match" => (if matchAll then navMatchAll else navMatchPrefix)
         }
 
+    /// A RadzenBreadCrumb — a horizontal trail of `breadcrumbItem`s showing the
+    /// current page's location in the app.
+    let breadcrumb (children: Node) =
+        comp<RadzenBreadCrumb> {
+            children
+        }
+
+    /// A RadzenBreadCrumbItem — one step in a `breadcrumb`. A `path` renders as
+    /// a link; without a path it's a plain (current-page) label.
+    let breadcrumbItem (textValue: string) (path: string option) =
+        comp<RadzenBreadCrumbItem> {
+            "Text" => textValue
+            "Path" => (defaultArg path null)
+        }
+
     // ---------------------------------------------------------------- buttons
 
     /// A Radzen button. `style` controls the semantic color, `onClickMsg` is
@@ -382,6 +397,31 @@ module RadzenUI =
                 RenderFragment(fun builder ->
                     children.Invoke(receiver, builder, 0) |> ignore))
             sequence + 1)
+
+    // ---------------------------------------------------------------- profile menu
+
+    /// A RadzenProfileMenu — a collapsed nav item that expands into a dropdown
+    /// of `profileMenuItem`s. NOTE: items have no per-item click — item clicks
+    /// bubble to the parent's `Click` with the item carrying its `Value`, so
+    /// route on `item.Value`. `template` is the always-visible trigger content
+    /// (e.g. the signed-in username).
+    let profileMenu (template: Node) (onClick: string -> unit) (children: Node) =
+        comp<RadzenProfileMenu> {
+            fragmentParam "Template" template
+            attr.callback "Click" (fun (item: RadzenProfileMenuItem) ->
+                if not (isNull (box item)) && not (isNull item.Value) then
+                    onClick item.Value)
+            children
+        }
+
+    /// A RadzenProfileMenuItem — one entry in a `profileMenu` dropdown. The
+    /// `value` is what the parent's `onClick` receives (items have no
+    /// independent click handler).
+    let profileMenuItem (textValue: string) (value: string) =
+        comp<RadzenProfileMenuItem> {
+            "Text" => textValue
+            "Value" => value
+        }
 
     // ---------------------------------------------------------------- tabs
 
@@ -463,10 +503,13 @@ module RadzenUI =
 
     /// A RadzenImage — renders an `<img>` from a URL, base64 data, or app asset.
     /// `alt` is shown by screen readers and when the image fails to load.
+    /// `max-width:100%; height:auto` keeps the image within its container so it
+    /// never overflows on narrow/phone viewports (e.g. inside a carousel card).
     let image (src: string) (alt: string) =
         comp<RadzenImage> {
             "Path" => src
             "AlternateText" => alt
+            "Style" => "max-width: 100%; height: auto;"
         }
 
     /// A RadzenChip label with a badge-style color and an optional fill variant.
@@ -488,25 +531,29 @@ module RadzenUI =
 
     /// A RadzenSplitButton — a primary button plus a dropdown menu of
     /// `splitButtonItem`s. The main `Text`/`ButtonStyle` is on the left, the
-    /// arrow toggles the menu. NOTE: `Click` is `EventCallback<RadzenSplitButtonItem>`
-    /// (not MouseEventArgs) — clicking either the main button or an item
-    /// invokes it with the item (null for the main button). So the callback
-    /// takes an item.
-    let splitButton (textValue: string) (style: ButtonStyle) (onClick: unit -> unit) (children: Node) =
+    /// arrow toggles the menu.
+    ///
+    /// NOTE: `RadzenSplitButtonItem` has NO per-item click handler. Item clicks
+    /// always bubble up to the parent's `Click` with the item as the argument
+    /// (the main button passes `null`). So `onClick` receives the chosen
+    /// action's `value`: `None` = the main button, `Some value` = that item.
+    /// Route on that value — never pass a per-item callback.
+    let splitButton (textValue: string) (style: ButtonStyle) (onClick: string option -> unit) (children: Node) =
         comp<RadzenSplitButton> {
             "Text" => textValue
             "ButtonStyle" => style
-            attr.callback "Click" (fun (_: RadzenSplitButtonItem) -> onClick ())
+            attr.callback "Click" (fun (item: RadzenSplitButtonItem) ->
+                onClick (if isNull (box item) then None else Some item.Value))
             children
         }
 
-    /// A RadzenSplitButtonItem — one menu entry in a `splitButton`. Item clicks
-    /// bubble up to the parent's `Click` (with the item as the argument), so
-    /// the callback runs when this item is chosen.
-    let splitButtonItem (textValue: string) (onClick: unit -> unit) =
+    /// A RadzenSplitButtonItem — one menu entry in a `splitButton`. `value` is
+    /// what the parent's `onClick` receives to distinguish this item (it has
+    /// no independent click handler — item clicks bubble to the splitButton).
+    let splitButtonItem (textValue: string) (value: string) =
         comp<RadzenSplitButtonItem> {
             "Text" => textValue
-            attr.callback "Click" (fun (_: RadzenSplitButtonItem) -> onClick ())
+            "Value" => value
         }
 
     // ---------------------------------------------------------------- members
