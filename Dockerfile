@@ -21,6 +21,9 @@ COPY global.json ./
 COPY src/Community.Web.Shared/Community.Web.Shared.fsproj src/Community.Web.Shared/
 COPY src/Community.Web.Client/Community.Web.Client.fsproj src/Community.Web.Client/
 COPY src/Community.Web.Server/Community.Web.Server.fsproj src/Community.Web.Server/
+# The client uses WASM AOT (RunAOTCompilation) in Release, which requires the
+# wasm-tools workload. Install it before restore/publish.
+RUN dotnet workload install wasm-tools
 RUN dotnet restore src/Community.Web.Server/Community.Web.Server.fsproj
 
 # Copy the remainder and publish (Release, framework-dependent).

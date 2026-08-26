@@ -2,6 +2,23 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Performance: only applied when publishing Release (AOT/trimming are
+         Release-publish-only; the dev server stays interpreted + untrimmed).
+         These cut the WASM payload (measured ~12.9MB interpreted) and speed
+         up CPU-bound code by compiling IL -> native WASM. -->
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <PublishTrimmed>true</PublishTrimmed>
+    <!-- Use the SAFE default (partial) trim mode. `full` mode strips the
+         reflection metadata that Bolero's remoting proxy needs to construct
+         the CommunityApi record via FSharpValue.MakeRecord -> runtime crash
+         "The record type 'CommunityApi' is invalid". Partial keeps those
+         reflection targets while still shrinking the payload. -->
+    <TrimMode>partial</TrimMode>
+    <WasmEnableSIMD>true</WasmEnableSIMD>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <WasmEnableExceptionHandling>true</WasmEnableExceptionHandling>
+    <WasmDebugLevel>0</WasmDebugLevel>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="State/RemoteData.fs" />

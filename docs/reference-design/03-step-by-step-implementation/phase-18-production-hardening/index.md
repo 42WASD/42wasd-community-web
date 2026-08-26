@@ -46,6 +46,35 @@ data          JSON files baked into image (read-only); mount a volume to
               make them writable at runtime
 ```
 
+## WASM performance & trimming (measured)
+
+The client is published **Release + AOT + trimming** in the container. Flags live
+in `src/Community.Web.Client/Community.Web.Client.fsproj` (Release-only; the dev
+server stays interpreted + untrimmed).
+
+```xml
+<RunAOTCompilation>true</RunAOTCompilation>
+<PublishTrimmed>true</PublishTrimmed>
+<TrimMode>partial</TrimMode>   <!-- NOT full — see below -->
+<WasmEnableSIMD>true</WasmEnableSIMD>
+<InvariantGlobalization>true</InvariantGlobalization>
+<WasmEnableExceptionHandling>true</WasmEnableExceptionHandling>
+<WasmDebugLevel>0</WasmDebugLevel>
+```
+
+- **Payload**: interpreted dev build ~12.9 MB / 227 requests → AOT+trimmed
+  ~7.8 MB brotli / ~64 requests. `dotnet.native.wasm.br` (~5.5 MB) dominates.
+- **`wasm-tools` workload is required** for AOT. The Dockerfile's SDK stage runs
+  `dotnet workload install wasm-tools` before publish; locally use
+  `sudo dotnet workload install wasm-tools`.
+- **Do NOT use `<TrimMode>full</TrimMode>`.** It strips reflection metadata that
+  Bolero remoting (`FSharpValue.MakeRecord` → the `CommunityApi` proxy) and
+  Radzen `RadzenDataGrid` (`PropertyAccess` expression trees) need. `full` trim
+  breaks login (app fails to init) and renders the Members grid empty in a
+  deployed build while the dev build works — the tell-tale symptom pair.
+  `partial` (the default) keeps the reflection targets while still shrinking
+  the payload.
+
 ## Verification
 
 ```bash
