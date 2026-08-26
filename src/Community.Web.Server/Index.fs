@@ -11,6 +11,8 @@ let page = doctypeHtml {
         meta { attr.name "viewport"; attr.content "width=device-width, initial-scale=1.0" }
         title { "42WASD Community" }
         ``base`` { attr.href "/" }
+        link { attr.rel "icon"; attr.``type`` "image/svg+xml"; attr.href "/42wasd.svg" }
+        link { attr.rel "alternate icon"; attr.href "/favicon.ico" }
         link { attr.rel "stylesheet"; attr.href "_content/Radzen.Blazor/css/material-dark-base.css" }
         link { attr.rel "stylesheet"; attr.href "css/fonts.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
