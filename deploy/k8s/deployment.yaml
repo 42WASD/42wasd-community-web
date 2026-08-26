@@ -25,6 +25,47 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+        # Recursively chown the /app/data PVC to the app user (uid/gid 1654)
+        # so `saveProfile` can write players.json. fsGroup applies group
+        # ownership to any volume mounted in the pod.
+        fsGroup: 1654
+      initContainers:
+        # Seed /app/data with the JSON baked into the image (games.json,
+        # news.json, players.json, ...). A PVC mount shadows the image's
+        # baked-in /app/data, so we copy the defaults in on first start.
+        # Uses `cp -n` (no-clobber) so saved players.json survives pod
+        # restarts once it exists on the volume.
+        - name: seed-data
+          image: ghcr.io/42wasd/42wasd-community-web@sha256:509548b51acc561fd33ef17f79c751cc3148b62b2afa92f6b643dba6c87578c4
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              # The baked JSON is at /app/data inside this init container's
+              # own image filesystem (not shadowed). Copy into the PVC.
+              cp -rn /app/data/. /pvc-data/ || true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1654
+            runAsGroup: 1654
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          volumeMounts:
+            # The PVC is mounted at a path that does NOT shadow the image's
+            # baked-in /app/data, so cp can read from /app/data.
+            - name: data
+              mountPath: /pvc-data
       containers:
         - name: app
           # Pinned to the immutable digest (not :main tag) to satisfy the
@@ -53,8 +94,15 @@ spec:
               value: Production
             - name: ASPNETCORE_URLS
               value: http://+:8080
+          volumeMounts:
+            # /app/data is the writable data dir (see PVC above). fsGroup: 1654
+            # makes it writable by the app user so saveProfile can persist
+            # players.json. Seeded on first start by the seed-data initContainer.
+            - name: data
+              mountPath: /app/data
           # The remoting API serves JSON from src/Community.Web.Server/data,
-          # baked into the image at publish time (read-only at runtime).
+          # baked into the image at publish time. A PVC (42wasd-data) is now
+          # mounted at /app/data so profile saves persist at runtime.
           resources:
             requests:
               cpu: 250m
@@ -74,6 +122,13 @@ spec:
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 30
+      volumes:
+        # Persistent volume for the community site data (players.json etc.).
+        # Defined in pvc.yaml (storageClass nvme-fast, 1Gi, RWO). fsGroup: 1654
+        # chowns it to the app user so saveProfile can write.
+        - name: data
+          persistentVolumeClaim:
+            claimName: 42wasd-data
 
 # Scaling >1 replica: Blazor interactive uses SignalR and auth uses cookies.
 # Either keep replicas: 1 (fine for a community site), or configure a shared

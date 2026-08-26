@@ -1,0 +1,21 @@
+# 42WASD Community Web — PersistentVolumeClaim.
+#
+# Holds the JSON under /app/data so `saveProfile` can persist players.json
+# across pod restarts. The app reads all data files from /app/data at startup
+# and writes only players.json when a user saves their profile. The PVC is
+# mounted at /app/data in the Deployment (see deployment.yaml) and the baked-in
+# JSON is seeded into it on first start by the seed-data initContainer.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: 42wasd-data
+  namespace: prd-42wasd-admin
+  labels:
+    app: 42wasd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: nvme-fast
