@@ -12,12 +12,12 @@ metadata:
     app: 42wasd
 spec:
   replicas: 1
-  # Single-replica workload backed by a ReadWriteOnce PVC: use Recreate so the
-  # old pod fully terminates (releasing the RWO volume) before the new pod
-  # starts. The default RollingUpdate creates the replacement first, which
-  # deadlocks on the single-node RWO PVC (new pod cannot bind until the old
-  # pod releases it). Brief downtime during rollouts is fine for a community
-  # site. Data persists on the 42wasd-data PVC.
+  # Single-replica workload backed by an ephemeral volume: use Recreate so the
+  # old pod fully terminates (releasing the volume) before the new pod starts.
+  # The default RollingUpdate creates the replacement first, which deadlocks on a
+  # single-node volume (new pod cannot mount until the old pod releases it).
+  # Brief downtime during rollouts is fine for a community site. Data is
+  # ephemeral (emptyDir) and re-seeded on every start.
   strategy:
     type: Recreate
   selector:
@@ -33,16 +33,16 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-        # Recursively chown the /app/data PVC to the app user (uid/gid 1654)
+        # Recursively chown the /app/data emptyDir to the group (uid/gid 1654)
         # so `saveProfile` can write players.json. fsGroup applies group
         # ownership to any volume mounted in the pod.
         fsGroup: 1654
       initContainers:
         # Seed /app/data with the JSON baked into the image (games.json,
-        # news.json, players.json, ...). A PVC mount shadows the image's
-        # baked-in /app/data, so we copy the defaults in on first start.
-        # Uses `cp -n` (no-clobber) so saved players.json survives pod
-        # restarts once it exists on the volume.
+        # news.json, players.json, ...). The emptyDir mount shadows the image's
+        # baked-in /app/data, so we copy the defaults in on every pod start.
+        # Because the volume is ephemeral and re-created each deployment, a
+        # plain `cp -a` always copies the fresh defaults over.
         - name: seed-data
           image: ghcr.io/42wasd/42wasd-community-web:main
           command:
@@ -50,7 +50,7 @@ spec:
             - -ec
             - |
               # The baked JSON is at /app/data inside this init container's
-              # own image filesystem (not shadowed). Copy into the PVC.
+              # own image filesystem (not shadowed). Copy into the emptyDir.
               cp -rn /app/data/. /pvc-data/ || true
           securityContext:
             allowPrivilegeEscalation: false
@@ -70,7 +70,7 @@ spec:
               cpu: 250m
               memory: 128Mi
           volumeMounts:
-            # The PVC is mounted at a path that does NOT shadow the image's
+            # The emptyDir is mounted at a path that does NOT shadow the image's
             # baked-in /app/data, so cp can read from /app/data.
             - name: data
               mountPath: /pvc-data
@@ -103,14 +103,15 @@ spec:
             - name: ASPNETCORE_URLS
               value: http://+:8080
           volumeMounts:
-            # /app/data is the writable data dir (see PVC above). fsGroup: 1654
-            # makes it writable by the app user so saveProfile can persist
-            # players.json. Seeded on first start by the seed-data initContainer.
+            # /app/data is the writable data dir (an emptyDir, see volumes
+            # below). fsGroup: 1654 makes it writable by the app user so
+            # saveProfile can write players.json. Seeded on every start by the
+            # seed-data initContainer.
             - name: data
               mountPath: /app/data
           # The remoting API serves JSON from src/Community.Web.Server/data,
-          # baked into the image at publish time. A PVC (42wasd-data) is now
-          # mounted at /app/data so profile saves persist at runtime.
+          # baked into the image at publish time. The emptyDir is mounted at
+          # /app/data and seeded on every start so the app reads fresh data.
           resources:
             requests:
               cpu: 250m
@@ -131,12 +132,13 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 30
       volumes:
-        # Persistent volume for the community site data (players.json etc.).
-        # Defined in pvc.yaml (storageClass nvme-fast, 1Gi, RWO). fsGroup: 1654
-        # chowns it to the app user so saveProfile can write.
+        # Ephemeral emptyDir volume for the site data (players.json etc.).
+        # Created fresh on every pod start, so each deployment/rollout starts
+        # from a clean state: the seed-data initContainer re-copies the JSON
+        # baked into the image. Nothing persists across restarts by design.
+        # fsGroup: 1654 chowns it to the app user so saveProfile can write.
         - name: data
-          persistentVolumeClaim:
-            claimName: 42wasd-data
+          emptyDir: {}
 
 # Scaling >1 replica: Blazor interactive uses SignalR and auth uses cookies.
 # Either keep replicas: 1 (fine for a community site), or configure a shared
