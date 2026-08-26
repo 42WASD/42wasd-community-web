@@ -44,7 +44,7 @@ spec:
         # Uses `cp -n` (no-clobber) so saved players.json survives pod
         # restarts once it exists on the volume.
         - name: seed-data
-          image: ghcr.io/42wasd/42wasd-community-web@sha256:f0216d87ff5fda2b361734813ecfb94b6c2b2d6cad18d1e3fdd3c975ac21e88c
+          image: ghcr.io/42wasd/42wasd-community-web@sha256:d6afee18973ccac0d8a4dc37d78ae537e4b1778633282711ab91906654b47920
           command:
             - /bin/sh
             - -ec
@@ -79,7 +79,7 @@ spec:
           # Pinned to the immutable digest (not :main tag) to satisfy the
           # Kyverno "prefer-immutable-digest-in-prod" policy. GHCR package is
           # public, so no imagePullSecrets are needed.
-          image: ghcr.io/42wasd/42wasd-community-web@sha256:f0216d87ff5fda2b361734813ecfb94b6c2b2d6cad18d1e3fdd3c975ac21e88c
+          image: ghcr.io/42wasd/42wasd-community-web@sha256:d6afee18973ccac0d8a4dc37d78ae537e4b1778633282711ab91906654b47920
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
