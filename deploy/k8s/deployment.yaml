@@ -27,7 +27,10 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: ghcr.io/42wasd/42wasd-community-web:main
+          # Pinned to the immutable digest (not :main tag) to satisfy the
+          # Kyverno "prefer-immutable-digest-in-prod" policy. GHCR package is
+          # public, so no imagePullSecrets are needed.
+          image: ghcr.io/42wasd/42wasd-community-web@sha256:fb728a7f9e7797c43d041f188bd5b65e50926d065fa279e30788031dfa2ca20c
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -35,6 +38,11 @@ spec:
               drop:
                 - ALL
             runAsNonRoot: true
+            # Numeric UID of the image's `app` user (aspnet:10.0). Required so
+            # kubelet can verify the container runs as non-root when the image
+            # declares a non-numeric USER.
+            runAsUser: 1654
+            runAsGroup: 1654
             seccompProfile:
               type: RuntimeDefault
           ports:

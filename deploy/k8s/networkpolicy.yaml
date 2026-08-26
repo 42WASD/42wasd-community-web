@@ -1,0 +1,27 @@
+# 42WASD Community Web — NetworkPolicy.
+# The namespace has a platform "default-deny" NetworkPolicy, so pods would be
+# unreachable from the ingress controller. Allow inbound on the app port from
+# the namespaces Traefik runs in (kube-system / ingress). Mirrors the
+# meme-site tenant policy in the ubuntu-server-iac repo.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-traefik
+  namespace: prd-42wasd-admin
+spec:
+  podSelector:
+    matchLabels:
+      app: 42wasd
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress
+      ports:
+        - protocol: TCP
+          port: 8080
