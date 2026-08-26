@@ -26,7 +26,7 @@ module Games =
         // Phase 15 evidence: probe how often this game is rebuilt.
         let _ = RenderProbe.touch $"game:{game.id}"
         RadzenUI.columnResponsive 12 6 4 (concat {
-            RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.cardHover (RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.image game.imageUrl game.name
                 RadzenUI.text RadzenUI.heading6 game.name
                 RadzenUI.chip game.genre RadzenUI.primaryBadge

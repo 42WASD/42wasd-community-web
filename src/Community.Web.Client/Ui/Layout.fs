@@ -36,7 +36,16 @@ let view (model: Model) (dispatch: Message -> unit) =
         RadzenUI.components
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
-                RadzenUI.text RadzenUI.heading4 "42WASD"
+                // Brand lockup: the 42WASD logo + wordmark, linking to Home.
+                a {
+                    attr.href (router.Link Home)
+                    attr.``class`` "brand"
+                    img {
+                        attr.src "wasd-icon.png"
+                        attr.alt "42WASD"
+                    }
+                    RadzenUI.text RadzenUI.heading4 "42WASD"
+                }
                 RadzenUI.menu false (concat {
                     navItem Home "Home"
                     navItem Games "Games"
@@ -65,20 +74,24 @@ let view (model: Model) (dispatch: Message -> unit) =
                     })
         })
         RadzenUI.body (concat {
-            cond model.page <| function
-            | Home -> Home.view model.shared
-            | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))
-            | Servers -> Servers.view model.shared
-            | Tournaments ->
-                Tournaments.view model.shared (fun msg -> dispatch (TournamentsMsg msg))
-            | MembersPage pm ->
-                Members.view pm.Model model.shared (fun msg -> dispatch (MembersMsg msg))
-            | Teams -> Teams.view model.shared
-            | About -> About.view ()
-            | AccountPage pm ->
-                Account.view pm.Model model.shared.account model.shared.signInFailed
-                    (fun msg -> dispatch (AccountMsg msg))
-                    (fun () -> dispatch (SharedMsg Shared.SendSignOut))
+            // Fade/slide the active page in on navigation (see index.css).
+            div {
+                attr.``class`` "fade-in"
+                cond model.page <| function
+                | Home -> Home.view model.shared
+                | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))
+                | Servers -> Servers.view model.shared
+                | Tournaments ->
+                    Tournaments.view model.shared (fun msg -> dispatch (TournamentsMsg msg))
+                | MembersPage pm ->
+                    Members.view pm.Model model.shared (fun msg -> dispatch (MembersMsg msg))
+                | Teams -> Teams.view model.shared
+                | About -> About.view ()
+                | AccountPage pm ->
+                    Account.view pm.Model model.shared.account model.shared.signInFailed
+                        (fun msg -> dispatch (AccountMsg msg))
+                        (fun () -> dispatch (SharedMsg Shared.SendSignOut))
+            }
         })
         RadzenUI.footer (concat {
             cond model.shared.error <| function

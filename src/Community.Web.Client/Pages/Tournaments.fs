@@ -38,7 +38,7 @@ module Tournaments =
         let run action =
             if isToggleAction action then
                 ToggleRegistration tournament.id |> dispatch
-        RadzenUI.cardOutlined (concat {
+        RadzenUI.cardHover (concat {
             RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.text RadzenUI.heading6 tournament.name
                 RadzenUI.text RadzenUI.overline tournament.prize

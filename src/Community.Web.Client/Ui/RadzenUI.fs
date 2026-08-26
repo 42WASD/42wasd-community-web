@@ -280,6 +280,15 @@ module RadzenUI =
             children
         }
 
+    /// An outlined RadzenCard with a hover lift + Material ripple (see
+    /// index.css `.card-hover` and Radzen's `rz-ripple` utility).
+    let cardHover (children: Node) =
+        comp<RadzenCard> {
+            "Variant" => outlined
+            attr.``class`` "card-hover rz-ripple cursor-pointer"
+            children
+        }
+
     /// A RadzenBadge label.
     let badge (style: BadgeStyle) (textValue: string) =
         comp<RadzenBadge> {

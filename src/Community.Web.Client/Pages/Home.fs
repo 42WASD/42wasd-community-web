@@ -48,6 +48,11 @@ module Home =
     let serverStatusRow (s: GameServer) =
         RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
+                // Pulsing status dot for live servers (see index.css).
+                match s.status with
+                | "online" ->
+                    div { attr.``class`` "animate-pulse-dot"; attr.style "width:10px; height:10px; background-color:#009739;" }
+                | _ -> empty ()
                 RadzenUI.text RadzenUI.body1 s.name
                 match s.status with
                 | "online" -> RadzenUI.badgePill RadzenUI.successBadge "online"
