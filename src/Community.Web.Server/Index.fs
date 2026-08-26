@@ -12,6 +12,7 @@ let page = doctypeHtml {
         title { "42WASD Community" }
         ``base`` { attr.href "/" }
         link { attr.rel "stylesheet"; attr.href "_content/Radzen.Blazor/css/material-dark-base.css" }
+        link { attr.rel "stylesheet"; attr.href "css/fonts.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
         link { attr.rel "stylesheet"; attr.href "Community.Web.Client.styles.css" }
     }

@@ -701,6 +701,8 @@ module RadzenUI =
             "AllowFiltering" => true
             "AllowPaging" => true
             "ShowCellDataAsTooltip" => true
+            // Reflow to a vertical card list on narrow screens (< 768px).
+            "Responsive" => true
             fragmentParam "Columns" columns
         }
 

@@ -70,13 +70,19 @@
   --rz-border-radius: 0px;
   --rz-button-border-radius: 0px;
   --rz-card-border-radius: 0px;
+
+  /* --- 42 terminal typeface ---
+     Radzen sets `--rz-text-font-family: Roboto` on :root, which drives every
+     `.rz-text-*` component. Overriding it here (plus the body rule below)
+     makes Ioskeley Mono the app-wide font. */
+  --rz-text-font-family: "Ioskeley Mono", "Fira Code", "JetBrains Mono",
+    ui-monospace, "Cascadia Code", "Roboto Mono", monospace;
 }
 
-/* 42 terminal type: monospace for the whole app. (The only non-token rule —
-   kept here because Radzen does not expose a typeface token.) */
+/* 42 terminal type: Ioskeley Mono (self-hosted, see css/fonts.css) for the
+   whole app. Covers non-.rz-text elements (buttons, inputs, body). */
 body, button, input, textarea {
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, "Cascadia Code",
-    "Roboto Mono", monospace;
+  font-family: var(--rz-text-font-family);
 }
 
 /* =========================================================================
