@@ -120,6 +120,23 @@ testing:
 The browser page you drive must always navigate to the **current** port you
 started (the URLs must stay in sync).
 
+## Elevated privileges (sudo)
+
+When a task needs root/sudo (e.g. installing a system-wide .NET SDK, apt
+packages, writing to `/usr/lib`, `/usr/local`, `/var`, etc.):
+
+1. **Always run the `sudo` command directly** and prompt the user to enter the
+   password interactively in the terminal.
+2. **NEVER work around missing sudo** — no "pending", no alternative approach
+   (e.g. installing to `~/.dotnet` to avoid sudo), no skipping. Ask for sudo,
+   let the user authenticate, and continue.
+3. Run **one sudo command at a time**, wait for it to complete, then continue.
+4. Secrets never pass through the model: the password is typed straight into
+   the terminal by the user.
+
+Rule of thumb: elevated work always goes through sudo; the user authenticates
+interactively.
+
 ## Adding a new validation check
 
 1. Prefer `validate()` in `scripts/docs/docs_manifest.py` for structural
