@@ -18,7 +18,7 @@ on:
 env:
   REGISTRY: ghcr.io
   # ghcr.io/<owner>/<repo> must be lowercase, e.g. ghcr.io/42wasd/42wasd-community-web
-  IMAGE_NAME: ${{ lower(github.repository) }}
+  IMAGE_NAME: 42wasd/42wasd-community-web
 
 permissions:
   contents: read
