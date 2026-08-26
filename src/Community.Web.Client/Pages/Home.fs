@@ -48,10 +48,14 @@ module Home =
     let serverStatusRow (s: GameServer) =
         RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
-                // Pulsing status dot for live servers (see index.css).
+                // Pulsing status dot for live servers. Tailwind `animate-pulse`
+                // (opacity pulse) + `rounded-full` gives the same live-dot
+                // effect as the old custom `.animate-pulse-dot`. Sized with a
+                // Tailwind utility and colored with the Radzen `--rz-success`
+                // token (no hardcoded hex).
                 match s.status with
                 | "online" ->
-                    div { attr.``class`` "animate-pulse-dot"; attr.style "width:10px; height:10px; background-color:#009739;" }
+                    div { attr.``class`` "animate-pulse rounded-full w-2.5 h-2.5 bg-[var(--rz-success)]" }
                 | _ -> empty ()
                 RadzenUI.text RadzenUI.body1 s.name
                 RadzenUI.statusBadge s.status

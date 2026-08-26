@@ -198,6 +198,18 @@ module RadzenUI =
             children
         }
 
+    /// A RadzenRow with a gap plus vertical alignment and horizontal
+    /// justification (see `alignCenter`/`justifyBetween` etc.). Lets a row
+    /// distribute its columns with dynamic Radzen alignment rather than
+    /// hardcoded CSS.
+    let rowGapAlign (gap: string) (align: AlignItems) (justify: JustifyContent) (children: Node) =
+        comp<RadzenRow> {
+            "Gap" => gap
+            "AlignItems" => align
+            "JustifyContent" => justify
+            children
+        }
+
     /// A responsive RadzenColumn: full-width on mobile, then `sm`/`md`/`lg`.
     let columnResponsive (sm: int) (md: int) (lg: int) (children: Node) =
         comp<RadzenColumn> {
@@ -205,6 +217,13 @@ module RadzenUI =
             "SizeSM" => sm
             "SizeMD" => md
             "SizeLG" => lg
+            children
+        }
+
+    /// A RadzenColumn with a fixed size (out of 12) at every breakpoint.
+    let column (size: int) (children: Node) =
+        comp<RadzenColumn> {
+            "Size" => size
             children
         }
 
@@ -256,6 +275,18 @@ module RadzenUI =
             children
         }
 
+    /// A horizontal RadzenStack with a gap plus vertical alignment and
+    /// horizontal justification (see `alignCenter`/`justifyEnd` etc.). Used to
+    /// right-align an action button inside a row without hardcoded CSS.
+    let hStackGapAlign (gap: string) (align: AlignItems) (justify: JustifyContent) (children: Node) =
+        comp<RadzenStack> {
+            "Orientation" => horizontal
+            "Gap" => gap
+            "AlignItems" => align
+            "JustifyContent" => justify
+            children
+        }
+
     // ---------------------------------------------------------------- content
 
     /// A RadzenText with a typography style and plain text content.
@@ -280,14 +311,17 @@ module RadzenUI =
 
     /// An outlined RadzenCard with a hover lift + Material ripple. The hover
     /// lift is pure Tailwind (translate + glow), the ripple uses Radzen's own
-    /// `rz-ripple` utility.
+    /// `rz-ripple` utility. The glow color comes from the Radzen `--rz-primary`
+    /// token (via color-mix for alpha), so it tracks the brand accent instead
+    /// of a hardcoded cyan.
     let cardHover (children: Node) =
         comp<RadzenCard> {
             "Variant" => outlined
             attr.``class``
                 ("rz-ripple cursor-pointer "
                  + "transition-[transform,box-shadow] duration-200 ease-in-out "
-                 + "hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(0,186,188,0.25)]")
+                 + "hover:-translate-y-1 "
+                 + "hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--rz-primary)_25%,transparent)]")
             children
         }
 
@@ -361,9 +395,11 @@ module RadzenUI =
 
     /// Wrap content in a fade-in so a skeleton→content swap animates instead
     /// of popping instantly. Each section's real content is wrapped in this
-    /// so it eases in as its data arrives (see `.fade-in` in index.css).
+    /// so it eases in as its data arrives. Uses Tailwind's `animate-fade-in`
+    /// utility (defined as an `--animate-fade-in` theme token in
+    /// Community.Web.Server/Index.fs).
     let fadeIn (children: Node) =
-        div { attr.``class`` "fade-in"; children }
+        div { attr.``class`` "animate-fade-in"; children }
 
     /// The standard page error message for a `Failed` `RemoteData` slice.
     /// `what` is the plain name of the failed resource (e.g. "games").

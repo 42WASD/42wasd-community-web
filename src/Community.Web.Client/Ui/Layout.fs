@@ -97,7 +97,9 @@ let view (model: Model) (dispatch: Message -> unit) =
             "mobile-nav-drawer fixed inset-y-0 left-0 w-[var(--rz-sidebar-width)] "
             + "z-[var(--rz-sidebar-z)] -translate-x-full transition-transform "
             + "bg-[var(--rz-base-background-color)] "
-            + "shadow-[2px_0_12px_rgba(0,0,0,0.5)] md:hidden"
+            // Elevation from Radzen's shadow token (no hardcoded rgba) — the
+            // largest level so the drawer reads as an overlay above content.
+            + "shadow-[var(--rz-shadow-9)] md:hidden"
         div {
             attr.``class`` (if model.sidebarOpen then drawerBase + " translate-x-0" else drawerBase)
             RadzenUI.sidebarExpanded model.sidebarOpen
@@ -116,7 +118,8 @@ let view (model: Model) (dispatch: Message -> unit) =
                 // Brand lockup: just the 42WASD logo (SVG, higher quality),
                 // linking to Home. No wordmark text — the logo is the brand.
                 // Pure Tailwind: flex lockup + a 44px logo with a soft cyan
-                // glow that brightens and scales on hover.
+                // glow (from the Radzen --rz-primary token) that brightens and
+                // scales on hover.
                 a {
                     attr.href (router.Link Home)
                     attr.``class`` "inline-flex items-center gap-2 no-underline"
@@ -126,9 +129,9 @@ let view (model: Model) (dispatch: Message -> unit) =
                         attr.title "42WASD"
                         attr.``class``
                             ("block w-11 h-11 object-contain "
-                             + "drop-shadow-[0_0_6px_rgba(0,186,188,0.55)] "
+                             + "drop-shadow-[0_0_6px_color-mix(in_srgb,var(--rz-primary)_55%,transparent)] "
                              + "transition-[transform,filter] duration-200 ease-in-out "
-                             + "hover:scale-[1.08] hover:drop-shadow-[0_0_10px_rgba(0,186,188,0.9)]")
+                             + "hover:scale-[1.08] hover:drop-shadow-[0_0_10px_color-mix(in_srgb,var(--rz-primary)_90%,transparent)]")
                     }
                 }
                 // Desktop horizontal menu (hidden on mobile — the drawer
@@ -149,9 +152,10 @@ let view (model: Model) (dispatch: Message -> unit) =
                     })
         })
         RadzenUI.body (concat {
-            // Fade/slide the active page in on navigation (see index.css).
+            // Fade/slide the active page in on navigation (Tailwind
+            // `animate-fade-in` — see the `--animate-fade-in` token in Index.fs).
             div {
-                attr.``class`` "fade-in"
+                attr.``class`` "animate-fade-in"
                 cond model.page <| function
                 | Home -> Home.view model.shared
                 | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))

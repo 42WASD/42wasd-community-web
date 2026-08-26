@@ -37,7 +37,21 @@ let page = doctypeHtml {
             attr.``type`` "text/tailwindcss"
             // rawHtml so the `@import` quotes are NOT HTML-escaped (Bolero's
             // style builder escapes text, which breaks the CSS).
-            rawHtml "@import \"tailwindcss/theme\";\n@import \"tailwindcss/utilities\";"
+            // A custom `--animate-*` theme token generates an `animate-fade-in`
+            // utility (same mechanism Tailwind uses for its own spin/ping/
+            // pulse). Keyframes are declared inside `@theme` so they're emitted
+            // alongside the token. Used in place of the old hand-rolled
+            // `.fade-in` class in index.css.
+            rawHtml
+                ("@import \"tailwindcss/theme\";\n"
+                 + "@import \"tailwindcss/utilities\";\n"
+                 + "@theme {\n"
+                 + "  --animate-fade-in: fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);\n"
+                 + "  @keyframes fade-in {\n"
+                 + "    from { opacity: 0; transform: translateY(10px); }\n"
+                 + "    to   { opacity: 1; transform: translateY(0); }\n"
+                 + "  }\n"
+                 + "}")
         }
         // The Tailwind browser runtime compiles the classes on the page.
         script { attr.src "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" }

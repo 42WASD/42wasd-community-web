@@ -101,18 +101,20 @@ body, button, input, textarea {
    texture, hover motion, and state transitions on top of the tokens above.
    ========================================================================= */
 
-/* Dot-matrix terminal grid behind the whole app shell. */
+/* Dot-matrix terminal grid behind the whole app shell. The dot color uses the
+   `--rz-border-color` token (no hardcoded hex). */
 .rz-layout {
   background-color: var(--rz-background-color);
   background-image:
-    radial-gradient(#2A2A2A 1px, transparent 1px);
+    radial-gradient(var(--rz-border-color) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
 /* Dark text on the cyan primary buttons for readable contrast (the Radzen
-   theme defaults to white-on-primary, which is poor on the bright 42 cyan). */
+   theme defaults to white-on-primary, which is poor on the bright 42 cyan).
+   Uses the --rz-primary-color token (the text-on-primary color). */
 button.rz-primary.rz-button {
-  color: #0A0A0A !important;
+  color: var(--rz-primary-color) !important;
 }
 
 /* =========================================================================
@@ -127,20 +129,25 @@ button.rz-primary.rz-button {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(5, 5, 5, 0.55);
+  /* Background = the app background at 55% (theme token, no hardcoded hex). */
+  background-color: color-mix(in srgb, var(--rz-background-color) 55%, transparent);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--rz-border-color);
+  /* Blueprint-grid texture tinted with the primary (cyan) token. */
   background-image:
     repeating-linear-gradient(
       45deg,
-      rgba(0, 90, 92, 0.28) 0,
-      rgba(0, 90, 92, 0.28) 2px,
+      color-mix(in srgb, var(--rz-primary) 28%, transparent) 0,
+      color-mix(in srgb, var(--rz-primary) 28%, transparent) 2px,
       transparent 2px,
       transparent 10px
     );
   background-size: 100% 100%;
-  box-shadow: 0 1px 0 rgba(0, 120, 122, 0.5), 0 6px 18px rgba(0, 0, 0, 0.5);
+  /* Accent underline + black elevation, both from theme tokens. */
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--rz-primary) 50%, transparent),
+    0 6px 18px var(--rz-shadow-9);
 }
 
 /* Keep the header content (logo + nav) away from the screen edges, and give
@@ -245,30 +252,10 @@ button.rz-primary.rz-button {
   }
 }
 
-/* Pulsing status dot (online/live indicators). */
-@keyframes pulse-dot {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 183, 55, 0.7); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 8px rgba(0, 183, 55, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 183, 55, 0); }
-}
-.animate-pulse-dot {
-  border-radius: 50%;
-  animation: pulse-dot 2s infinite;
-}
-
-/* Fade/slide-in when the Elmish view swaps on navigation. */
-.fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 /* Cross-fade old→new content during a skeleton→content swap. The browser
    rasterizes both states and interpolates between them, so there is no
    hard "pop". Supported in Chromium + modern Edge/Firefox; older browsers
-   degrade gracefully to the .fade-in above. */
+   degrade gracefully. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.3s;
