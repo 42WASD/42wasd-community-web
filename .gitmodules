@@ -7,3 +7,6 @@
 [submodule "thirdparty/radzen-blazor"]
 	path = thirdparty/radzen-blazor
 	url = https://github.com/42WASD/radzen-blazor.git
+[submodule "thirdparty/IoskeleyMono"]
+	path = thirdparty/IoskeleyMono
+	url = https://github.com/42WASD/IoskeleyMono.git
