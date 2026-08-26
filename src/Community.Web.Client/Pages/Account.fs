@@ -60,7 +60,9 @@ module Account =
             RadzenUI.text RadzenUI.subtitle1 "Use any username and the password \"password\"."
             // A single message carries both fields — no sequential
             // dispatch, so one user action is exactly one MVU message.
-            RadzenUI.login (fun (username, password) ->
+            // Wrapped in a centred, width-constrained card so labels sit
+            // close to their inputs.
+            RadzenUI.loginCard (fun (username, password) ->
                 dispatch (Login (username, password)))
             cond signInFailed <| function
             | false -> empty()

@@ -345,7 +345,7 @@ module RadzenUI =
         comp<RadzenCard> {
             "Variant" => outlined
             attr.``class``
-                ("rz-ripple cursor-pointer will-change-transform "
+                ("rz-ripple cursor-pointer w-full will-change-transform "
                  + "transition-[transform,box-shadow] duration-200 ease-out "
                  + "hover:-translate-y-1 "
                  + "hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--rz-primary)_25%,transparent)] "
@@ -609,6 +609,15 @@ module RadzenUI =
                 let pass = if isNull args.Password then "" else args.Password
                 onLogin (user, pass))
         }
+
+    /// A RadzenLogin wrapped in a proper structural container — a centred,
+    /// width-constrained outlined card (the Radzen demo pattern: card + form
+    /// wrapper). Without this the login form stretches edge-to-edge across the
+    /// page, which pushes the short labels far from their inputs. Constraining
+    /// the width brings label and input columns close together so the form
+    /// reads as one tight unit.
+    let loginCard (onLogin: string * string -> unit) =
+        cardOutlinedClass "rz-mx-auto rz-p-4 rz-p-md-6 w-full max-w-md" (login onLogin)
 
     // ---------------------------------------------------------------- fragment
 

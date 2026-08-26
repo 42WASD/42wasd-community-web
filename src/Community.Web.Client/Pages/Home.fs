@@ -33,16 +33,43 @@ module Home =
         let favoriteCount = shared.favoriteGames.Count
         gameCount, onlineNow, openTournaments, memberCount, favoriteCount
 
-    /// A responsive stat panel: a column wrapping an outlined card with a
-    /// caption label and a value. The column stretches so all stat cards in a
-    /// row share equal height.
-    let statPanel (sm: int) (label: string) (value: string) =
-        RadzenUI.columnStretch sm 6 4 (concat {
-            RadzenUI.cardOutlined (RadzenUI.vStackGap "0.25rem" (concat {
-                RadzenUI.text RadzenUI.caption label
-                RadzenUI.text RadzenUI.heading4 value
-            }))
+    /// One KPI cell inside the cohesive stats bar: a caption label above a
+    /// value. Each cell is an equal-width (`flex-1`) child of the bar, so the
+    /// five stats share the row evenly — no orphan, no uneven wrap. The label
+    /// and value sit in a tight vertical stack.
+    let statCell (label: string) (value: string) =
+        RadzenUI.vStackGap "0.25rem" (concat {
+            RadzenUI.text RadzenUI.caption label
+            RadzenUI.text RadzenUI.heading4 value
         })
+
+    /// The cohesive KPI bar: ONE outlined card containing all five stats in a
+    /// single wrapping flex row (`flex-1` cells). Because it's one card (not
+    /// five independent cards), there is no 2-2-1 wrap and no orphaned cell —
+    /// the five numbers read as one dashboard strip. Each cell carries a
+    /// hairline divider on its left (except the first) so the strip has clear
+    /// vertical rhythm; on narrow screens the cells wrap and the dividers
+    /// simply mark the leading edge of each wrapped cell.
+    let statsBar (items: (string * string) list) =
+        let cells =
+            items
+            |> List.mapi (fun i (label, value) ->
+                div {
+                    attr.``class``
+                        (if i > 0 then
+                            "flex-1 min-w-0 px-4 py-4 border-l border-[var(--rz-border-color)]"
+                         else
+                            "flex-1 min-w-0 px-4 py-4")
+                    statCell label value
+                })
+        RadzenUI.cardOutlinedClass "rz-p-0" (
+            div {
+                attr.``class`` "flex flex-wrap"
+                concat {
+                    for cell in cells do
+                        cell
+                }
+            })
 
     /// A compact live-server row: name, status badge, and a circular capacity
     /// gauge. The online count comes straight from the canonical servers cache.
@@ -132,13 +159,13 @@ module Home =
         // Stats strip — always present (values are 0 until loaded), but fades
         // in once the primary caches are ready so it doesn't flash "0 0 0".
         let statsSection =
-            RadzenUI.rowGap "1rem" (concat {
-                statPanel 6 "Games" (gamesCount.ToString())
-                statPanel 6 "Players online" (onlineNow.ToString())
-                statPanel 6 "Open tournaments" (openTournaments.ToString())
-                statPanel 6 "Members" (memberCount.ToString())
-                statPanel 6 "Favourite games" (favoriteCount.ToString())
-            })
+            statsBar [
+                "Games", gamesCount.ToString()
+                "Players online", onlineNow.ToString()
+                "Open tournaments", openTournaments.ToString()
+                "Members", memberCount.ToString()
+                "Favourite games", favoriteCount.ToString()
+            ]
 
         // Latest news: real timeline items once loaded, else skeleton items —
         // both fed into the SAME newsCard container.
