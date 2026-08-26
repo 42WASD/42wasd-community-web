@@ -118,20 +118,20 @@ button.rz-primary.rz-button {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(10, 10, 10, 0.35);
+  background-color: rgba(5, 5, 5, 0.55);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--rz-border-color);
   background-image:
     repeating-linear-gradient(
       45deg,
-      rgba(0, 130, 132, 0.40) 0,
-      rgba(0, 130, 132, 0.40) 2px,
+      rgba(0, 90, 92, 0.28) 0,
+      rgba(0, 90, 92, 0.28) 2px,
       transparent 2px,
       transparent 10px
     );
   background-size: 100% 100%;
-  box-shadow: 0 1px 0 rgba(0, 156, 158, 0.6), 0 6px 18px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 0 rgba(0, 120, 122, 0.5), 0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
 /* Keep the header content (logo + nav) away from the screen edges, and give
