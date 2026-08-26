@@ -100,6 +100,35 @@ button.rz-primary.rz-button {
   color: #0A0A0A !important;
 }
 
+/* =========================================================================
+   Navbar / header styling
+   -------------------------------------------------------------------------
+   Sticky top bar with a terminal texture, a cyan accent, and a subtle dot
+   grid. The brand logo gets a larger size and a soft glow.
+   ========================================================================= */
+
+/* Slim sticky navbar with a diagonal-grid texture + cyan underline glow. */
+.rz-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--rz-border-color);
+  background-image:
+    radial-gradient(rgba(0, 186, 188, 0.12) 1px, transparent 1px),
+    repeating-linear-gradient(
+      45deg,
+      rgba(42, 42, 42, 0.35) 0,
+      rgba(42, 42, 42, 0.35) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  background-size: 14px 14px, 100% 100%;
+  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.35), 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
 /* Brand lockup: logo link in the header. */
 .brand {
   display: inline-flex;
@@ -112,31 +141,65 @@ button.rz-primary.rz-button {
   letter-spacing: 0.05em;
 }
 .brand img {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0 6px rgba(0, 186, 188, 0.55));
+  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+.brand:hover img {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 10px rgba(0, 186, 188, 0.9));
 }
 
 /* =========================================================================
-   Mobile: fix the responsive header menu
+   Mobile: slim dropdown navbar (radzen menu -> absolute overlay panel)
    -------------------------------------------------------------------------
-   Radzen renders the horizontal RadzenMenu inside a non-wrapping flex row
-   with the brand. On small screens the menu collapses to a hamburger, but
-   when opened it becomes `display:block` yet stays a non-wrapping flex item
-   — so it overflows the viewport, the header turns thick, and items land
-   off-screen. Fix: let the header's stack wrap and force the opened menu onto
-   its own full-width row below the brand. Also constrain the opened menu to
-   the viewport so nothing hangs off the edge.
+   Radzen's native responsive RadzenMenu, when opened on ≤768px, becomes a
+   `display:block` flex-item in the header row, which stretches the whole
+   header to ~360px tall. Instead we take the menu OUT of the header's flow on
+   small screens: anchor it to the header's right edge and let the opened
+   items drop down as a compact overlay panel, so the header stays a slim
+   50px bar. The hamburger stays vertically centred in the bar; the opened
+   items appear in a dropdown below it.
    ========================================================================= */
 @media (max-width: 768px) {
-  .rz-header > .rz-stack {
-    flex-wrap: wrap !important;
+  .rz-header {
+    position: relative;
   }
+  .rz-header .rz-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    z-index: 200;
+  }
+  .rz-header .rz-menu .rz-menu-toggle {
+    margin-right: 0.5rem;
+  }
+  /* When open: drop the items in a compact panel below the toggle. */
   .rz-header .rz-menu.rz-menu-open {
-    flex-basis: 100%;
-    max-width: 100%;
-    overflow-x: auto;
+    height: auto;
+    display: block;
+    min-width: 220px;
+    background-color: var(--rz-base-background-color);
+    border-left: 1px solid var(--rz-border-color);
+    border-bottom: 1px solid var(--rz-border-color);
+    box-shadow: -6px 10px 20px rgba(0, 0, 0, 0.5);
+  }
+  .rz-header .rz-menu.rz-menu-open .rz-menu-toggle-item {
+    justify-content: flex-end;
+    padding: 0.5rem;
+  }
+  .rz-header .rz-menu.rz-menu-open .rz-navigation-item {
+    width: 100%;
+  }
+  .rz-header .rz-menu.rz-menu-open .rz-navigation-item-link {
+    width: 100%;
+    padding-block: 0.75rem;
   }
 }
 
