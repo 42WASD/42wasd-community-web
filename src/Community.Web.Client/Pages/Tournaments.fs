@@ -35,40 +35,52 @@ module Tournaments =
         | Some _ -> ToggleRegistration tournamentId
 
     /// Render one tournament as a vertical card in the RadzenDataList. Each
-    /// item mirrors the Radzen demo structure: a RadzenCard containing a
-    /// responsive RadzenRow of RadzenColumns. Name + registration badge on
-    /// the left; prize + start date stacked beside it; a split-button action
-    /// column on the right (aligned via Radzen's JustifyContent.SpaceBetween,
-    /// not hardcoded CSS).
+    /// item follows the official Radzen DataList demo: a `rz-p-0` outlined
+    /// card whose inner columns own the gutter padding (so the card interior
+    /// is evenly separated), a responsive RadzenRow of RadzenColumns for the
+    /// layout, and the status + prize + date clearly placed. The action
+    /// (split button) sits in its own column, right-aligned, and never looks
+    /// "out of place" because it has stable gutter spacing.
     let card (tournament: Tournament) (dispatch: Msg -> unit) =
-        RadzenUI.cardOutlined (RadzenUI.rowGapAlign "0.5rem" RadzenUI.alignCenter RadzenUI.justifyBetween (concat {
-            // Title + registration-status badge (badge color derives from the
-            // registration state via Radzen's semantic success/danger styles).
-            RadzenUI.columnResponsive 12 7 5 (RadzenUI.hStackGap "0.5rem" (concat {
-                RadzenUI.text RadzenUI.heading6 tournament.name
-                if tournament.registrationOpen then
-                    RadzenUI.badgePill RadzenUI.successBadge "Open"
-                else
-                    RadzenUI.badgePill RadzenUI.dangerBadge "Closed"
-            }))
-            // Prize + start date.
-            RadzenUI.columnResponsive 12 5 4 (RadzenUI.vStackGap "0.25rem" (concat {
-                RadzenUI.text RadzenUI.overline tournament.prize
-                RadzenUI.text RadzenUI.caption (tournament.startsAt.ToString("yyyy-MM-dd HH:mm"))
-            }))
-            // Action column: split button (toggle registration / view details),
-            // right-aligned via Radzen's JustifyContent.End.
-            RadzenUI.column 3 (RadzenUI.hStackGapAlign "0" RadzenUI.alignCenter RadzenUI.justifyEnd (concat {
-                // A single split-button definition whose label/style depend on
-                // registration state — avoids duplicating the two blocks.
-                let label, style =
-                    if tournament.registrationOpen then "Close registration", RadzenUI.dangerButton
-                    else "Reopen registration", RadzenUI.successButton
-                RadzenUI.splitButton label style (actionMsg tournament.id >> dispatch) (concat {
-                    RadzenUI.splitButtonItem label "toggle"
-                    RadzenUI.splitButtonItem "View details" "details"
+        let label, style =
+            if tournament.registrationOpen then "Close registration", RadzenUI.dangerButton
+            else "Reopen registration", RadzenUI.successButton
+        // A single split-button whose label/style depend on registration state
+        // (avoids duplicating the two blocks).
+        let action =
+            RadzenUI.splitButton label style (actionMsg tournament.id >> dispatch) (concat {
+                RadzenUI.splitButtonItem label "toggle"
+                RadzenUI.splitButtonItem "View details" "details"
+            })
+        // The status badge — always present so the state is never ambiguous;
+        // color derives from registration via Radzen's semantic styles.
+        let status =
+            if tournament.registrationOpen then
+                RadzenUI.badgePill RadzenUI.successBadge "Open"
+            else
+                RadzenUI.badgePill RadzenUI.dangerBadge "Closed"
+        RadzenUI.cardOutlinedClass "rz-p-0" (RadzenUI.rowGapAlign "0" RadzenUI.alignStretch RadzenUI.justifyStart (concat {
+            // Title + status badge block: on mobile full width, then 6/12ths.
+            RadzenUI.columnResponsiveClass 12 7 6 "rz-p-4 rz-display-flex rz-align-items-center" (concat {
+                RadzenUI.vStackGap "0.25rem" (concat {
+                    RadzenUI.hStackGap "0.5rem" (concat {
+                        RadzenUI.text RadzenUI.heading6 tournament.name
+                        status
+                    })
+                    // Start date as a caption under the title — the secondary
+                    // text reads naturally beneath the primary name.
+                    RadzenUI.text RadzenUI.caption (tournament.startsAt.ToString("yyyy-MM-dd HH:mm"))
                 })
-            }))
+            })
+            // Prize — a clearly-labelled value column with equal height.
+            RadzenUI.columnResponsiveClass 12 5 3 "rz-p-4 rz-display-flex rz-align-items-center rz-justify-content-between" (concat {
+                RadzenUI.vStackGap "0.15rem" (concat {
+                    RadzenUI.text RadzenUI.overline "Prize"
+                    RadzenUI.text RadzenUI.subtitle1 tournament.prize
+                })
+            })
+            // Action column: split button right-aligned (Radzen JustifyContent.End).
+            RadzenUI.columnResponsiveClass 12 12 3 "rz-p-4 rz-display-flex rz-align-items-center rz-justify-content-end" action
         }))
 
     /// The Tournaments page view. Selects the canonical cache; renders the
@@ -86,6 +98,6 @@ module Tournaments =
             RadzenUI.failedView "tournaments"
         | Loaded m ->
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.text RadzenUI.display3 "Tournaments"
+                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Tournaments")
                 RadzenUI.dataList<Tournament> (SharedModel.values m) false (fun t -> card t dispatch)
             }))

@@ -11,7 +11,7 @@ module About =
 
     let view () =
         RadzenUI.vStackGap "1rem" (concat {
-            RadzenUI.text RadzenUI.display3 "About"
+            RadzenUI.rise (RadzenUI.text RadzenUI.display3 "About")
             RadzenUI.card (RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.text RadzenUI.subtitle1
                     "The 42WASD gaming community."

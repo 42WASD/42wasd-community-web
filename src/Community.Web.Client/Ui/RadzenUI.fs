@@ -100,6 +100,7 @@ module RadzenUI =
     let alignStart = AlignItems.Start
     let alignCenter = AlignItems.Center
     let alignEnd = AlignItems.End
+    let alignStretch = AlignItems.Stretch
     let justifyStart = JustifyContent.Start
     let justifyCenter = JustifyContent.Center
     let justifyEnd = JustifyContent.End
@@ -220,6 +221,20 @@ module RadzenUI =
             children
         }
 
+    /// A responsive RadzenColumn with an extra Tailwind/Radzen `class`
+    /// appended (e.g. `rz-p-4` for inner padding). Used inside `rz-p-0` cards
+    /// so each column owns its own gutter, matching the official DataList
+    /// demo pattern.
+    let columnResponsiveClass (sm: int) (md: int) (lg: int) (cls: string) (children: Node) =
+        comp<RadzenColumn> {
+            "SizeXS" => 12
+            "SizeSM" => sm
+            "SizeMD" => md
+            "SizeLG" => lg
+            attr.``class`` cls
+            children
+        }
+
     /// A RadzenColumn with a fixed size (out of 12) at every breakpoint.
     let column (size: int) (children: Node) =
         comp<RadzenColumn> {
@@ -309,19 +324,48 @@ module RadzenUI =
             children
         }
 
+    /// An outlined RadzenCard with an extra Tailwind/Radzen `class` appended.
+    /// Used for cards whose inner columns own the padding (`rz-p-0` + `rz-p-*`
+    /// columns), so the card doesn't add its own padding on top of the data
+    /// list item's — giving clean, evenly-separated card interiors.
+    let cardOutlinedClass (cls: string) (children: Node) =
+        comp<RadzenCard> {
+            "Variant" => outlined
+            attr.``class`` cls
+            children
+        }
+
     /// An outlined RadzenCard with a hover lift + Material ripple. The hover
     /// lift is pure Tailwind (translate + glow), the ripple uses Radzen's own
     /// `rz-ripple` utility. The glow color comes from the Radzen `--rz-primary`
     /// token (via color-mix for alpha), so it tracks the brand accent instead
-    /// of a hardcoded cyan.
+    /// of a hardcoded cyan. The `will-change` hints the browser to promote the
+    /// layer to the GPU so the lift doesn't repaint the whole card.
     let cardHover (children: Node) =
         comp<RadzenCard> {
             "Variant" => outlined
             attr.``class``
-                ("rz-ripple cursor-pointer "
-                 + "transition-[transform,box-shadow] duration-200 ease-in-out "
+                ("rz-ripple cursor-pointer will-change-transform "
+                 + "transition-[transform,box-shadow] duration-200 ease-out "
                  + "hover:-translate-y-1 "
-                 + "hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--rz-primary)_25%,transparent)]")
+                 + "hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--rz-primary)_25%,transparent)] "
+                 + "active:translate-y-0 active:duration-75")
+            children
+        }
+
+    /// A responsive RadzenColumn that fills its height (`Size`-styled flex
+    /// stretch). Radzen's row default aligns columns to stretch, but wrapping
+    /// to a new line on smaller screens makes each wrapped column only as tall
+    /// as its content. Adding `flex items-stretch` makes every column match
+    /// the tallest in its line, so cards in a row align to equal height at
+    /// every breakpoint — the "intelligent row height" pattern.
+    let columnStretch (sm: int) (md: int) (lg: int) (children: Node) =
+        comp<RadzenColumn> {
+            "SizeXS" => 12
+            "SizeSM" => sm
+            "SizeMD" => md
+            "SizeLG" => lg
+            attr.``class`` "flex items-stretch"
             children
         }
 
@@ -397,9 +441,27 @@ module RadzenUI =
     /// of popping instantly. Each section's real content is wrapped in this
     /// so it eases in as its data arrives. Uses Tailwind's `animate-fade-in`
     /// utility (defined as an `--animate-fade-in` theme token in
-    /// Community.Web.Server/Index.fs).
+    /// Community.Web.Server/Index.fs). `motion-reduce:animate-none` disables
+    /// the entrance for users who prefer reduced motion.
     let fadeIn (children: Node) =
-        div { attr.``class`` "animate-fade-in"; children }
+        div { attr.``class`` "animate-fade-in motion-reduce:animate-none"; children }
+
+    /// A longer, softer entrance reserved for page heroes/headings (Tailwind
+    /// `animate-rise`). Use for the first element on a page so it doesn't
+    /// compete with the quicker card fades below. Respects reduced motion.
+    let rise (children: Node) =
+        div { attr.``class`` "animate-rise motion-reduce:animate-none"; children }
+
+    /// A quick scale+opacity pop (Tailwind `animate-pop`) — for dialogs,
+    /// badges, or any element that should "snap" in. Respects reduced motion.
+    let pop (children: Node) =
+        div { attr.``class`` "animate-pop motion-reduce:animate-none"; children }
+
+    /// An HTML divider using the Radzen border token, for separating card
+    /// sections without hand-rolled CSS. A thin horizontal rule tinted with
+    /// the theme's border color (no hardcoded hex).
+    let divider () =
+        div { attr.``class`` "h-px w-full bg-[var(--rz-border-color)]" }
 
     /// The standard page error message for a `Failed` `RemoteData` slice.
     /// `what` is the plain name of the failed resource (e.g. "games").

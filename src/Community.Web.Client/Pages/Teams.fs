@@ -50,7 +50,7 @@ module Teams =
             let teams = SharedModel.values m
             let paneSize = (string (100.0 / float teams.Length)) + "%"
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.text RadzenUI.display3 "Teams"
+                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Teams")
                 RadzenUI.splitter "height: 420px;" (concat {
                     for team in teams do
                         RadzenUI.splitterPane (Some paneSize) (concat {

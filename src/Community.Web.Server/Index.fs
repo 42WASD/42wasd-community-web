@@ -46,10 +46,27 @@ let page = doctypeHtml {
                 ("@import \"tailwindcss/theme\";\n"
                  + "@import \"tailwindcss/utilities\";\n"
                  + "@theme {\n"
-                 + "  --animate-fade-in: fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);\n"
+                 // Entrance motion. A short, springy ease-out curve (overshoot
+                 // on the translate, settle to rest) reads as "content glides
+                 // in" rather than a flat fade. Used for page/section swaps
+                 // from skeleton → loaded. duration 0.35s keeps it snappy.
+                 + "  --animate-fade-in: fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);\n"
                  + "  @keyframes fade-in {\n"
-                 + "    from { opacity: 0; transform: translateY(10px); }\n"
+                 + "    from { opacity: 0; transform: translateY(12px); }\n"
                  + "    to   { opacity: 1; transform: translateY(0); }\n"
+                 + "  }\n"
+                 // A gentler, longer entrance reserved for the big page hero /
+                 // headings so they don't compete with the cards below.
+                 + "  --animate-rise: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);\n"
+                 + "  @keyframes rise {\n"
+                 + "    from { opacity: 0; transform: translateY(20px); }\n"
+                 + "    to   { opacity: 1; transform: translateY(0); }\n"
+                 + "  }\n"
+                 // A subtle scale+opacity pop — used for dialogs / badges.
+                 + "  --animate-pop: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);\n"
+                 + "  @keyframes pop {\n"
+                 + "    from { opacity: 0; transform: scale(0.92); }\n"
+                 + "    to   { opacity: 1; transform: scale(1); }\n"
                  + "  }\n"
                  + "}")
         }

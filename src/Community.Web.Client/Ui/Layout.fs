@@ -128,10 +128,11 @@ let view (model: Model) (dispatch: Message -> unit) =
                         attr.alt "42WASD"
                         attr.title "42WASD"
                         attr.``class``
-                            ("block w-11 h-11 object-contain "
+                            ("block w-11 h-11 object-contain will-change-[transform,filter] "
                              + "drop-shadow-[0_0_6px_color-mix(in_srgb,var(--rz-primary)_55%,transparent)] "
-                             + "transition-[transform,filter] duration-200 ease-in-out "
-                             + "hover:scale-[1.08] hover:drop-shadow-[0_0_10px_color-mix(in_srgb,var(--rz-primary)_90%,transparent)]")
+                             + "transition-[transform,filter] duration-300 ease-out "
+                             + "hover:scale-[1.08] hover:-rotate-3 hover:drop-shadow-[0_0_10px_color-mix(in_srgb,var(--rz-primary)_90%,transparent)] "
+                             + "active:scale-100 active:duration-75 motion-reduce:transition-none")
                     }
                 }
                 // Desktop horizontal menu (hidden on mobile — the drawer
@@ -154,8 +155,10 @@ let view (model: Model) (dispatch: Message -> unit) =
         RadzenUI.body (concat {
             // Fade/slide the active page in on navigation (Tailwind
             // `animate-fade-in` — see the `--animate-fade-in` token in Index.fs).
+            // `motion-reduce:animate-none` disables the entrance for users who
+            // prefer reduced motion (accessibility best practice).
             div {
-                attr.``class`` "animate-fade-in"
+                attr.``class`` "animate-fade-in motion-reduce:animate-none"
                 cond model.page <| function
                 | Home -> Home.view model.shared
                 | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))

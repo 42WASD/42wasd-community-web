@@ -34,9 +34,10 @@ module Home =
         gameCount, onlineNow, openTournaments, memberCount, favoriteCount
 
     /// A responsive stat panel: a column wrapping an outlined card with a
-    /// caption label and a value.
+    /// caption label and a value. The column stretches so all stat cards in a
+    /// row share equal height.
     let statPanel (sm: int) (label: string) (value: string) =
-        RadzenUI.columnResponsive sm 6 4 (concat {
+        RadzenUI.columnStretch sm 6 4 (concat {
             RadzenUI.cardOutlined (RadzenUI.vStackGap "0.25rem" (concat {
                 RadzenUI.text RadzenUI.caption label
                 RadzenUI.text RadzenUI.heading4 value
@@ -55,7 +56,7 @@ module Home =
                 // token (no hardcoded hex).
                 match s.status with
                 | "online" ->
-                    div { attr.``class`` "animate-pulse rounded-full w-2.5 h-2.5 bg-[var(--rz-success)]" }
+                    div { attr.``class`` "animate-pulse rounded-full w-2.5 h-2.5 bg-[var(--rz-success)] motion-reduce:animate-none" }
                 | _ -> empty ()
                 RadzenUI.text RadzenUI.body1 s.name
                 RadzenUI.statusBadge s.status
@@ -159,28 +160,30 @@ module Home =
             | _ -> RadzenUI.fadeIn (gamesCarousel [ for _ in 1..3 -> gameSkeletonSlide () ])
 
         // Live servers: SAME card + row container for real rows and skeleton
-        // cards, so the layout matches exactly.
+        // cards, so the layout matches exactly. Equal-height via `columnStretch`.
         let serversSection =
             cond shared.servers <| function
             | Loaded servers when servers.Count > 0 ->
                 RadzenUI.fadeIn (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
                     RadzenUI.text RadzenUI.heading6 "Live servers"
                     RadzenUI.rowGap "1rem" (forEach (SharedModel.values servers) (fun s ->
-                        RadzenUI.columnResponsive 12 6 4 (serverStatusRow s)))
+                        RadzenUI.columnStretch 12 6 4 (serverStatusRow s)))
                 })))
             | _ ->
                 RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
                     RadzenUI.skeleton "width: 35%; height: 1.25rem;"
                     RadzenUI.rowGap "1rem" (concat {
                         for _ in 1..3 do
-                            RadzenUI.columnResponsive 12 6 4 (RadzenUI.skeleton "width: 100%; height: 5rem;")
+                            RadzenUI.columnStretch 12 6 4 (RadzenUI.skeleton "width: 100%; height: 5rem;")
                     })
                 }))
 
         RadzenUI.vStackGap "1.5rem" (concat {
-            RadzenUI.text RadzenUI.display3 "Welcome to the gaming community!"
-            RadzenUI.text RadzenUI.subtitle1
-                "Games we play, active servers, upcoming tournaments, and latest news."
+            RadzenUI.rise (RadzenUI.vStackGap "0.25rem" (concat {
+                RadzenUI.text RadzenUI.display3 "Welcome to the gaming community!"
+                RadzenUI.text RadzenUI.subtitle1
+                    "Games we play, active servers, upcoming tournaments, and latest news."
+            }))
 
             RadzenUI.fadeIn statsSection
             newsSection

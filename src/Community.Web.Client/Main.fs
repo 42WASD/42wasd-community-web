@@ -54,14 +54,16 @@ type MyApp() =
                 dialogService.OpenAsync(title, fragment, DialogOptions(Width = "520px", Resizable = true))
                 |> ignore)
         // Build the tournament-details dialog body from the tournament record.
+        // Wrapped in `pop` so the dialog content snaps in with a quick
+        // scale+opacity entrance (Tailwind `animate-pop`).
         let tournamentDialog (t: Tournament) =
-            RadzenUI.vStackGap "1rem" (concat {
+            RadzenUI.pop (RadzenUI.vStackGap "1rem" (concat {
                 RadzenUI.detailField "Game" t.gameId
                 RadzenUI.detailField "Prize" t.prize
                 RadzenUI.detailField "Starts" (t.startsAt.ToString("yyyy-MM-dd HH:mm"))
                 RadzenUI.detailField "Registration"
                     (if t.registrationOpen then "Open" else "Closed")
-            })
+            }))
         let update message model =
             let model', cmd = pureUpdate message model
             let effect =
