@@ -12,14 +12,14 @@ open Community.Web.Shared.Domain
 /// loading/loaded/failed pattern as the other pages, with no page-local state.
 module Teams =
 
-    /// Render one team as a tile: a header with a team icon, and the player
-    /// roster each shown with their gravatar avatar + Discord handle. Placed
-    /// into the shared `RadzenTileLayout` grid by `tileRow`/`tileCol`.
+    /// Render one team as a card: the team name header, a member count badge,
+    /// and the player roster each shown with their gravatar avatar + Discord
+    /// handle. The card auto-sizes to its roster.
     let teamCard (team: Team) =
         RadzenUI.vStackGap "0.5rem" (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
-                RadzenUI.text RadzenUI.subtitle2 (string team.players.Length)
-                RadzenUI.text RadzenUI.caption "members"
+                RadzenUI.text RadzenUI.subtitle1 team.name
+                RadzenUI.badgePill RadzenUI.lightBadge (string team.players.Length)
             })
             for player in team.players do
                 RadzenUI.hStackGap "0.5rem" (concat {
@@ -28,11 +28,10 @@ module Teams =
                 })
         })
 
-    /// The Teams page view. A responsive Radzen 12-col grid lays the team cards
-    /// out so each card auto-sizes to its roster (no fixed tile height, so no
-    /// clipped members / inner scroll). Cards flow 2-per-row on small screens
-    /// and up to 3-per-row on desktop, with non-uniform heights looking like a
-    /// dashboard.
+    /// The Teams page view. A RadzenSplitter divides the width between the
+    /// team cards; each card is a pane that auto-sizes to its roster, so even
+    /// when teams have different member counts the panes balance out into a
+    /// dynamic, resizable dashboard (drag the dividers to rebalance).
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
@@ -41,11 +40,12 @@ module Teams =
             RadzenUI.text RadzenUI.body1 "Couldn't load teams."
         | Loaded m ->
             let teams = Map.toArray m |> Array.map snd
+            let paneSize = (string (100.0 / float teams.Length)) + "%"
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Teams"
-                RadzenUI.rowGap "1rem" (concat {
+                RadzenUI.splitter "height: 420px;" (concat {
                     for team in teams do
-                        RadzenUI.columnResponsive 6 6 4 (concat {
+                        RadzenUI.splitterPane (Some paneSize) (concat {
                             RadzenUI.cardOutlined (teamCard team)
                         })
                 })

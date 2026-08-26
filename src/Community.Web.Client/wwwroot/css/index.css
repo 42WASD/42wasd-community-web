@@ -117,25 +117,15 @@ button.rz-primary.rz-button {
   backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--rz-border-color);
   background-image:
-    linear-gradient(rgba(0, 186, 188, 0.22) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(0, 186, 188, 0.22) 2px, transparent 2px),
-    radial-gradient(rgba(0, 186, 188, 0.35) 1.5px, transparent 1.5px),
     repeating-linear-gradient(
       45deg,
-      rgba(0, 186, 188, 0.30) 0,
-      rgba(0, 186, 188, 0.30) 2px,
+      rgba(0, 130, 132, 0.40) 0,
+      rgba(0, 130, 132, 0.40) 2px,
       transparent 2px,
-      transparent 8px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      rgba(0, 186, 188, 0.20) 0,
-      rgba(0, 186, 188, 0.20) 1px,
-      transparent 1px,
       transparent 10px
     );
-  background-size: 28px 28px, 28px 28px, 18px 18px, 100% 100%, 100% 100%;
-  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.55), 0 6px 18px rgba(0, 0, 0, 0.4);
+  background-size: 100% 100%;
+  box-shadow: 0 1px 0 rgba(0, 156, 158, 0.6), 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 /* Keep the header content (logo + nav) away from the screen edges, and give
@@ -247,6 +237,26 @@ button.rz-primary.rz-button {
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 186, 188, 0.25);
+}
+
+/* Teams splitter: each pane's card fills the pane so uneven rosters balance
+   into a dashboard-like layout with no dead vertical space. */
+.rz-splitter-pane > .rz-card {
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+/* On small screens the horizontal splitter is too cramped, so stack the
+   panes vertically (the splitter's flex bars become horizontal dividers). */
+@media (max-width: 768px) {
+  .rz-splitter.rz-splitter-horizontal {
+    flex-direction: column;
+    height: auto !important;
+  }
+  .rz-splitter.rz-splitter-horizontal > .rz-splitter-pane {
+    width: 100%;
+    min-height: 140px;
+  }
 }
 
 /* Pulsing status dot (online/live indicators). */

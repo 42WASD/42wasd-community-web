@@ -228,6 +228,24 @@ module RadzenUI =
             children
         }
 
+    /// A RadzenSplitter — a resizable panes container (side-by-side when
+    /// `Orientation.Horizontal`, stacked when `Vertical`). Each pane is a
+    /// `splitterPane`. A splitter needs an explicit height (via `Style`) or a
+    /// flex fill parent, otherwise it collapses.
+    let splitter (style: string) (children: Node) =
+        comp<RadzenSplitter> {
+            "Style" => style
+            children
+        }
+
+    /// A resizable RadzenSplitterPane. Pass `size` (e.g. "300px", "40%") for a
+    /// fixed initial size, or `None`/"" for an auto-sized pane.
+    let splitterPane (size: string option) (children: Node) =
+        comp<RadzenSplitterPane> {
+            "Size" => (match size with Some s -> s | None -> "")
+            children
+        }
+
     /// A RadzenSidebarToggle is placed in the header; the layout shell passes
     /// the toggle callback through to the header when built via `layoutShell`.
     /// A vertical RadzenStack.
