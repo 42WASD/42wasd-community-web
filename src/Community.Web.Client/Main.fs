@@ -44,9 +44,12 @@ type MyApp() =
             Program.mkProgram (fun _ -> initModel, App.initCmd)
                 update view
             |> Program.withRouter router
-#if DEBUG
-        // Dev-only Elmish tracing. The message trace runs in the BROWSER console,
-        // not the server terminal.
+#if ELMISH_TRACE
+        // Elmish tracing. The message trace runs in the BROWSER console,
+        // not the server terminal. Enabled via the ELMISH_TRACE define so it
+        // survives Release/AOT publish (where the Members/Server bugs only
+        // reproduce) — the old `#if DEBUG` guard stripped it from every
+        // published build, leaving no MVU log to debug against.
         program
         |> Program.withConsoleTrace
         |> Program.withTrace (fun (msg: Message) (model: Model) _subs ->
@@ -59,7 +62,8 @@ type MyApp() =
         |> Program.withTermination
             (fun _ -> false)
             (fun _ -> printfn "Program terminated.")
-        |> Program.withHotReload
 #else
         program
+        |> Program.withErrorHandler (fun (msg, exn) ->
+            printfn $"Elmish error after %A{msg}: {exn}")
 #endif

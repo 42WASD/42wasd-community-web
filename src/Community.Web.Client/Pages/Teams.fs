@@ -35,9 +35,9 @@ module Teams =
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
-            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+            RadzenUI.loadingScaffold ()
         | Failed _ ->
-            RadzenUI.text RadzenUI.body1 "Couldn't load teams."
+            RadzenUI.failedView "teams"
         | Loaded m ->
             let teams = Map.toArray m |> Array.map snd
             let paneSize = (string (100.0 / float teams.Length)) + "%"

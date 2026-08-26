@@ -84,3 +84,8 @@ module SharedUpdateTests =
         let withError = { SharedModel.init with error = Some "boom" }
         let cleared, _ = Shared.update stubApi withError Shared.ClearError
         Assert.Equal(None, cleared.error)
+
+    [<Fact>]
+    let ``RecvSaveProfile sets the profileSaved flag`` () =
+        let after, _ = Shared.update stubApi SharedModel.init Shared.RecvSaveProfile
+        Assert.True(after.profileSaved)

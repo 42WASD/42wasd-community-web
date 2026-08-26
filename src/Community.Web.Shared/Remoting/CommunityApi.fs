@@ -36,6 +36,9 @@ type CommunityApi =
         /// Get the user's name, or None if they are not authenticated.
         getUsername: unit -> Async<string>
 
+        /// Save the signed-in player's profile (display handle + bio).
+        saveProfile: string option * string option -> Async<unit>
+
         /// Sign out from the application.
         signOut: unit -> Async<unit>
     }

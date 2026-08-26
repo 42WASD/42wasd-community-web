@@ -52,7 +52,7 @@ module Account =
         | SetHandle h -> { model with handle = h }, Cmd.none
         | SetBio b -> { model with bio = b }, Cmd.none
         | Clear -> init, Cmd.none
-        // SaveProfile and Submit are *intent* messages, not local reducers:
+        // Submit and SaveProfile are *intent* messages, not local reducers:
         // they carry no page-state change. The root interprets them as
         // cross-feature effects (sign-in / profile save) in App.update, so
         // here they are an explicit no-op rather than duplicated branches.
@@ -73,19 +73,24 @@ module Account =
         })
 
     /// The profile editor (signed in).
-    let profileForm (form: Model) (name: string) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
+    let profileForm (form: Model) (name: string) (profileSaved: bool) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
         RadzenUI.vStackGap "1rem" (concat {
             RadzenUI.text RadzenUI.display3 "Account"
             RadzenUI.text RadzenUI.subtitle1 ("Signed in as " + name)
+            RadzenUI.text RadzenUI.caption "Display handle"
             RadzenUI.textBox form.handle (fun h -> localDispatch (SetHandle h))
+            RadzenUI.text RadzenUI.caption "Bio"
             RadzenUI.textArea form.bio (fun b -> localDispatch (SetBio b))
             RadzenUI.hStackGap "0.5rem" (concat {
                 RadzenUI.button "Save" RadzenUI.primaryButton (fun () -> SaveProfile) localDispatch
                 RadzenUI.button "Sign out" RadzenUI.lightButton (fun () -> signOut ()) (fun _ -> ())
             })
+            cond profileSaved <| function
+            | false -> empty()
+            | true -> RadzenUI.alert RadzenUI.successAlert "Profile saved."
         })
 
-    let view (form: Model) (username: option<string>) (signInFailed: bool) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
+    let view (form: Model) (username: option<string>) (signInFailed: bool) (profileSaved: bool) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
         cond username <| function
-        | Some name -> profileForm form name localDispatch signOut
+        | Some name -> profileForm form name profileSaved localDispatch signOut
         | None -> signInForm form signInFailed localDispatch

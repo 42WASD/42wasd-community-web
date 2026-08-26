@@ -17,6 +17,10 @@ obj/
 *.user
 *.suo
 
+# Local disposable build output (always inside the repo, never /tmp)
+# Deletable anytime: rm -rf .tmp/
+.tmp/
+
 # OS / editor
 .DS_Store
 *.swp

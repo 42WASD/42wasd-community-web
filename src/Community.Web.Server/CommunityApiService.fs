@@ -17,6 +17,12 @@ module private Loaders =
         let json = Path.Combine(env.ContentRootPath, "data", fileName) |> File.ReadAllText
         JsonSerializer.Deserialize<'a[]>(json)
 
+    /// Serialize a JSON array back to a file under the server's data folder.
+    let saveJson<'a> (env: IWebHostEnvironment) (fileName: string) (value: 'a[]) =
+        let path = Path.Combine(env.ContentRootPath, "data", fileName)
+        let json = JsonSerializer.Serialize(value, JsonSerializerOptions(WriteIndented = true))
+        File.WriteAllText(path, json)
+
 type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
     inherit RemoteHandler<Community.Web.Shared.Remoting.CommunityApi>()
 
@@ -24,7 +30,7 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
     let servers = Loaders.loadJson<GameServer> env "servers.json"
     let tournaments = Loaders.loadJson<Tournament> env "tournaments.json"
     let news = Loaders.loadJson<News> env "news.json"
-    let players = Loaders.loadJson<Player> env "players.json"
+    let mutable players = Loaders.loadJson<Player> env "players.json"
     let teams = Loaders.loadJson<Team> env "teams.json"
 
     override this.Handler =
@@ -67,5 +73,17 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
 
             getUsername = ctx.Authorize <| fun () -> async {
                 return ctx.HttpContext.User.Identity.Name
+            }
+
+            saveProfile = ctx.Authorize <| fun (handle, bio) -> async {
+                let name = ctx.HttpContext.User.Identity.Name
+                players <-
+                    players
+                    |> Array.map (fun p ->
+                        if p.username = name then
+                            { p with handle = handle; bio = bio }
+                        else
+                            p)
+                Loaders.saveJson env "players.json" players
             }
         }

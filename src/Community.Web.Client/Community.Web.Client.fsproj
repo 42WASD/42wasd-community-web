@@ -7,7 +7,7 @@
          Release-publish-only; the dev server stays interpreted + untrimmed).
          These cut the WASM payload (measured ~12.9MB interpreted) and speed
          up CPU-bound code by compiling IL -> native WASM. -->
-    <RunAOTCompilation>true</RunAOTCompilation>
+    <RunAOTCompilation>false</RunAOTCompilation>
     <PublishTrimmed>true</PublishTrimmed>
     <!-- Use the SAFE default (partial) trim mode. `full` mode strips the
          reflection metadata that Bolero's remoting proxy needs to construct
@@ -19,6 +19,13 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <WasmEnableExceptionHandling>true</WasmEnableExceptionHandling>
     <WasmDebugLevel>0</WasmDebugLevel>
+
+    <!-- Elmish MVU trace: independent of WasmDebugLevel (that's the Mono/WASM
+         runtime debug setting, unrelated to the Elmish dispatch log). Keep
+         this define ON during dev AND when debugging Release/AOT builds so the
+         browser console prints every Message dispatch (per AGENTS.md: trace
+         first, fix second). Remove the constant to strip the trace for ship. -->
+    <DefineConstants>$(DefineConstants);ELMISH_TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="State/RemoteData.fs" />

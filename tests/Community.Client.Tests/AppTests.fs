@@ -52,11 +52,12 @@ module AppTests =
         Assert.Equal(m.page, after.page)
 
     [<Fact>]
-    let ``AccountMsg SaveProfile stays local and never triggers a sign-in`` () =
+    let ``AccountMsg SaveProfile translates to a shared profile save, not a sign-in`` () =
         // Regression: the profile editor's Save button used to share the
         // `Submit` message, which the root translated into SendSignIn with the
-        // EMPTY sign-in draft — logging the user out. `SaveProfile` must stay
-        // purely local: it must not clear the session or the drafts.
+        // EMPTY sign-in draft — logging the user out. `SaveProfile` must be
+        // translated into a Shared.SaveProfile effect, never a sign-in, and it
+        // must not clear the session or the drafts.
         let pm : Bolero.PageModel<Account.Model> = { Model = { Account.init with handle = "bob_the_gamer"; bio = "FPS" } }
         let m = { initModel with page = Page.AccountPage pm }
         let after, _ = update stubApi (AccountMsg Account.SaveProfile) m

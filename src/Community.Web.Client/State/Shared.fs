@@ -21,6 +21,9 @@ type SharedModel =
         favoriteGames: Set<string>
         error: string option
         signInFailed: bool
+        /// True briefly after the signed-in player's profile is saved, driving
+        /// the "Profile saved" confirmation on the Account page.
+        profileSaved: bool
     }
 
 /// Helpers for building and querying shared state.
@@ -38,6 +41,7 @@ module SharedModel =
             favoriteGames = Set.empty
             error = None
             signInFailed = false
+            profileSaved = false
         }
 
     /// Build a `Map<string, 'T>` from an array of entities keyed by id.

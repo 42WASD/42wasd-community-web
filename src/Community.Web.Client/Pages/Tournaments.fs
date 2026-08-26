@@ -69,9 +69,9 @@ module Tournaments =
     let view (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.tournaments <| function
         | NotAsked | Loading ->
-            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+            RadzenUI.loadingScaffold ()
         | Failed _ ->
-            RadzenUI.text RadzenUI.body1 "Couldn't load tournaments."
+            RadzenUI.failedView "tournaments"
         | Loaded m ->
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Tournaments"

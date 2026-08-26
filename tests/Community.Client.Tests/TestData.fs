@@ -23,6 +23,7 @@ module TestData =
             getTeams = fun () -> async { return failwith "not used in pure tests" }
             signIn = fun _ -> async { return failwith "not used in pure tests" }
             getUsername = fun () -> async { return failwith "not used in pure tests" }
+            saveProfile = fun _ -> async { return failwith "not used in pure tests" }
             signOut = fun () -> async { return failwith "not used in pure tests" }
         }
 

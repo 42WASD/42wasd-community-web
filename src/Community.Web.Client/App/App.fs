@@ -51,6 +51,8 @@ module Shared =
         | RecvSignIn of option<string>
         | SendSignOut
         | RecvSignOut
+        | SaveProfile of string option * string option
+        | RecvSaveProfile
         | Error of exn
         | ClearError
 
@@ -149,6 +151,19 @@ module Shared =
         | RecvSignOut ->
             { shared with account = None; signInFailed = false }, Cmd.none
 
+        | SaveProfile (handle, bio) ->
+            // Cross-feature effect: save the signed-in player's profile and
+            // refresh the canonical Players cache so Members reflects the
+            // updated handle/bio.
+            let cmd =
+                Cmd.batch [
+                    Cmd.OfAsync.either remote.saveProfile (handle, bio) (fun () -> RecvSaveProfile) Error
+                    Cmd.ofMsg GetPlayers
+                ]
+            shared, cmd
+        | RecvSaveProfile ->
+            { shared with profileSaved = true }, Cmd.none
+
         | Error RemoteUnauthorizedException ->
             { shared with error = Some "You have been logged out."; account = None }, Cmd.none
         | Error exn ->
@@ -206,8 +221,9 @@ let update remote message model =
     match message with
     | SetPage page ->
         // Closing the nav drawer on navigation is intuitive: picking a link
-        // dismisses the drawer on mobile.
-        { model with page = page; sidebarOpen = false }, Cmd.none
+        // dismisses the drawer on mobile. The transient "Profile saved"
+        // confirmation also resets on navigation (state-lifetime rule).
+        { model with page = page; sidebarOpen = false; shared = { model.shared with profileSaved = false } }, Cmd.none
 
     | SetSidebarOpen open' ->
         { model with sidebarOpen = open' }, Cmd.none
@@ -235,6 +251,14 @@ let update remote message model =
             | Account.Submit ->
                 let send =
                     Cmd.ofMsg (SharedMsg (Shared.SendSignIn (pm.Model.username, pm.Model.password)))
+                model, send
+            | Account.SaveProfile ->
+                // Cross-feature effect translated by the root: issue a Shared
+                // profile-save (owned by the Shared layer) with the handle/bio
+                // drafted on this page. `Cmd.map` is not needed — the shared
+                // message is lifted as SharedMsg.
+                let send =
+                    Cmd.ofMsg (SharedMsg (Shared.SaveProfile (Some pm.Model.handle, Some pm.Model.bio)))
                 model, send
             | _ ->
                 let m, cmd = Account.update msg pm.Model

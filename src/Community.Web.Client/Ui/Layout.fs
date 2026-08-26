@@ -123,6 +123,7 @@ let view (model: Model) (dispatch: Message -> unit) =
                 | About -> About.view ()
                 | AccountPage pm ->
                     Account.view pm.Model model.shared.account model.shared.signInFailed
+                        model.shared.profileSaved
                         (fun msg -> dispatch (AccountMsg msg))
                         (fun () -> dispatch (SharedMsg Shared.SendSignOut))
             }

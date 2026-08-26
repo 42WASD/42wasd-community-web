@@ -185,36 +185,16 @@ module RadzenUI =
             children
         }
 
-    /// A responsive RadzenSidebar. Inside a RadzenLayout it auto-collapses
-    /// below 768px. Uncontrolled form (sidebar manages its own state).
-    let sidebar (children: Node) =
-        comp<RadzenSidebar> {
-            children
-        }
-
     /// A RadzenSidebarToggle — the hamburger that toggles the sidebar.
     let sidebarToggle (onToggle: unit -> unit) =
         comp<RadzenSidebarToggle> {
             attr.callback "Click" (fun (_: EventArgs) -> onToggle ())
         }
 
-    /// A RadzenRow — a responsive flex row in the 12-column grid.
-    let row (children: Node) =
-        comp<RadzenRow> {
-            children
-        }
-
     /// A responsive RadzenRow with a gap.
     let rowGap (gap: string) (children: Node) =
         comp<RadzenRow> {
             "Gap" => gap
-            children
-        }
-
-    /// A RadzenColumn of a given grid width (1-12). Use inside a `row`.
-    let column (size: int) (children: Node) =
-        comp<RadzenColumn> {
-            "Size" => size
             children
         }
 
@@ -307,13 +287,6 @@ module RadzenUI =
             children
         }
 
-    /// A RadzenBadge label.
-    let badge (style: BadgeStyle) (textValue: string) =
-        comp<RadzenBadge> {
-            "Text" => textValue
-            "BadgeStyle" => style
-        }
-
     /// A pill-shaped RadzenBadge.
     let badgePill (style: BadgeStyle) (textValue: string) =
         comp<RadzenBadge> {
@@ -327,6 +300,27 @@ module RadzenUI =
         comp<RadzenSkeleton> {
             "Animation" => skeletonPulse
         }
+
+    /// The standard page loading scaffold: two pulsing skeleton blocks shown
+    /// while a page's shared `RemoteData` is still `NotAsked`/`Loading`.
+    /// Every page uses this same shape (DRY).
+    let loadingScaffold () =
+        vStack (concat { skeleton (); skeleton () })
+
+    /// The standard page error message for a `Failed` `RemoteData` slice.
+    /// `what` is the plain name of the failed resource (e.g. "games").
+    let failedView (what: string) =
+        text body1 ("Couldn't load " + what + ".")
+
+    /// The status badge for a `GameServer.status` string. Centralizes the
+    /// `online`/`maintenance`/`offline` -> badge mapping so Home and Servers
+    /// don't each hand-write the same match. Unknown values fall back to
+    /// "offline".
+    let statusBadge (status: string) =
+        match status with
+        | "online" -> badgePill successBadge "online"
+        | "maintenance" -> badgePill warningBadge "maintenance"
+        | _ -> badgePill darkBadge "offline"
 
     // ---------------------------------------------------------------- feedback
 
@@ -399,21 +393,6 @@ module RadzenUI =
             children
         }
 
-    /// A RadzenBreadCrumb — a horizontal trail of `breadcrumbItem`s showing the
-    /// current page's location in the app.
-    let breadcrumb (children: Node) =
-        comp<RadzenBreadCrumb> {
-            children
-        }
-
-    /// A RadzenBreadCrumbItem — one step in a `breadcrumb`. A `path` renders as
-    /// a link; without a path it's a plain (current-page) label.
-    let breadcrumbItem (textValue: string) (path: string option) =
-        comp<RadzenBreadCrumbItem> {
-            "Text" => textValue
-            "Path" => (defaultArg path null)
-        }
-
     // ---------------------------------------------------------------- buttons
 
     /// A Radzen button. `style` controls the semantic color, `onClickMsg` is
@@ -441,26 +420,6 @@ module RadzenUI =
             attr.callback "ValueChanged" (fun (v: string) -> onChange v)
         }
 
-    /// A RadzenPassword bound to a value via `ValueChanged`.
-    let password (value: string) (onChange: string -> unit) =
-        comp<RadzenPassword> {
-            "Value" => value
-            attr.callback "ValueChanged" (fun (v: string) -> onChange v)
-        }
-
-    /// A RadzenLogin — a ready-made sign-in form (username/password fields with
-    /// built-in required validation). The `onLogin` callback receives the
-    /// submitted `(username, password)`.
-    let login (onLogin: string * string -> unit) =
-        comp<RadzenLogin> {
-            "AllowRegister" => false
-            "AllowResetPassword" => false
-            attr.callback "Login" (fun (args: LoginArgs) ->
-                let user = if isNull args.Username then "" else args.Username
-                let pass = if isNull args.Password then "" else args.Password
-                onLogin (user, pass))
-        }
-
     /// A RadzenAutoComplete — a search box that suggests/filters as you type.
     /// `data` is the item collection; `textProperty` is the record field shown
     /// in the suggestions (e.g. "username"). `minLength` gates when the
@@ -482,15 +441,18 @@ module RadzenUI =
                 onValueChanged v)
         }
 
-    // ---------------------------------------------------------------- cards
-
-    /// A tournament card (gaming-community).
-    let tournamentCard (tournament: Tournament) =
-        cardOutlined (vStackGap "0.5rem" (concat {
-            text heading6 tournament.name
-            text overline tournament.prize
-            text caption (tournament.startsAt.ToString("yyyy-MM-dd"))
-        }))
+    /// A RadzenLogin — a ready-made sign-in form (username/password fields with
+    /// built-in required validation). The `onLogin` callback receives the
+    /// submitted `(username, password)`.
+    let login (onLogin: string * string -> unit) =
+        comp<RadzenLogin> {
+            "AllowRegister" => false
+            "AllowResetPassword" => false
+            attr.callback "Login" (fun (args: LoginArgs) ->
+                let user = if isNull args.Username then "" else args.Username
+                let pass = if isNull args.Password then "" else args.Password
+                onLogin (user, pass))
+        }
 
     // ---------------------------------------------------------------- fragment
 
@@ -551,24 +513,6 @@ module RadzenUI =
         }
 
     // ---------------------------------------------------------------- progress
-
-    /// A determinate RadzenProgressBar showing `value`/`max` (capacity etc.).
-    /// `Value`/`Max` are `double`, so callers pass floats.
-    let progressBar (value: float) (max: float) (style: ProgressBarStyle) =
-        comp<RadzenProgressBar> {
-            "Value" => value
-            "Max" => max
-            "ProgressBarStyle" => style
-        }
-
-    /// A determinate RadzenProgressBar with the numeric value rendered inside.
-    let progressBarValue (value: float) (max: float) (style: ProgressBarStyle) =
-        comp<RadzenProgressBar> {
-            "Value" => value
-            "Max" => max
-            "ShowValue" => true
-            "ProgressBarStyle" => style
-        }
 
     /// A determinate RadzenProgressBarCircular — a compact ring showing
     /// `value`/`max` with the value inside the circle. `size` is one of the
@@ -639,14 +583,6 @@ module RadzenUI =
             "ChipStyle" => style
         }
 
-    /// A read-only RadzenRating showing a star rating out of `max`.
-    let rating (value: float) (max: int) =
-        comp<RadzenRating> {
-            "Value" => (int value)
-            "Stars" => max
-            "ReadOnly" => true
-        }
-
     // ---------------------------------------------------------------- buttons (dropdown)
 
     /// A RadzenSplitButton — a primary button plus a dropdown menu of
@@ -706,19 +642,6 @@ module RadzenUI =
             fragmentParam "Columns" columns
         }
 
-    /// A RadzenDataGridColumn bound to a record field. `'T` is the row type and
-    /// MUST match the enclosing grid's `'T` (pass it explicitly, e.g.
-    /// `dataGridColumn<Game>`). `property` is the field name (case-sensitive),
-    /// `title` the header. `showTooltip` shows the full cell value on hover.
-    let dataGridColumn<'T when 'T : not null> (property: string) (title: string) (showTooltip: bool) =
-        comp<RadzenDataGridColumn<'T>> {
-            "Property" => property
-            "Title" => title
-            "Sortable" => true
-            "Filterable" => true
-            "ShowCellDataAsTooltip" => showTooltip
-        }
-
     /// A RadzenDataGridColumn with a custom cell template instead of a raw
     /// `Property` binding — for rendering a value that isn't a plain string
     /// (e.g. an F# `option<string>`). `title` is the header; `cell` maps each
@@ -738,50 +661,3 @@ module RadzenUI =
             b.AddAttribute(n + 3, "Template", template)
             b.CloseComponent()
             n + 4)
-
-    // ---------------------------------------------------------------- data list
-
-    /// A RadzenDataList rendering items with a custom card template instead of
-    /// table rows. `renderItem` maps each `'T` to a Node (the card). The
-    /// `Template` is a `RenderFragment<'T>`, built with `attr.fragmentWith`.
-    /// `wrapItems` flows items horizontally; otherwise they stack vertically.
-    let dataList<'T> (data: seq<'T>) (wrapItems: bool) (itemTemplate: 'T -> Node) =
-        Node(fun c b i ->
-            b.OpenComponent<RadzenDataList<'T>>(i)
-            let n = i + 1
-            b.AddAttribute(n, "Data", data)
-            b.AddAttribute(n + 1, "WrapItems", wrapItems)
-            let renderTemplate =
-                RenderFragment<'T>(fun ctx ->
-                    RenderFragment(fun rt ->
-                        (itemTemplate ctx).Invoke(c, rt, 0) |> ignore))
-            b.AddAttribute(n + 2, "Template", renderTemplate)
-            b.CloseComponent()
-            n + 3)
-
-    // ---------------------------------------------------------------- tile layout
-
-    /// A RadzenTileLayout — a dashboard grid of draggable/resizable tiles
-    /// arranged on a configurable column/row grid. In read-only mode
-    /// (`EditMode=false`, the default) tiles are laid out statically from
-    /// their `Col`/`Row`/`ColSpan`. `columns` is the grid column count (e.g.
-    /// 12); children are `tileLayoutItem`s.
-    let tileLayout (columns: int) (children: Node) =
-        comp<RadzenTileLayout> {
-            "Columns" => columns
-            children
-        }
-
-    /// A RadzenTileLayoutItem — one tile in a `tileLayout`. `title` is the
-    /// tile header; `icon` a Material icon name (e.g. "groups"); `col`/`row`
-    /// are the 1-based grid position; `colSpan` how many columns the tile
-    /// spans. Children are the tile body content.
-    let tileLayoutItem (title: string) (icon: string) (col: int) (row: int) (colSpan: int) (children: Node) =
-        comp<RadzenTileLayoutItem> {
-            "Title" => title
-            "Icon" => icon
-            "Col" => col
-            "Row" => row
-            "ColSpan" => colSpan
-            children
-        }

@@ -94,6 +94,20 @@ projects/
 .github/workflows/              # CI: verify + deploy pages
 ```
 
+## Local builds — output inside the repo, never /tmp
+
+- **All local build/publish output goes in a repo-local disposable folder:**
+  `.tmp/` (e.g. `dotnet publish ... -o .tmp/aot-serve`). This folder is
+  git-ignored and safe to delete anytime: `rm -rf .tmp/`.
+- **NEVER build to `/tmp`** or other system temp dirs. Previous attempts to
+  publish to `/tmp` with high parallelism (`-m:16`) consumed all system RAM
+  and crashed the machine. Keep heavy AOT/publish work inside the repo where
+  it is easy to clean up and is subject to normal `.gitignore` rules.
+- **Cap parallelism conservatively.** Use `-m:4` (or `nproc`/2) at most.
+  AOT (`wasm-ld`) and msbuild each spawn many processes; high `-m` values
+  multiply memory usage dramatically on AOT publishes. On an 8-core box,
+  `-m:4` is a safe ceiling for a `RunAOTCompilation=true` publish.
+
 ## Launching a dev/test server — always use a new port
 
 The dev server defaults to `http://localhost:5023` (from

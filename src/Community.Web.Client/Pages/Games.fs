@@ -44,9 +44,9 @@ module Games =
         let favorites = shared.favoriteGames
         cond shared.games <| function
         | NotAsked | Loading ->
-            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+            RadzenUI.loadingScaffold ()
         | Failed _ ->
-            RadzenUI.text RadzenUI.body1 "Couldn't load games."
+            RadzenUI.failedView "games"
         | Loaded m ->
             let rows = forEach (Map.toArray m) (fun (_, g) -> gameCard g (favorites.Contains g.id) dispatch)
             // Phase 15 evidence: report once per page render.

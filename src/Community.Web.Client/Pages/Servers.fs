@@ -34,26 +34,34 @@ module Servers =
 
         let serverGrid (list: GameServer[]) =
             RadzenUI.cardOutlined (RadzenUI.dataGrid<GameServer> list (concat {
-                RadzenUI.dataGridColumn<GameServer> "name" "Server" false
-                RadzenUI.dataGridColumn<GameServer> "address" "Address" true
-                RadzenUI.dataGridColumn<GameServer> "onlinePlayers" "Players" false
-                RadzenUI.dataGridColumn<GameServer> "maxPlayers" "Capacity" false
-                RadzenUI.dataGridColumn<GameServer> "status" "Status" false
+                // NOTE: template columns (NOT dataGridColumn "property") — Radzen's
+                // string-`Property` binding uses runtime reflection that AOT/trim
+                // strips → NullReferenceException. Typed F# lambdas avoid reflection.
+                RadzenUI.dataGridTemplateColumn<GameServer> "Server" (fun s ->
+                    RadzenUI.text RadzenUI.body1 s.name)
+                RadzenUI.dataGridTemplateColumn<GameServer> "Address" (fun s ->
+                    RadzenUI.text RadzenUI.body1 s.address)
+                RadzenUI.dataGridTemplateColumn<GameServer> "Players" (fun s ->
+                    RadzenUI.text RadzenUI.body1 (string s.onlinePlayers))
+                RadzenUI.dataGridTemplateColumn<GameServer> "Capacity" (fun s ->
+                    RadzenUI.text RadzenUI.body1 (string s.maxPlayers))
+                RadzenUI.dataGridTemplateColumn<GameServer> "Status" (fun s ->
+                    RadzenUI.statusBadge s.status)
             }))
 
-        let tabNodes = ResizeArray<Node>()
-        for (_, gname, list) in byGame do
-            tabNodes.Add (RadzenUI.tabItem gname (serverGrid list))
-        if unassigned.Length > 0 then
-            tabNodes.Add (RadzenUI.tabItem "Other" (serverGrid unassigned))
+        let tabNodes =
+            [ for (_, gname, list) in byGame do
+                yield RadzenUI.tabItem gname (serverGrid list)
+              if unassigned.Length > 0 then
+                yield RadzenUI.tabItem "Other" (serverGrid unassigned) ]
         RadzenUI.tabs (forEach tabNodes (fun n -> n))
 
     let view (shared: SharedModel) =
         cond shared.servers <| function
         | NotAsked | Loading ->
-            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+            RadzenUI.loadingScaffold ()
         | Failed _ ->
-            RadzenUI.text RadzenUI.body1 "Couldn't load servers."
+            RadzenUI.failedView "servers"
         | Loaded servers ->
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Servers"

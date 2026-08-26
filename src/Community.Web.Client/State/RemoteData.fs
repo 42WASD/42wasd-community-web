@@ -8,13 +8,3 @@ type RemoteData<'T> =
     | Loading
     | Loaded of 'T
     | Failed of string
-
-/// Helpers over RemoteData.
-module RemoteData =
-    /// Convenience: fold a `RemoteData<'T>` into a concrete value.
-    let fold loading loaded failed rd =
-        match rd with
-        | NotAsked -> loading
-        | Loading -> loading
-        | Loaded v -> loaded v
-        | Failed err -> failed err

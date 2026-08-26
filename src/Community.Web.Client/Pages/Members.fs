@@ -30,24 +30,41 @@ module Members =
 
     let update msg model =
         match msg with
-        | SetSearch s -> { model with search = s }, Cmd.none
+        | SetSearch s ->
+            // Guard the same null PageModel seen in `view` under trimming (see
+            // view's `isNull (box model)`): if the router handed us a null
+            // model, start from `init` before projecting.
+            let model' = if isNull (box model) then init else model
+            { model' with search = s }, Cmd.none
 
-    /// The avatar column: a RadzenGravatar + username shown as the first grid
-    /// cell, demonstrating a template column inside the DataGrid.
+    /// The avatar column: username shown as the first grid cell.
+    /// NOTE: intentionally NOT using `RadzenGravatar` — its `AlternateText`
+    /// getter calls Radzen's `Localize()` → `RadzenStrings.ResourceManager`
+    /// lookup at render time, a reflection path AOT/trim strips → the whole
+    /// grid throws NullReferenceException on the AOT build. A plain typed
+    /// text cell avoids reflection entirely (mirrors the Servers fix). Also
+    /// NOT wrapping in a `RadzenStack` — Servers' working grid cells are bare
+    /// `RadzenText`, and the 3 NREs on Members = 3 rows implicate the cell
+    /// body. Keep it as a single bare text node like Servers.
     let avatarCell (player: Player) =
-        RadzenUI.hStackGap "0.5rem" (concat {
-            RadzenUI.gravatar player.discord 32
-            RadzenUI.text RadzenUI.body1 player.username
-        })
+        RadzenUI.text RadzenUI.body1 player.username
 
     let view (model: Model) (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.players <| function
         | NotAsked | Loading ->
-            RadzenUI.vStack (concat { RadzenUI.skeleton (); RadzenUI.skeleton () })
+            RadzenUI.loadingScaffold ()
         | Failed _ ->
-            RadzenUI.text RadzenUI.body1 "Couldn't load members."
+            RadzenUI.failedView "members"
         | Loaded m ->
-            let query = model.search.Trim().ToLowerInvariant()
+            // Defensive null guard: under trimming, the router's PageModel may
+            // be constructed with a null Model (the `Unsafe.AsRef` write in
+            // `definePageModel` is a reflection-adjacent path that partial trim
+            // can drop). The page must still render, so treat a null model as
+            // "empty search". Live filtering still works when the model is
+            // non-null (the usual non-published case).
+            let search =
+                if isNull (box model) then "" else model.search
+            let query = search.Trim().ToLowerInvariant()
             // Filter the canonical roster by username or Discord handle.
             let players =
                 Map.toArray m
@@ -58,14 +75,16 @@ module Members =
                     || (defaultArg p.discord "").ToLowerInvariant().Contains query)
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Members"
-                // A search box that suggests usernames and drives the filter.
+                // A search box that suggests usernames and drives the live
+                // filter on the roster below.
                 RadzenUI.autoComplete
                     (Map.toArray m |> Array.map snd)
-                    "username" model.search (fun v -> dispatch (SetSearch v))
-                // The filtered roster as a sortable/filterable/paged grid.
+                    "username" search (fun v -> dispatch (SetSearch v))
                 RadzenUI.dataGrid<Player> players (concat {
+                    // template columns (NOT dataGridColumn "property") — Radzen's
+                    // string-`Property` binding uses runtime reflection that
+                    // AOT/trim strips. Typed F# lambdas avoid reflection.
                     RadzenUI.dataGridTemplateColumn<Player> "Member" avatarCell
-                    RadzenUI.dataGridColumn<Player> "username" "Username" true
                     RadzenUI.dataGridTemplateColumn<Player> "Discord" (fun p ->
                         RadzenUI.text RadzenUI.body1 (defaultArg p.discord ""))
                 })

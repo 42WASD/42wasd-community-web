@@ -54,10 +54,7 @@ module Home =
                     div { attr.``class`` "animate-pulse-dot"; attr.style "width:10px; height:10px; background-color:#009739;" }
                 | _ -> empty ()
                 RadzenUI.text RadzenUI.body1 s.name
-                match s.status with
-                | "online" -> RadzenUI.badgePill RadzenUI.successBadge "online"
-                | "maintenance" -> RadzenUI.badgePill RadzenUI.warningBadge "maintenance"
-                | _ -> RadzenUI.badgePill RadzenUI.darkBadge "offline"
+                RadzenUI.statusBadge s.status
             })
             RadzenUI.hStackGap "1rem" (concat {
                 RadzenUI.progressBarCircular (float s.onlinePlayers) (float s.maxPlayers)
