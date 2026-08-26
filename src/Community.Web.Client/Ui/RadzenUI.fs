@@ -3,6 +3,8 @@ namespace Community.Web.Client.Ui
 open System
 open Bolero
 open Bolero.Html
+open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Rendering
 open Microsoft.AspNetCore.Components.Routing
 open Microsoft.AspNetCore.Components.Web
 open Radzen
@@ -63,6 +65,30 @@ module RadzenUI =
 
     let navMatchPrefix = NavLinkMatch.Prefix
     let navMatchAll = NavLinkMatch.All
+
+    let progressBarPrimary = ProgressBarStyle.Primary
+    let progressBarSuccess = ProgressBarStyle.Success
+    let progressBarDanger = ProgressBarStyle.Danger
+    let progressBarWarning = ProgressBarStyle.Warning
+    let progressBarInfo = ProgressBarStyle.Info
+    let progressBarDark = ProgressBarStyle.Dark
+
+    let pointPrimary = PointStyle.Primary
+    let pointSecondary = PointStyle.Secondary
+    let pointSuccess = PointStyle.Success
+    let pointDanger = PointStyle.Danger
+    let pointWarning = PointStyle.Warning
+    let pointInfo = PointStyle.Info
+    let pointDark = PointStyle.Dark
+
+    let pointSizeExtraSmall = PointSize.ExtraSmall
+    let pointSizeSmall = PointSize.Small
+    let pointSizeMedium = PointSize.Medium
+    let pointSizeLarge = PointSize.Large
+
+    let pagerTop = PagerPosition.Top
+    let pagerBottom = PagerPosition.Bottom
+    let pagerTopAndBottom = PagerPosition.TopAndBottom
 
     let horizontal = Orientation.Horizontal
     let vertical = Orientation.Vertical
@@ -323,19 +349,6 @@ module RadzenUI =
 
     // ---------------------------------------------------------------- cards
 
-    /// A server-status card (gaming-community direction).
-    let serverCard (server: GameServer) =
-        let statusBadge =
-            match server.status with
-            | "online" -> badgePill successBadge "online"
-            | "maintenance" -> badgePill warningBadge "maintenance"
-            | _ -> badgePill darkBadge "offline"
-        cardOutlined (vStackGap "0.25rem" (concat {
-            text heading6 server.name
-            text caption $"{server.address}  ·  {server.onlinePlayers}/{server.maxPlayers} online"
-            statusBadge
-        }))
-
     /// A tournament card (gaming-community).
     let tournamentCard (tournament: Tournament) =
         cardOutlined (vStackGap "0.5rem" (concat {
@@ -343,3 +356,93 @@ module RadzenUI =
             text overline tournament.prize
             text caption (tournament.startsAt.ToString("yyyy-MM-dd"))
         }))
+
+    // ---------------------------------------------------------------- fragment
+
+    /// Bind a sequence of child nodes to a named `RenderFragment` component
+    /// parameter. Bolero's `comp { children }` always fills `ChildContent`, but
+    /// some Radzen containers (Tabs, Carousel, Timeline) read their items from
+    /// a dedicated `RenderFragment` parameter (`Tabs`/`Items`) instead — so we
+    /// must pass them an explicit fragment. Build the node list via `concat { }`.
+    let fragmentParam (paramName: string) (children: Node) =
+        Attr(fun receiver builder sequence ->
+            builder.AddAttribute(sequence, paramName,
+                RenderFragment(fun builder ->
+                    children.Invoke(receiver, builder, 0) |> ignore))
+            sequence + 1)
+
+    // ---------------------------------------------------------------- tabs
+
+    /// A RadzenTabs container. Reads its items from the `Tabs` render fragment
+    /// (`fragmentParam`). `RenderMode` Server by default; uncontrolled — with
+    /// `SelectedIndex` left at its default -1 the first tab is auto-selected,
+    /// so no page state is needed — ideal for a view-only wrapper. Items are
+    /// `RadzenTabsItem` via `tabItem`.
+    let tabs (children: Node) =
+        comp<RadzenTabs> {
+            fragmentParam "Tabs" children
+        }
+
+    /// A RadzenTabsItem — one tab header (text) + its panel content.
+    let tabItem (textValue: string) (children: Node) =
+        comp<RadzenTabsItem> {
+            "Text" => textValue
+            children
+        }
+
+    // ---------------------------------------------------------------- progress
+
+    /// A determinate RadzenProgressBar showing `value`/`max` (capacity etc.).
+    /// `Value`/`Max` are `double`, so callers pass floats.
+    let progressBar (value: float) (max: float) (style: ProgressBarStyle) =
+        comp<RadzenProgressBar> {
+            "Value" => value
+            "Max" => max
+            "ProgressBarStyle" => style
+        }
+
+    /// A determinate RadzenProgressBar with the numeric value rendered inside.
+    let progressBarValue (value: float) (max: float) (style: ProgressBarStyle) =
+        comp<RadzenProgressBar> {
+            "Value" => value
+            "Max" => max
+            "ShowValue" => true
+            "ProgressBarStyle" => style
+        }
+
+    // ---------------------------------------------------------------- timeline
+
+    /// A vertical RadzenTimeline — a sequence of `timelineItem` nodes (great
+    /// for a news/announcements history or a tournament roadmap). Items are
+    /// passed via the `Items` render fragment (see `fragmentParam`).
+    let timeline (children: Node) =
+        comp<RadzenTimeline> {
+            fragmentParam "Items" children
+        }
+
+    /// A RadzenTimelineItem — one node: a label (usually a date) on the left,
+    /// rich child content (headline + body) on the right, and a colored point.
+    let timelineItem (label: string) (point: PointStyle) (children: Node) =
+        comp<RadzenTimelineItem> {
+            "Label" => label
+            "PointStyle" => point
+            children
+        }
+
+    // ---------------------------------------------------------------- carousel
+
+    /// A RadzenCarousel cycling through `carouselItem` children. `itemsPerPage`
+    /// controls how many are visible at once on large screens. Items are passed
+    /// via the `Items` render-fragment (see `fragmentParam`).
+    let carousel (itemsPerPage: int) (children: Node) =
+        comp<RadzenCarousel> {
+            "ItemsPerPage" => itemsPerPage
+            "PagerPosition" => pagerBottom
+            fragmentParam "Items" children
+        }
+
+    /// A RadzenCarouselItem — a single slide in a `carousel`.
+    let carouselItem (children: Node) =
+        comp<RadzenCarouselItem> {
+            children
+        }

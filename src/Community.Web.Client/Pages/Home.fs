@@ -43,6 +43,49 @@ module Home =
             }))
         })
 
+    /// A compact live-server row: name, status badge, and a capacity bar.
+    /// The online count comes straight from the canonical servers cache.
+    let serverStatusRow (s: GameServer) =
+        RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.hStackGap "0.5rem" (concat {
+                RadzenUI.text RadzenUI.body1 s.name
+                match s.status with
+                | "online" -> RadzenUI.badgePill RadzenUI.successBadge "online"
+                | "maintenance" -> RadzenUI.badgePill RadzenUI.warningBadge "maintenance"
+                | _ -> RadzenUI.badgePill RadzenUI.darkBadge "offline"
+            })
+            RadzenUI.progressBarValue (float s.onlinePlayers) (float s.maxPlayers)
+                (if s.onlinePlayers >= s.maxPlayers then RadzenUI.progressBarDanger
+                 elif float s.onlinePlayers / float (max s.maxPlayers 1) >= 0.8 then RadzenUI.progressBarWarning
+                 else RadzenUI.progressBarSuccess)
+        }))
+
+    /// The "latest news" section rendered as a vertical RadzenTimeline, so the
+    /// (previously invisible) News cache surfaces as announcements.
+    let newsTimeline (news: Map<string, News>) =
+        let items =
+            Map.toArray news
+            |> Array.map (fun (_, n) ->
+                RadzenUI.timelineItem (n.publishedAt.ToString("yyyy-MM-dd")) RadzenUI.pointPrimary
+                    (concat {
+                        RadzenUI.text RadzenUI.body1 n.title
+                        RadzenUI.text RadzenUI.caption n.body
+                    }))
+        RadzenUI.cardOutlined (RadzenUI.vStackGap "0.75rem" (concat {
+            RadzenUI.text RadzenUI.heading6 "Latest news"
+            RadzenUI.timeline (forEach items (fun n -> n))
+        }))
+
+    /// A "featured games" carousel cycling the canonical games cache, so the
+    /// Home hero shows off the community's titles rather than a flat list.
+    let featuredCarousel (games: Map<string, Game>) =
+        RadzenUI.carousel 3 (forEach (Map.toArray games) (fun (_, g) ->
+            RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+                RadzenUI.text RadzenUI.heading6 g.name
+                RadzenUI.badgePill RadzenUI.primaryBadge g.genre
+                RadzenUI.text RadzenUI.body2 g.description
+            })))))
+
     /// Render the dashboard from the selected shared slices.
     let view (shared: SharedModel) =
         let gamesCount, onlineNow, openTournaments, memberCount, favoriteCount = stats shared
@@ -58,4 +101,24 @@ module Home =
                 statPanel 6 "Members" (memberCount.ToString())
                 statPanel 6 "Favourite games" (favoriteCount.ToString())
             })
+
+            // Featured games carousel (reads the canonical games cache).
+            match shared.games with
+            | Loaded g when g.Count > 0 -> featuredCarousel g
+            | _ -> empty ()
+
+            // Live server status strip (reads the canonical servers cache).
+            cond shared.servers <| function
+            | Loaded servers when servers.Count > 0 ->
+                RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+                    RadzenUI.text RadzenUI.heading6 "Live servers"
+                    RadzenUI.rowGap "1rem" (forEach (Map.toArray servers) (fun (_, s) ->
+                        RadzenUI.columnResponsive 12 6 4 (serverStatusRow s)))
+                }))
+            | _ -> empty ()
+
+            // Latest news, rendered as a timeline (surface the News data).
+            match shared.news with
+            | Loaded n when n.Count > 0 -> newsTimeline n
+            | _ -> empty ()
         })

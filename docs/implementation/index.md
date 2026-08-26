@@ -2286,6 +2286,115 @@ canonical caches exactly as before).
 
 `verify.sh` reports `VERIFY OK`.
 
+---
+
+### Phase 17c — richer component surfaces (Tabs / Carousel / Timeline / ProgressBar)
+
+Motivated by the community-landing research (Raider.IO/FACEIT patterns): the
+app was a flat grid of cards. This phase adds density and hierarchy using
+existing Radzen components that were already in the library but unused, and
+surfaces the `News` slice that was loaded into state but never rendered.
+
+#### The core gotcha: named `RenderFragment` parameters
+
+Bolero's `comp<T> { children }` always binds trailing children to the
+`ChildContent` parameter. Several Radzen containers read their items from a
+**dedicated `RenderFragment` parameter instead of `ChildContent`**:
+
+- `RadzenTabs` reads `RadzenTabsItem`s from its **`Tabs`** parameter.
+- `RadzenCarousel` reads `RadzenCarouselItem`s from its **`Items`** parameter.
+- `RadzenTimeline` reads `RadzenTimelineItem`s from its **`Items`** parameter.
+
+So a wrapper that passes children via `ChildContent` silently renders an empty
+container (the outer `<div>`/nav shows, but zero tabs/slides/entries). The fix
+is a helper that binds nodes to a named fragment:
+
+```fsharp
+let fragmentParam (paramName: string) (children: Node) =
+    Attr(fun receiver builder sequence ->
+        builder.AddAttribute(sequence, paramName,
+            RenderFragment(fun builder ->
+                children.Invoke(receiver, builder, 0) |> ignore))
+        sequence + 1)
+```
+
+Then `comp<RadzenTabs> { fragmentParam "Tabs" children }`. Because F# has no
+forward references, `fragmentParam` must be declared **above** the wrappers
+that use it.
+
+**Key architectural constraint:** `comp<T>` body cannot contain
+`yield!`/`if`/`match`, and a Radzen component's `Items`/`Tabs` children are
+ordinary `Node`s — so build the item nodes *outside* the `comp` and pass them
+in. This keeps the wrapper view-only (no page state needed; `RadzenTabs` with
+`SelectedIndex` left at -1 auto-selects the first tab, so it works
+**uncontrolled** — perfect for our feature-owned view-only pages).
+
+#### New wrappers (Ui/RadzenUI.fs)
+
+```
+fragmentParam paramName children   # bind a Node to a named RenderFragment param
+tabs items                         # RadzenTabs  (items via "Tabs")
+tabItem text children              # RadzenTabsItem (Text + ChildContent)
+timeline items                     # RadzenTimeline (items via "Items")
+timelineItem label point children  # RadzenTimelineItem (Label + PointStyle)
+carousel itemsPerPage items        # RadzenCarousel (items via "Items", PagerPosition bottom)
+carouselItem children              # RadzenCarouselItem
+progressBar value max style        # RadzenProgressBar (Value/Max are double → pass floats)
+progressBarValue value max style   # RadzenProgressBar with ShowValue
+```
+
+Also re-exported enum values: `progressBarPrimary/Success/Danger/Warning/Info/
+Dark` (ProgressBarStyle) and `pagerBottom` (PagerPosition).
+
+#### Servers page → tabbed browser
+
+`Servers.view` now groups servers by `gameId` and renders them under
+`RadzenTabs` (one tab per game, in manifest order; servers with a gameId not
+in the games map fall through to an "Other" tab). Each server card uses the
+existing `badgePill` for status and a `progressBarValue` for `onlinePlayers /
+maxPlayers` capacity, colouring toward red near full (`capacityStyle`).
+
+#### Home page → landing dashboard
+
+- Stat strip retained (Games / Players online / Open tournaments / Members /
+  Favourites) with caption + heading.
+- **Featured games `RadzenCarousel`** — cycles the games from the shared cache
+  (`carouselItem` = a card with name / genre / description).
+- **Live servers** strip — one row per server: name + status `badgePill` +
+  `progressBarValue` capacity.
+- **Latest news `RadzenTimeline`** — surfaces the previously-unused `News`
+  slice: each entry shows its `publishedAt` date as the label and the title +
+  body as the content. This is the first time `shared.news` renders anywhere.
+
+All new views stay view-only, selecting canonical shared slices (per the
+state-ownership model); none of the new components require page-local Elmish
+state.
+
+#### Files changed (Phase 17c)
+
+```
+src/Community.Web.Client/Ui/RadzenUI.fs  (+ fragmentParam + tabs/timeline/carousel/
+                                             progressBar wrappers + progress enums)
+src/Community.Web.Client/Pages/Servers.fs (group servers by game into RadzenTabs;
+                                           capacity progress bar per card)
+src/Community.Web.Client/Pages/Home.fs    (+ featured-games carousel, live-server
+                                           strip, news timeline)
+```
+
+#### Verification
+
+```bash
+dotnet build Community.Web.sln          # 0 warnings, 0 errors
+dotnet test tests/Community.Client.Tests/  # all 22 still pass
+bash scripts/docs/verify.sh             # VERIFY OK
+```
+
+Verified live in the browser: the Servers page shows tabs (Counter-Strike 2 /
+Dota 2 / Minecraft) and switching tabs shows each game's servers with capacity
+bars; the Home page shows the featured-games carousel, the live-server strip,
+and the news timeline. The MVU trace confirms the normal `Get*` → `Got*`
+flow with no dropped messages.
+
 </details>
 
 - ⬜ `not-started` — [Phase 18 — Production hardening](../reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md)
