@@ -1,0 +1,18 @@
+# Build context exclusions for docker build.
+# The submodules are pulled as NuGet/Bolero deps by dotnet restore; the
+# thirdparty/ dirs (Bolero, radzen-blazor, IoskeleyMono, ...) are NOT needed
+# inside the image and would bloat the build context enormously.
+
+**/bin/
+**/obj/
+**/.git/
+site/
+docs/
+projects/
+BOLERO-SPIKE/
+thirdparty/
+*.md
+.vscode/
+.gitignore
+Dockerfile
+.dockerignore

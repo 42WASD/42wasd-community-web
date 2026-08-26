@@ -1,0 +1,18 @@
+# 42WASD Community Web — Service.
+# Load-balances to the 42wasd Deployment; Ingress terminates TLS and routes
+# here on port 80.
+apiVersion: v1
+kind: Service
+metadata:
+  name: 42wasd
+  labels:
+    app: 42wasd
+spec:
+  selector:
+    app: 42wasd
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  type: ClusterIP

@@ -27,23 +27,23 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**18 / 20** phases/sections complete (**90%**).
+**20 / 20** phases/sections complete (**100%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:90.0%"></div></div><div class="progress-pct">90%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:100.0%"></div></div><div class="progress-pct">100%</div></div>
 
 | Status | Count |
 |--------|-------|
-| ✅ done | 18 |
+| ✅ done | 20 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 2 |
+| ⬜ not-started | 0 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 90% — Part III — Step-by-step implementation
+### 100% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:90.0%"></div></div><div class="progress-pct" style="font-size:.85em;">90%</div><div class="tip-box"><strong>Done (18)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:100.0%"></div></div><div class="progress-pct" style="font-size:.85em;">100%</div><div class="tip-box"><strong>Done (20)</strong>
 • Ownership rules
 • Create the solution
 • Repository structure
@@ -62,9 +62,10 @@ assigned a status; a generator renders this page from
 • Rendering optimization
 • Testing ownership boundaries
 • Design system
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (2)</strong>
 • Production hardening
-• Rollout order</div></div>
+• Rollout order
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (0)</strong>
+—</div></div>
 
 - ✅ `done` — [Phase 0 — Ownership rules](../reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md)
 
@@ -2397,7 +2398,143 @@ flow with no dropped messages.
 
 </details>
 
-- ⬜ `not-started` — [Phase 18 — Production hardening](../reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md)
-- ⬜ `not-started` — [Phase 19 — Rollout order](../reference-design/03-step-by-step-implementation/phase-19-rollout-order/index.md)
+- ✅ `done` — [Phase 18 — Production hardening](../reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Production hardening</summary>
+
+**Phase 18 complete — production hardening.** The app is packaged as a single
+container for Kubernetes. This turns the (previously static) "server deployable"
+goal into a concrete, testable image that CI builds and the cluster runs.
+
+### Reference
+
+```text
+- deterministic verification pipeline is green (verify.sh)
+- server deployable (static hosting + server as appropriate)
+- remoting, error boundaries, and logging verified
+```
+
+### What shipped
+
+| Artifact | Purpose |
+|---|---|
+| `Dockerfile` | Multi-stage: `dotnet/sdk:10.0` publish → `dotnet/aspnet:10.0` runtime, non-root `USER app`, listens on `:8080`. |
+| `.dockerignore` | Keeps `thirdparty/`, `site/`, `docs/`, `**/bin|obj` out of the build context. |
+| `deploy/k8s/deployment.yaml` | `replicas: 1`, run-as-non-root, resource requests/limits, readiness + liveness `GET /`. |
+| `deploy/k8s/service.yaml` | `ClusterIP` `:80 → 8080`. |
+| `deploy/k8s/ingress.yaml` | TLS-terminating Ingress (nginx + cert-manager annotations). |
+| `.github/workflows/container.yml` | Build + push to `ghcr.io/42wasd/42wasd-community-web` on `main` / `v*` tags. |
+
+### Key decisions (verified against the project)
+
+- **Single container for client + server.** The app is *hosted* Blazor WebAssembly:
+  the `Server` project references the `Client` via `ProjectReference`, and
+  `dotnet publish` emits the WASM assets next to the server DLL. No separate
+  static host is needed — one Deployment serves everything.
+- **Framework-dependent, `aspnet:10.0` runtime.** The repo targets `net10.0`
+  (`global.json` SDK `10.0.111`). The runtime image already has the ASP.NET Core
+  runtime, so the image stays small; self-contained was not needed.
+- **Non-root + no privileges.** `USER app` and PodSecurity `runAsNonRoot: true`
+  satisfy K8s "restricted" policy — no `allowPrivilegeEscalation`.
+- **Restore isolation.** Only the `fsproj` files are copied before
+  `dotnet restore` so NuGet layers cache; `radzen-blazor`/`Bolero` resolve from
+  NuGet (the `thirdparty/` submodules are source references only, not in the
+  image or build context).
+
+### Verification
+
+```bash
+bash scripts/docs/verify.sh   # VERIFY OK
+dotnet test                   # all pass
+docker build .                # Release image builds cleanly
+docker run -p 8080:8080 ghcr.io/42wasd/42wasd-community-web:latest
+```
+
+### Files changed
+
+```
+Dockerfile
+.dockerignore
+deploy/k8s/deployment.yaml
+deploy/k8s/service.yaml
+deploy/k8s/ingress.yaml
+.github/workflows/container.yml
+docs/reference-design/.../phase-18-production-hardening/index.md
+docs/implementation/_runbook/phase-18-production-hardening.md   (this file)
+docs/implementation/progress.yaml
+docs/implementation/index.md
+```
+
+`verify.sh` reports `VERIFY OK`.
+
+</details>
+
+- ✅ `done` — [Phase 19 — Rollout order](../reference-design/03-step-by-step-implementation/phase-19-rollout-order/index.md)
+
+<details markdown="1" class="runbook">
+<summary>✅ 📜 Build log — Rollout order</summary>
+
+**Phase 19 complete — rollout order.** This phase is a plan, not code: it fixes
+the release sequence so each vertical slice ships independently and the app is
+releasable after every slice, per the phase's rule.
+
+### Reference
+
+```text
+- order vertical slices for release
+- one working slice at a time
+```
+
+Rule: *the app is releasable after each vertical slice, not only at the end.*
+
+### The adopted slice order
+
+1. **S1 Infrastructure** — `Dockerfile`, `.dockerignore`, GHCR workflow,
+   `deploy/k8s/*` (from Phase 18). Cluster can run a healthy instance.
+2. **S2 Public data (read-only)** — all read-only pages render from the baked
+   `data/` JSON: Games, Servers, Teams, Members, Tournaments, Home, About.
+3. **S3 Auth** — `/api/getUsername`, sign-in/out gating for Members/Account.
+   Security first, before public writes.
+4. **S4 Writes** — cross-feature effects (tournament toggle, favourites) go live.
+5. **S5 Hardening** — shared data-protection for auth cookies if scaling
+   `> 1` replica, request-logging/metrics, monitoring.
+
+### Safety rules in practice
+
+- **Security before public data:** auth (S3) lands before any write (S4).
+- **Read-only first:** S2 ships without write paths.
+- **Verification gates every slice:** each slice is only "done" when
+  `bash scripts/docs/verify.sh` → `VERIFY OK` and `dotnet test` passes.
+
+### Scaling note (S5)
+
+The app uses ASP.NET Core cookie auth + Blazor SignalR. At `replicas: 1` (the
+Phase 18 Deployment) no extra work is needed. To scale out later: configure a
+shared `IDataProtection` key ring (e.g. persisted to Redis/disk) so auth
+cookies decrypt on any pod, and enable sticky sessions on the Service/Ingress
+for SignalR.
+
+### Verification
+
+Releasable at every slice — the gate is always the same:
+
+```bash
+bash scripts/docs/verify.sh   # VERIFY OK
+dotnet test                   # all pass
+```
+
+### Files changed
+
+```
+docs/reference-design/.../phase-19-rollout-order/index.md
+docs/implementation/_runbook/phase-19-rollout-order.md   (this file)
+docs/implementation/progress.yaml
+docs/implementation/index.md
+```
+
+`verify.sh` reports `VERIFY OK`.
+
+</details>
 
 <!-- END_GENERATED_IMPLEMENTATION -->

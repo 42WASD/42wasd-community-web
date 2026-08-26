@@ -1,0 +1,63 @@
+# 42WASD Community Web — Deployment.
+#
+# The Bolero app is a single ASP.NET Core hosted Blazor WASM server: one
+# container serves the client assets AND the remoting API. Session/auth uses
+# ASP.NET Core cookies; if you scale >1 replicas, see the note at the bottom.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 42wasd
+  labels:
+    app: 42wasd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 42wasd
+  template:
+    metadata:
+      labels:
+        app: 42wasd
+    spec:
+      securityContext:
+        # PodSecurity "restricted": run as non-root, no privilege escalation.
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: ghcr.io/42wasd/42wasd-community-web:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+          # The remoting API serves JSON from src/Community.Web.Server/data,
+          # baked into the image at publish time (read-only at runtime).
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+
+# Scaling >1 replica: Blazor interactive uses SignalR and auth uses cookies.
+# Either keep replicas: 1 (fine for a community site), or configure a shared
+# data-protection key ring + sticky sessions (see phase-18 runbook).
