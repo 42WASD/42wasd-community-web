@@ -5,17 +5,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: 42wasd
+  namespace: prd-42wasd-admin
   annotations:
-    kubernetes.io/ingress.class: nginx
-    # cert-manager (optional) — adjust to your issuer
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Traefik is the cluster ingress controller (meme-site uses it).
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
-  tls:
-    - hosts:
-        - wasd.example.com
-      secretName: 42wasd-tls
+  ingressClassName: traefik
   rules:
-    - host: wasd.example.com
+    - host: wasd.42base.com
       http:
         paths:
           - path: /

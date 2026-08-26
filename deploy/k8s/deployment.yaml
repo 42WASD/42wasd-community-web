@@ -7,6 +7,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: 42wasd
+  namespace: prd-42wasd-admin
   labels:
     app: 42wasd
 spec:
@@ -26,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: ghcr.io/42wasd/42wasd-community-web:latest
+          image: ghcr.io/42wasd/42wasd-community-web:main
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
