@@ -4,6 +4,7 @@ open System
 open Bolero
 open Bolero.Html
 open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Forms
 open Microsoft.AspNetCore.Components.Rendering
 open Microsoft.AspNetCore.Components.Routing
 open Microsoft.AspNetCore.Components.Web
@@ -610,14 +611,45 @@ module RadzenUI =
                 onLogin (user, pass))
         }
 
-    /// A RadzenLogin wrapped in a proper structural container — a centred,
-    /// width-constrained outlined card (the Radzen demo pattern: card + form
-    /// wrapper). Without this the login form stretches edge-to-edge across the
-    /// page, which pushes the short labels far from their inputs. Constraining
-    /// the width brings label and input columns close together so the form
-    /// reads as one tight unit.
+    /// A `RadzenTemplateForm<TItem>` — the model/validation container for form
+    /// components. Radzen's docs require inputs like `RadzenLogin` to live
+    /// inside one. Built as a raw `Node` (not `comp`) because Bolero's
+    /// `comp { children }` always emits `ChildContent` as a plain
+    /// `RenderFragment`, but `RadzenTemplateForm<T>.ChildContent` is the
+    /// *typed* `RenderFragment<EditContext>` — a plain fragment can't be cast to
+    /// it, which throws at render time. So we open the component directly and
+    /// pass `ChildContent` as the correctly-typed fragment (the `EditContext`
+    /// is the form's model wrapper, ignored here since login handles its own
+    /// validation).
+    let templateForm<'T> (data: 'T) (children: Node) =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenTemplateForm<'T>>(i)
+            let n = i + 1
+            b.AddAttribute(n, "Data", data)
+            b.AddAttribute(
+                n + 1,
+                "ChildContent",
+                RenderFragment<EditContext>(fun _ ->
+                    RenderFragment(fun b2 -> children.Invoke(c, b2, n + 2) |> ignore)))
+            b.CloseComponent()
+            n + 2)
+
+    /// A `RadzenLogin` wrapped in the official Radzen demo structure: a
+    /// centred, width-constrained `RadzenCard` containing a
+    /// `RadzenTemplateForm` that wraps the `RadzenLogin`. Radzen's docs state
+    /// the login MUST live inside a `RadzenTemplateForm` (that's how its
+    /// built-in required validation is wired up), and the card keeps it from
+    /// stretching edge-to-edge — which would push the short labels far from
+    /// their inputs. Mirrors `RadzenBlazorDemos/Pages/LoginSimple.razor`.
     let loginCard (onLogin: string * string -> unit) =
-        cardOutlinedClass "rz-mx-auto rz-p-4 rz-p-md-6 w-full max-w-md" (login onLogin)
+        comp<RadzenCard> {
+            attr.``class`` "rz-my-12 rz-mx-auto rz-p-4 rz-p-md-12"
+            // `width: 100%` makes the card actually use its max-width cap —
+            // otherwise RadzenCard shrink-wraps to its content, leaving too
+            // little room for the label + input columns to sit side by side.
+            "Style" => "width: 100%; max-width: 600px;"
+            templateForm "SimpleLogin" (login onLogin)
+        }
 
     // ---------------------------------------------------------------- fragment
 
