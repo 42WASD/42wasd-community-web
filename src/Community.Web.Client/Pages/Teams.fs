@@ -12,18 +12,26 @@ open Community.Web.Shared.Domain
 /// loading/loaded/failed pattern as the other pages, with no page-local state.
 module Teams =
 
-    /// Render one team as a DataList card: name + its player roster.
+    /// Render one team as a tile: a header with a team icon, and the player
+    /// roster each shown with their gravatar avatar + Discord handle. Placed
+    /// into the shared `RadzenTileLayout` grid by `tileRow`/`tileCol`.
     let teamCard (team: Team) =
-        RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-            RadzenUI.text RadzenUI.heading6 team.name
+        RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.hStackGap "0.5rem" (concat {
+                RadzenUI.text RadzenUI.subtitle2 (string team.players.Length)
+                RadzenUI.text RadzenUI.caption "members"
+            })
             for player in team.players do
-                let discord = defaultArg player.discord ""
-                RadzenUI.text RadzenUI.caption (player.username + " · " + discord)
-        }))
+                RadzenUI.hStackGap "0.5rem" (concat {
+                    RadzenUI.gravatar player.discord 24
+                    RadzenUI.text RadzenUI.caption player.username
+                })
+        })
 
-    /// The Teams page view. A `RadzenDataList` lays the team cards out as a
-    /// responsive card grid (not table rows), while still reading the
-    /// canonical teams cache.
+    /// The Teams page view. A `RadzenTileLayout` lays the team cards out as a
+    /// uniform, icon-led grid of tiles (each with the roster's gravatars),
+    /// read from the canonical teams cache. Tiles are laid out statically in
+    /// two columns of two rows.
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
@@ -31,10 +39,19 @@ module Teams =
         | Failed _ ->
             RadzenUI.text RadzenUI.body1 "Couldn't load teams."
         | Loaded m ->
+            let teams = Map.toArray m |> Array.map snd
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Teams"
-                RadzenUI.dataList<Team>
-                    (Map.toArray m |> Array.map snd)
-                    true
-                    teamCard
+                RadzenUI.tileLayout 6 (concat {
+                    for (idx, team) in teams |> Array.indexed do
+                        // Two per row (each spans 3 of 6 columns); row grows
+                        // by one grid row per pair.
+                        RadzenUI.tileLayoutItem
+                            team.name
+                            "groups"
+                            ((idx % 2) * 3 + 1)
+                            (idx / 2 + 1)
+                            3
+                            (teamCard team)
+                })
             })

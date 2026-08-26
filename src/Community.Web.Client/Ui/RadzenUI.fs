@@ -730,3 +730,30 @@ module RadzenUI =
             b.AddAttribute(n + 2, "Template", renderTemplate)
             b.CloseComponent()
             n + 3)
+
+    // ---------------------------------------------------------------- tile layout
+
+    /// A RadzenTileLayout — a dashboard grid of draggable/resizable tiles
+    /// arranged on a configurable column/row grid. In read-only mode
+    /// (`EditMode=false`, the default) tiles are laid out statically from
+    /// their `Col`/`Row`/`ColSpan`. `columns` is the grid column count (e.g.
+    /// 12); children are `tileLayoutItem`s.
+    let tileLayout (columns: int) (children: Node) =
+        comp<RadzenTileLayout> {
+            "Columns" => columns
+            children
+        }
+
+    /// A RadzenTileLayoutItem — one tile in a `tileLayout`. `title` is the
+    /// tile header; `icon` a Material icon name (e.g. "groups"); `col`/`row`
+    /// are the 1-based grid position; `colSpan` how many columns the tile
+    /// spans. Children are the tile body content.
+    let tileLayoutItem (title: string) (icon: string) (col: int) (row: int) (colSpan: int) (children: Node) =
+        comp<RadzenTileLayoutItem> {
+            "Title" => title
+            "Icon" => icon
+            "Col" => col
+            "Row" => row
+            "ColSpan" => colSpan
+            children
+        }

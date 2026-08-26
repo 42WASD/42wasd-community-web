@@ -100,7 +100,7 @@ button.rz-primary.rz-button {
   color: #0A0A0A !important;
 }
 
-/* Brand lockup: logo + wordmark link in the header. */
+/* Brand lockup: logo link in the header. */
 .brand {
   display: inline-flex;
   align-items: center;
@@ -112,9 +112,32 @@ button.rz-primary.rz-button {
   letter-spacing: 0.05em;
 }
 .brand img {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
+  display: block;
+}
+
+/* =========================================================================
+   Mobile: fix the responsive header menu
+   -------------------------------------------------------------------------
+   Radzen renders the horizontal RadzenMenu inside a non-wrapping flex row
+   with the brand. On small screens the menu collapses to a hamburger, but
+   when opened it becomes `display:block` yet stays a non-wrapping flex item
+   — so it overflows the viewport, the header turns thick, and items land
+   off-screen. Fix: let the header's stack wrap and force the opened menu onto
+   its own full-width row below the brand. Also constrain the opened menu to
+   the viewport so nothing hangs off the edge.
+   ========================================================================= */
+@media (max-width: 768px) {
+  .rz-header > .rz-stack {
+    flex-wrap: wrap !important;
+  }
+  .rz-header .rz-menu.rz-menu-open {
+    flex-basis: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
 }
 
 /* Smooth hover lift for clickable cards (e.g. games/servers). */

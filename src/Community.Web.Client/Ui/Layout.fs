@@ -37,14 +37,16 @@ let view (model: Model) (dispatch: Message -> unit) =
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
                 // Brand lockup: the 42WASD logo + wordmark, linking to Home.
+                // Brand lockup: just the 42WASD logo (SVG, higher quality),
+                // linking to Home. No wordmark text — the logo is the brand.
                 a {
                     attr.href (router.Link Home)
                     attr.``class`` "brand"
                     img {
-                        attr.src "wasd-icon.png"
+                        attr.src "42wasd.svg"
                         attr.alt "42WASD"
+                        attr.title "42WASD"
                     }
-                    RadzenUI.text RadzenUI.heading4 "42WASD"
                 }
                 RadzenUI.menu false (concat {
                     navItem Home "Home"
