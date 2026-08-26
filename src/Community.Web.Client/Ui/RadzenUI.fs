@@ -599,16 +599,33 @@ module RadzenUI =
         }
 
     /// A RadzenLogin — a ready-made sign-in form (username/password fields with
-    /// built-in required validation). The `onLogin` callback receives the
-    /// submitted `(username, password)`.
-    let login (onLogin: string * string -> unit) =
+    /// built-in required validation). `AllowRegister`, `AllowResetPassword` and
+    /// `AllowRememberMe` are enabled so the standard sign-in extras render:
+    /// a "Remember me" switch, a "Forgot password" link, and a "Sign up"
+    /// call-to-action below the form. `onLogin` receives the submitted
+    /// `(username, password)`; `onRegister`/`onResetPassword` are invoked when
+    /// the user clicks those extras (the caller decides what to do — there is
+    /// no register/reset flow in the mock backend).
+    let login (onLogin: string * string -> unit) (onRegister: unit -> unit) (onResetPassword: string -> unit) =
         comp<RadzenLogin> {
-            "AllowRegister" => false
-            "AllowResetPassword" => false
+            "AllowRegister" => true
+            "AllowResetPassword" => true
+            "AllowRememberMe" => true
             attr.callback "Login" (fun (args: LoginArgs) ->
                 let user = if isNull args.Username then "" else args.Username
                 let pass = if isNull args.Password then "" else args.Password
                 onLogin (user, pass))
+            // RadzenLogin.Register is a NON-generic `EventCallback` (not
+            // `EventCallback<EventArgs>`), which Bolero's `attr.callback`
+            // can't produce — so attach it with a raw attribute that boxes a
+            // plain `EventCallback`.
+            Attr(fun receiver builder seq ->
+                builder.AddAttribute(
+                    seq,
+                    "Register",
+                    EventCallback.Factory.Create(receiver, Action(fun () -> onRegister ())))
+                seq + 1)
+            attr.callback "ResetPassword" (fun (v: string) -> onResetPassword (if isNull v then "" else v))
         }
 
     /// A `RadzenTemplateForm<TItem>` — the model/validation container for form
@@ -641,14 +658,14 @@ module RadzenUI =
     /// built-in required validation is wired up), and the card keeps it from
     /// stretching edge-to-edge — which would push the short labels far from
     /// their inputs. Mirrors `RadzenBlazorDemos/Pages/LoginSimple.razor`.
-    let loginCard (onLogin: string * string -> unit) =
+    let loginCard (onLogin: string * string -> unit) (onRegister: unit -> unit) (onResetPassword: string -> unit) =
         comp<RadzenCard> {
             attr.``class`` "rz-my-12 rz-mx-auto rz-p-4 rz-p-md-12"
             // `width: 100%` makes the card actually use its max-width cap —
             // otherwise RadzenCard shrink-wraps to its content, leaving too
             // little room for the label + input columns to sit side by side.
             "Style" => "width: 100%; max-width: 600px;"
-            templateForm "SimpleLogin" (login onLogin)
+            templateForm "SimpleLogin" (login onLogin onRegister onResetPassword)
         }
 
     // ---------------------------------------------------------------- fragment
