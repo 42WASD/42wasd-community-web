@@ -31,9 +31,23 @@ module Tournaments =
                 RadzenUI.text RadzenUI.caption (tournament.startsAt.ToString("yyyy-MM-dd"))
             })
             if tournament.registrationOpen then
-                RadzenUI.button "Close registration" RadzenUI.dangerButton (fun () -> ToggleRegistration tournament.id) dispatch
+                RadzenUI.splitButton
+                    "Close registration"
+                    RadzenUI.dangerButton
+                    (fun () -> ToggleRegistration tournament.id |> dispatch)
+                    (concat {
+                        RadzenUI.splitButtonItem "Close registration" (fun () -> ToggleRegistration tournament.id |> dispatch)
+                        RadzenUI.splitButtonItem "View details" (fun () -> ())
+                    })
             else
-                RadzenUI.button "Reopen registration" RadzenUI.successButton (fun () -> ToggleRegistration tournament.id) dispatch
+                RadzenUI.splitButton
+                    "Reopen registration"
+                    RadzenUI.successButton
+                    (fun () -> ToggleRegistration tournament.id |> dispatch)
+                    (concat {
+                        RadzenUI.splitButtonItem "Reopen registration" (fun () -> ToggleRegistration tournament.id |> dispatch)
+                        RadzenUI.splitButtonItem "View details" (fun () -> ())
+                    })
         })
 
     /// The Tournaments page view. Selects the canonical cache; renders a

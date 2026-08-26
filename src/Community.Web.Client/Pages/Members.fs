@@ -14,6 +14,8 @@ module Members =
     let memberCard (player : Player) =
         RadzenUI.columnResponsive 12 6 4 (concat {
             RadzenUI.cardOutlined (RadzenUI.vStackGap "0.25rem" (concat {
+                // RadzenGravatar: a member avatar rendered from their email.
+                RadzenUI.gravatar player.discord 48
                 RadzenUI.text RadzenUI.heading6 player.username
                 RadzenUI.text RadzenUI.caption (defaultArg player.discord "")
             }))

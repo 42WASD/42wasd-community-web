@@ -25,6 +25,9 @@ let menuItem (model: Model) (page: Page) (text: string) =
 /// cross-feature UI and stays here.
 let view (model: Model) (dispatch: Message -> unit) =
     RadzenUI.layout (concat {
+        // Host for the imperative Radzen services (Dialog/Notification/
+        // Tooltip). Without this, NotificationService.Notify etc. are dropped.
+        RadzenUI.components
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
                 RadzenUI.sidebarToggle (fun () -> dispatch ToggleSidebar)

@@ -94,6 +94,28 @@ projects/
 .github/workflows/              # CI: verify + deploy pages
 ```
 
+## Launching a dev/test server — always use a new port
+
+The dev server defaults to `http://localhost:5023` (from
+`launchSettings.json`). To avoid "address already in use" crashes from a stale
+or leftover process, follow these rules every time you start a server for
+testing:
+
+1. **Always pass an explicit `--urls` port** when launching. Never rely on the
+   default, and never reuse a port you've already used this session.
+2. **Increment by +1** from the last port you used. The first launch this
+   session uses `5023`; the next `5024`; then `5025`, etc. (e.g.
+   `dotnet run --project src/Community.Web.Server --urls http://localhost:5024`).
+3. **Don't assume the port is free** — if the bind fails with
+   "address already in use", increment again rather than killing whatever
+   holds the port, unless you know it is a stale server you started.
+4. Kill leftover servers you started **only** once you've confirmed via
+   `ps`/`lsof` that they're yours, and prefer bumping the port over killing
+   unless the conflict is genuinely your own stale process.
+
+The browser page you drive must always navigate to the **current** port you
+started (the URLs must stay in sync).
+
 ## Adding a new validation check
 
 1. Prefer `validate()` in `scripts/docs/docs_manifest.py` for structural

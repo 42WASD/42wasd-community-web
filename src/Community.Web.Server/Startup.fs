@@ -12,6 +12,7 @@ open Bolero.Remoting.Server
 open Bolero.Server
 open Community.Web
 open Bolero.Templating.Server
+open Radzen
 
 #nowarn 20 // Ignore the return value of app and builder methods
 
@@ -26,6 +27,11 @@ let main args =
         .AddCookie()
     builder.Services.AddBoleroRemoting<CommunityApiService>()
     builder.Services.AddBoleroHost(server = false)
+    // The Bolero server prerenders the page via the server DI container, and
+    // the shared layout hosts RadzenComponents (Dialog/Notification/Tooltip).
+    // Register Radzen services server-side too, or prerendering throws
+    // "No registered service of type 'Radzen.DialogService'".
+    builder.Services.AddRadzenComponents() |> ignore
 #if DEBUG
     builder.Services.AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../Community.Web.Client")
 #endif

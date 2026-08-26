@@ -12,30 +12,10 @@ open Community.Web.Shared.Domain
 /// player capacity as a `RadzenProgressBar` (fills toward red near full).
 module Servers =
 
-    /// Capacity bar style: red when full, warning when mostly full, otherwise
-    /// primary. So a server about to cap reads as "full" at a glance.
-    let capacityStyle (s: GameServer) =
-        if s.onlinePlayers >= s.maxPlayers then RadzenUI.progressBarDanger
-        elif float s.onlinePlayers / float (max s.maxPlayers 1) >= 0.8 then RadzenUI.progressBarWarning
-        else RadzenUI.progressBarSuccess
-
-    /// A server card: status badge, name, address, and a capacity bar.
-    let serverCard (s: GameServer) =
-        let statusBadge =
-            match s.status with
-            | "online" -> RadzenUI.badgePill RadzenUI.successBadge "online"
-            | "maintenance" -> RadzenUI.badgePill RadzenUI.warningBadge "maintenance"
-            | _ -> RadzenUI.badgePill RadzenUI.darkBadge "offline"
-        RadzenUI.columnResponsive 12 6 4 (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-            RadzenUI.hStackGap "0.5rem" (concat {
-                RadzenUI.text RadzenUI.heading6 s.name
-                statusBadge
-            })
-            RadzenUI.text RadzenUI.caption s.address
-            RadzenUI.progressBarValue (float s.onlinePlayers) (float s.maxPlayers) (capacityStyle s)
-        })))
-
     /// Group the loaded servers into tabs, one per game id (in manifest order).
+    /// Each tab now shows a sortable/filterable/paginated `RadzenDataGrid`
+    /// (Phase 17c+): name, address, capacity, and status — with cell tooltips
+    /// so long addresses and full capacity bars read clearly on hover.
     let serverTabs (servers: Map<string, GameServer>) (games: Map<string, Game>) =
         let byGame =
             games |> Map.toArray
@@ -51,11 +31,21 @@ module Servers =
             servers.Values
             |> Seq.filter (fun s -> not (games.ContainsKey s.gameId))
             |> Seq.toArray
+
+        let serverGrid (list: GameServer[]) =
+            RadzenUI.cardOutlined (RadzenUI.dataGrid<GameServer> list (concat {
+                RadzenUI.dataGridColumn<GameServer> "name" "Server" false
+                RadzenUI.dataGridColumn<GameServer> "address" "Address" true
+                RadzenUI.dataGridColumn<GameServer> "onlinePlayers" "Players" false
+                RadzenUI.dataGridColumn<GameServer> "maxPlayers" "Capacity" false
+                RadzenUI.dataGridColumn<GameServer> "status" "Status" false
+            }))
+
         let tabNodes = ResizeArray<Node>()
         for (_, gname, list) in byGame do
-            tabNodes.Add (RadzenUI.tabItem gname (RadzenUI.rowGap "1rem" (forEach list (fun s -> serverCard s))))
+            tabNodes.Add (RadzenUI.tabItem gname (serverGrid list))
         if unassigned.Length > 0 then
-            tabNodes.Add (RadzenUI.tabItem "Other" (RadzenUI.rowGap "1rem" (forEach unassigned (fun s -> serverCard s))))
+            tabNodes.Add (RadzenUI.tabItem "Other" (serverGrid unassigned))
         RadzenUI.tabs (forEach tabNodes (fun n -> n))
 
     let view (shared: SharedModel) =

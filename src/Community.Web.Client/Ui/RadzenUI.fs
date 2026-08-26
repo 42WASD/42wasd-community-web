@@ -142,6 +142,18 @@ module RadzenUI =
             children
         }
 
+    /// `RadzenComponents` — the singleton host that renders the imperative
+    /// Radzen services: `RadzenDialog`, `RadzenNotification`, `RadzenTooltip`
+    /// and `RadzenContextMenu`. It must be present somewhere in the render
+    /// tree or `DialogService.Notify`/`NotificationService.Notify` messages are
+    /// swallowed. It takes NO child content (it renders its fixed host set
+    /// itself) — host it once at the layout root with no children.
+    let components =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenComponents>(i)
+            b.CloseComponent()
+            i)
+
     /// A RadzenHeader — the top bar (fixed when outside a RadzenLayout).
     let header (children: Node) =
         comp<RadzenHeader> {
@@ -470,4 +482,70 @@ module RadzenUI =
             "Value" => (int value)
             "Stars" => max
             "ReadOnly" => true
+        }
+
+    // ---------------------------------------------------------------- buttons (dropdown)
+
+    /// A RadzenSplitButton — a primary button plus a dropdown menu of
+    /// `splitButtonItem`s. The main `Text`/`ButtonStyle` is on the left, the
+    /// arrow toggles the menu. NOTE: `Click` is `EventCallback<RadzenSplitButtonItem>`
+    /// (not MouseEventArgs) — clicking either the main button or an item
+    /// invokes it with the item (null for the main button). So the callback
+    /// takes an item.
+    let splitButton (textValue: string) (style: ButtonStyle) (onClick: unit -> unit) (children: Node) =
+        comp<RadzenSplitButton> {
+            "Text" => textValue
+            "ButtonStyle" => style
+            attr.callback "Click" (fun (_: RadzenSplitButtonItem) -> onClick ())
+            children
+        }
+
+    /// A RadzenSplitButtonItem — one menu entry in a `splitButton`. Item clicks
+    /// bubble up to the parent's `Click` (with the item as the argument), so
+    /// the callback runs when this item is chosen.
+    let splitButtonItem (textValue: string) (onClick: unit -> unit) =
+        comp<RadzenSplitButtonItem> {
+            "Text" => textValue
+            attr.callback "Click" (fun (_: RadzenSplitButtonItem) -> onClick ())
+        }
+
+    // ---------------------------------------------------------------- members
+
+    /// A RadzenGravatar — renders a member's avatar from their email (or a
+    /// fallback when the email is missing).
+    let gravatar (email: string option) (size: int) =
+        let safe = defaultArg email ""
+        comp<RadzenGravatar> {
+            "Email" => safe
+            "Size" => size
+        }
+
+    // ---------------------------------------------------------------- data grid
+
+    /// A RadzenDataGrid rendering rows of a record/class type. `data` is the
+    /// item sequence and `columns` are `dataGridColumn<'T>` nodes. `'T` must be
+    /// given EXPLICITLY (e.g. `dataGrid<GameServer> list ...`) so the grid and
+    /// its columns share the same row type — otherwise F# infers `obj` and
+    /// Radzen's Property bindings can't read the record fields.
+    let dataGrid<'T when 'T : not null> (data: seq<'T>) (columns: Node) =
+        comp<RadzenDataGrid<'T>> {
+            "Data" => data
+            "AllowSorting" => true
+            "AllowFiltering" => true
+            "AllowPaging" => true
+            "ShowCellDataAsTooltip" => true
+            fragmentParam "Columns" columns
+        }
+
+    /// A RadzenDataGridColumn bound to a record field. `'T` is the row type and
+    /// MUST match the enclosing grid's `'T` (pass it explicitly, e.g.
+    /// `dataGridColumn<Game>`). `property` is the field name (case-sensitive),
+    /// `title` the header. `showTooltip` shows the full cell value on hover.
+    let dataGridColumn<'T when 'T : not null> (property: string) (title: string) (showTooltip: bool) =
+        comp<RadzenDataGridColumn<'T>> {
+            "Property" => property
+            "Title" => title
+            "Sortable" => true
+            "Filterable" => true
+            "ShowCellDataAsTooltip" => showTooltip
         }
