@@ -300,10 +300,15 @@ let update remote message model =
         // translates it into a shared effect message that the Shared layer
         // owns (reference: "a shared update is dispatched, not reached into").
         // Tournaments owns no local Model, so every message maps straight to a
-        // Shared.ToggleTournament.
+        // shared/UI effect. ToggleRegistration → Shared.ToggleTournament;
+        // ViewDetails is a pure UI intent handled as an imperative effect in
+        // Main.fs (no state change here), so it maps to Cmd.none and the
+        // dialog is opened by the service-aware wrapper.
         match msg with
         | Tournaments.ToggleRegistration tournamentId ->
             model, Cmd.ofMsg (SharedMsg (Shared.ToggleTournament tournamentId))
+        | Tournaments.ViewDetails _ ->
+            model, Cmd.none
 
     | GamesMsg msg ->
         // Same cross-feature pattern as Tournaments: the Games feature emits

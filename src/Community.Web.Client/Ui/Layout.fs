@@ -88,29 +88,47 @@ let view (model: Model) (dispatch: Message -> unit) =
         // hidden on desktop via `.mobile-nav-drawer { display:none }` in CSS.
         // `.is-open` is toggled from F# so the wrapper overlay slides in/out
         // in lock-step with the Radzen sidebar state.
+        // Mobile drawer. `mobile-nav-drawer` is a hook class so the Radzen
+        // internal `.mobile-nav-drawer .rz-sidebar` override in index.css still
+        // scopes correctly; the layout/positioning itself is pure Tailwind
+        // utilities. Base state slides it off-screen to the left; `.is-open`
+        // (F#-driven) slides it in, in lock-step with the Radzen sidebar state.
+        let drawerBase =
+            "mobile-nav-drawer fixed inset-y-0 left-0 w-[var(--rz-sidebar-width)] "
+            + "z-[var(--rz-sidebar-z)] -translate-x-full transition-transform "
+            + "bg-[var(--rz-base-background-color)] "
+            + "shadow-[2px_0_12px_rgba(0,0,0,0.5)] md:hidden"
         div {
-            attr.``class`` (if model.sidebarOpen then "mobile-nav-drawer is-open" else "mobile-nav-drawer")
+            attr.``class`` (if model.sidebarOpen then drawerBase + " translate-x-0" else drawerBase)
             RadzenUI.sidebarExpanded model.sidebarOpen
                 (fun open' -> dispatch (SetSidebarOpen open'))
                 (RadzenUI.panelMenu (drawerFrom navItems))
         }
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
-                // Mobile-only hamburger that opens the drawer.
+                // Mobile-only hamburger that opens the drawer. `md:hidden`
+                // shows it below 768px and hides it on larger screens.
                 div {
-                    attr.``class`` "mobile-nav-toggle"
+                    attr.``class`` "inline-flex md:hidden"
                     RadzenUI.sidebarToggle (fun () ->
                         dispatch (SetSidebarOpen (not model.sidebarOpen)))
                 }
                 // Brand lockup: just the 42WASD logo (SVG, higher quality),
                 // linking to Home. No wordmark text — the logo is the brand.
+                // Pure Tailwind: flex lockup + a 44px logo with a soft cyan
+                // glow that brightens and scales on hover.
                 a {
                     attr.href (router.Link Home)
-                    attr.``class`` "brand"
+                    attr.``class`` "inline-flex items-center gap-2 no-underline"
                     img {
                         attr.src "42wasd.svg"
                         attr.alt "42WASD"
                         attr.title "42WASD"
+                        attr.``class``
+                            ("block w-11 h-11 object-contain "
+                             + "drop-shadow-[0_0_6px_rgba(0,186,188,0.55)] "
+                             + "transition-[transform,filter] duration-200 ease-in-out "
+                             + "hover:scale-[1.08] hover:drop-shadow-[0_0_10px_rgba(0,186,188,0.9)]")
                     }
                 }
                 // Desktop horizontal menu (hidden on mobile — the drawer

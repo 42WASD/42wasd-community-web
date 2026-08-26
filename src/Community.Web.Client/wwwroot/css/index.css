@@ -161,97 +161,39 @@ button.rz-primary.rz-button {
   color: var(--rz-text-title-color);
 }
 
-/* Brand lockup: logo link in the header. */
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--rz-text-title-color);
-  text-decoration: none;
-  font-family: "Fira Code", "JetBrains Mono", ui-monospace, monospace;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-.brand img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 0 6px rgba(0, 186, 188, 0.55));
-  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
-}
-.brand:hover img {
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 10px rgba(0, 186, 188, 0.9));
-}
-
 /* =========================================================================
    Mobile: RadzenSidebar drawer + hidden horizontal menu
    -------------------------------------------------------------------------
-   On mobile we replace the transparent horizontal RadzenMenu with a proper
-   opaque RadzenSidebar drawer (driven by model.sidebarOpen). The horizontal
-   menu and the brand sit in the slim header; a hamburger (mobile-nav-toggle)
-   opens the drawer. The sidebar only displays on small screens.
+   The drawer's POSITION/layout is now pure Tailwind utilities (see Layout.fs:
+   `fixed inset-y-0 left-0 -translate-x-full ... md:hidden`).
+
+   Two genuinely Radzen-internal overrides stay here (Tailwind's layered
+   utilities lose to Radzen's unlayered CSS, so these must be plain CSS):
+   1. The horizontal desktop menu hides below 768px — the drawer replaces it.
+      (a plain `.rz-header .rz-menu` display rule, inside the media query)
+   2. The drawer's Radzen sidebar must be transparent/static so it doesn't
+      paint a solid grey panel over the drawer's own Tailwind surface.
+   `.mobile-nav-drawer` remains only as a scoping hook for rule 2.
    ========================================================================= */
 
-/* The mobile drawer is hidden on desktop; shown as an overlay below 768px. */
-.mobile-nav-drawer {
-  display: none;
-}
-/* The mobile hamburger is hidden on desktop. */
-.mobile-nav-toggle {
-  display: none;
-}
-
+/* Hide the horizontal RadzenMenu on mobile — the drawer replaces it. */
 @media (max-width: 768px) {
-  /* Show the hamburger on mobile. */
-  .mobile-nav-toggle {
-    display: inline-flex;
-  }
-  /* Hide the horizontal RadzenMenu on mobile — the drawer replaces it. */
   .rz-header .rz-menu {
     display: none !important;
   }
-  /* The drawer renders as a fixed overlay panel. RadzenLayout normally makes
-     the sidebar a static in-flow grid child; we override so it slides in from
-     the left on top of the content instead of pushing it down/right. */
-  .mobile-nav-drawer {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--rz-sidebar-width);
-    z-index: var(--rz-sidebar-z);
-    transform: translateX(-100%);
-    transition: transform var(--rz-transition);
-    background-color: var(--rz-base-background-color);
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
-  }
-  /* When model.sidebarOpen is true the wrapper gets .is-open and slides in. */
-  .mobile-nav-drawer.is-open {
-    transform: translateX(0);
-  }
-  /* The mobile drawer uses the opaque base surface so the nav text is
-     readable (not transparent like the header texture). */
-  .mobile-nav-drawer .rz-sidebar {
-    background-color: transparent;
-    position: static;
-    width: auto;
-    margin: 0;
-    border: 0;
-    box-shadow: none;
-    padding: 1rem;
-  }
 }
 
-/* Smooth hover lift for clickable cards (e.g. games/servers). */
-.card-hover {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 186, 188, 0.25);
+/* The mobile drawer's Radzen sidebar uses the opaque base surface so the nav
+   text is readable (not transparent like the header texture). The `div` hook
+   `.mobile-nav-drawer` is added in Layout.fs; Tailwind owns its layout. */
+.mobile-nav-drawer .rz-sidebar {
+  background-color: transparent;
+  position: static;
+  width: auto;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  padding: 1rem;
 }
 
 /* =========================================================================

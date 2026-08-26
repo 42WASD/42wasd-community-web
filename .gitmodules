@@ -10,3 +10,6 @@
 [submodule "thirdparty/IoskeleyMono"]
 	path = thirdparty/IoskeleyMono
 	url = https://github.com/42WASD/IoskeleyMono.git
+[submodule "thirdparty/tailwindcss"]
+	path = thirdparty/tailwindcss
+	url = https://github.com/42WASD/tailwindcss.git

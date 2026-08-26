@@ -278,12 +278,16 @@ module RadzenUI =
             children
         }
 
-    /// An outlined RadzenCard with a hover lift + Material ripple (see
-    /// index.css `.card-hover` and Radzen's `rz-ripple` utility).
+    /// An outlined RadzenCard with a hover lift + Material ripple. The hover
+    /// lift is pure Tailwind (translate + glow), the ripple uses Radzen's own
+    /// `rz-ripple` utility.
     let cardHover (children: Node) =
         comp<RadzenCard> {
             "Variant" => outlined
-            attr.``class`` "card-hover rz-ripple cursor-pointer"
+            attr.``class``
+                ("rz-ripple cursor-pointer "
+                 + "transition-[transform,box-shadow] duration-200 ease-in-out "
+                 + "hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(0,186,188,0.25)]")
             children
         }
 
@@ -720,3 +724,35 @@ module RadzenUI =
             b.AddAttribute(n + 3, "Template", template)
             b.CloseComponent()
             n + 4)
+
+    // ---------------------------------------------------------------- data list
+
+    /// A RadzenDataList rendering items with a custom card template instead of
+    /// table rows. `data` is the item sequence; `renderItem` maps each `'T` to
+    /// the Node shown for that item. The `Template` is a `RenderFragment<'T>`,
+    /// built with the same manual-Node + `RenderFragment<'T>` pattern as
+    /// `dataGridTemplateColumn` (NOT `comp { children }`, which would bind
+    /// ChildContent and throw at runtime).
+    let dataList<'T when 'T : not null> (data: seq<'T>) (wrapItems: bool) (renderItem: 'T -> Node) =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenDataList<'T>>(i)
+            let n = i + 1
+            b.AddAttribute(n, "Data", data)
+            b.AddAttribute(n + 1, "WrapItems", wrapItems)
+            let template =
+                RenderFragment<'T>(fun ctx ->
+                    RenderFragment(fun rt ->
+                        (renderItem ctx).Invoke(c, rt, 0) |> ignore))
+            b.AddAttribute(n + 2, "Template", template)
+            b.CloseComponent()
+            n + 3)
+
+    // ---------------------------------------------------------------- dialog
+
+    /// A simple labeled field row for dialog detail bodies: a muted label
+    /// followed by a value, stacked vertically.
+    let detailField (label: string) (value: string) =
+        vStackGap "0.15rem" (concat {
+            text overline label
+            text body1 value
+        })

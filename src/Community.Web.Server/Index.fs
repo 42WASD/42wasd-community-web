@@ -23,6 +23,24 @@ let page = doctypeHtml {
         link { attr.rel "stylesheet"; attr.href "css/fonts.css" }
         link { attr.rel "stylesheet"; attr.href "css/index.css" }
         link { attr.rel "stylesheet"; attr.href "Community.Web.Client.styles.css" }
+        // Tailwind utility framework — loaded via CDN. The browser runtime
+        // scans the DOM at load (and after each Elmish render) and injects the
+        // utility CSS used by our markup. This lets us replace custom
+        // layout/animation rules (brand, card hover, mobile drawer, …) with
+        // stock Tailwind classes.
+        //
+        // We import only `theme` + `utilities` (NOT `preflight`): preflight is
+        // Tailwind's global reset, which would clobber Radzen's component
+        // styling. theme provides the design tokens (--color-*, --spacing-*,
+        // etc.) the utility classes reference.
+        style {
+            attr.``type`` "text/tailwindcss"
+            // rawHtml so the `@import` quotes are NOT HTML-escaped (Bolero's
+            // style builder escapes text, which breaks the CSS).
+            rawHtml "@import \"tailwindcss/theme\";\n@import \"tailwindcss/utilities\";"
+        }
+        // The Tailwind browser runtime compiles the classes on the page.
+        script { attr.src "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" }
     }
     body {
 

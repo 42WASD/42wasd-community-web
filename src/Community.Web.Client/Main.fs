@@ -6,11 +6,17 @@ open Bolero.Remoting
 open Bolero.Remoting.Client
 open Bolero.Templating.Client
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.AspNetCore.Components
+open Microsoft.AspNetCore.Components.Rendering
 open Radzen
 open Community.Web.Client.App
 open Community.Web.Client.Pages
+open Community.Web.Client.State
+open Community.Web.Client.Ui
 open Community.Web.Client.Ui.Layout
+open Community.Web.Shared.Domain
 open Community.Web.Shared.Remoting
+open Bolero.Html
 
 /// The single root ProgramComponent. Content is defined by the Elmish
 /// program composed in App (state + update + router) and Ui (view).
@@ -32,12 +38,45 @@ type MyApp() =
             services.GetService<NotificationService>()
         let notify (summary: string) (detail: string) =
             Elmish.Cmd.ofEffect (fun _ -> notification.Notify(NotificationSeverity.Success, summary, detail))
+        let dialogService =
+            services.GetService<DialogService>()
+        // Build a Radzen dialog body from a Bolero `Node` (the same node type
+        // the Elmish `view` uses), wrapped in a `RenderFragment<DialogService>`
+        // so it can be passed to `DialogService.OpenAsync`. The receiver is the
+        // root ProgramComponent (a RenderHandle host), so `node.Invoke` renders
+        // the fragment through Blazor.
+        let showDialog (title: string) (body: Node) =
+            Elmish.Cmd.ofEffect (fun _ ->
+                let fragment =
+                    RenderFragment<DialogService>(fun _ds ->
+                        RenderFragment(fun rt ->
+                            body.Invoke(this, rt, 0) |> ignore))
+                dialogService.OpenAsync(title, fragment, DialogOptions(Width = "520px", Resizable = true))
+                |> ignore)
+        // Build the tournament-details dialog body from the tournament record.
+        let tournamentDialog (t: Tournament) =
+            RadzenUI.vStackGap "1rem" (concat {
+                RadzenUI.detailField "Game" t.gameId
+                RadzenUI.detailField "Prize" t.prize
+                RadzenUI.detailField "Starts" (t.startsAt.ToString("yyyy-MM-dd HH:mm"))
+                RadzenUI.detailField "Registration"
+                    (if t.registrationOpen then "Open" else "Closed")
+            })
         let update message model =
             let model', cmd = pureUpdate message model
             let effect =
                 match message with
                 | TournamentsMsg (Tournaments.ToggleRegistration _) ->
                     notify "Registration updated" "The tournament's registration status changed."
+                | TournamentsMsg (Tournaments.ViewDetails tournamentId) ->
+                    // Look up the tournament from the canonical shared cache and
+                    // open its detail dialog imperatively (a UI effect, not state).
+                    match model.shared.tournaments with
+                    | Loaded m ->
+                        match m.TryFind tournamentId with
+                        | Some t -> showDialog t.name (tournamentDialog t)
+                        | None -> Cmd.none
+                    | _ -> Cmd.none
                 | _ -> Cmd.none
             model', Cmd.batch [ cmd; effect ]
         let program =

@@ -77,14 +77,22 @@ module AppTests =
     // "View details" must NEVER toggle registration. These prove the routing.
 
     [<Fact>]
-    let ``split action "details" is a no-op, not a toggle`` () =
-        Assert.False(Tournaments.isToggleAction (Some "details"))
+    let ``split action "details" maps to ViewDetails, not a toggle`` () =
+        match Tournaments.actionMsg "t-1" (Some "details") with
+        | Tournaments.ViewDetails id -> Assert.Equal("t-1", id)
+        | _ -> Assert.True(false, "Expected ViewDetails")
 
     [<Fact>]
     let ``split action main button and toggle item both toggle`` () =
-        Assert.True(Tournaments.isToggleAction None)
-        Assert.True(Tournaments.isToggleAction (Some "toggle"))
+        match Tournaments.actionMsg "t-1" None with
+        | Tournaments.ToggleRegistration "t-1" -> ()
+        | _ -> Assert.True(false, "main button should toggle")
+        match Tournaments.actionMsg "t-1" (Some "toggle") with
+        | Tournaments.ToggleRegistration "t-1" -> ()
+        | _ -> Assert.True(false, "toggle item should toggle")
 
     [<Fact>]
-    let ``split action unknown value is a safe no-op`` () =
-        Assert.False(Tournaments.isToggleAction (Some "unexpected"))
+    let ``split action unknown value safely toggles, never crashes`` () =
+        match Tournaments.actionMsg "t-1" (Some "unexpected") with
+        | Tournaments.ToggleRegistration "t-1" -> ()
+        | _ -> Assert.True(false, "unknown value should fall back to toggle")

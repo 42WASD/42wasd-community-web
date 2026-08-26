@@ -16,29 +16,29 @@ open Community.Web.Shared.Domain
 module Tournaments =
 
     /// The Tournaments page's local messages. ToggleRegistration is an intent
-    /// that the root re-interprets as a shared (cross-feature) effect.
+    /// that the root re-interprets as a shared (cross-feature) effect;
+    /// ViewDetails opens the tournament's detail dialog (an imperative UI
+    /// effect, also interpreted by the root — see Main.fs).
     type Msg =
         | ToggleRegistration of string
+        | ViewDetails of string
 
-    /// Decide whether a split-button action should toggle registration. The
-    /// Radzen split button's `Click` fires with the chosen item's `Value` —
-    /// `None` for the main button, `Some "toggle"` for the toggle item, `Some
+    /// Map a Radzen split-button action value to the message it should emit.
+    /// The split button's `Click` fires with the chosen item's `Value` — `None`
+    /// for the main button, `Some "toggle"` for the toggle item, `Some
     /// "details"` for "View details". Pure and unit-testable so "View details"
     /// can never accidentally toggle registration.
-    let isToggleAction (action: string option) =
+    let actionMsg (tournamentId: string) (action: string option) =
         match action with
-        | None | Some "toggle" -> true
-        | Some _ -> false
+        | None | Some "toggle" -> ToggleRegistration tournamentId
+        | Some "details" -> ViewDetails tournamentId
+        | Some _ -> ToggleRegistration tournamentId
 
-    /// Render one tournament card. The Radzen split button's dropdown has two
-    /// actions: close/reopen registration (main button + first item) and
-    /// "View details" (a no-op placeholder). Because RadzenSplitButtonItem has
-    /// no per-item click, the parent's `Click` receives the item's `Value`.
+    /// Render one tournament as a card in the RadzenDataList. The card body
+    /// shows name / prize / start date; a split button offers toggling
+    /// registration and viewing details.
     let card (tournament: Tournament) (dispatch: Msg -> unit) =
-        let run action =
-            if isToggleAction action then
-                ToggleRegistration tournament.id |> dispatch
-        RadzenUI.cardHover (concat {
+        RadzenUI.cardOutlined (concat {
             RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.text RadzenUI.heading6 tournament.name
                 RadzenUI.text RadzenUI.overline tournament.prize
@@ -49,14 +49,15 @@ module Tournaments =
             let label, style =
                 if tournament.registrationOpen then "Close registration", RadzenUI.dangerButton
                 else "Reopen registration", RadzenUI.successButton
-            RadzenUI.splitButton label style run (concat {
+            RadzenUI.splitButton label style (actionMsg tournament.id >> dispatch) (concat {
                 RadzenUI.splitButtonItem label "toggle"
                 RadzenUI.splitButtonItem "View details" "details"
             })
         })
 
-    /// The Tournaments page view. Selects the canonical cache; renders a
-    /// responsive row of tournament cards.
+    /// The Tournaments page view. Selects the canonical cache; renders the
+    /// tournaments as a RadzenDataList of cards (wrap-items flow = responsive
+    /// multi-column, like the previous 12/6/4 grid).
     let view (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.tournaments <| function
         | NotAsked | Loading ->
@@ -70,6 +71,5 @@ module Tournaments =
         | Loaded m ->
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Tournaments"
-                RadzenUI.rowGap "1rem" (forEach (SharedModel.values m) (fun t ->
-                    RadzenUI.columnResponsive 12 6 4 (card t dispatch)))
+                RadzenUI.dataList<Tournament> (SharedModel.values m) true (fun t -> card t dispatch)
             }))
