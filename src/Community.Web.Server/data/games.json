@@ -3,18 +3,42 @@
     "id": "game-1",
     "name": "Counter-Strike 2",
     "genre": "FPS",
-    "description": "Tactical team-based first-person shooter."
+    "description": "Tactical team-based first-person shooter.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg"
   },
   {
     "id": "game-2",
     "name": "Dota 2",
     "genre": "MOBA",
-    "description": "5v5 multiplayer online battle arena."
+    "description": "5v5 multiplayer online battle arena.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg"
   },
   {
     "id": "game-3",
     "name": "Minecraft",
     "genre": "Sandbox",
-    "description": "Open-world sandbox survival game."
+    "description": "Open-world sandbox survival game.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg"
+  },
+  {
+    "id": "game-4",
+    "name": "Valorant",
+    "genre": "FPS",
+    "description": "5v5 character-based tactical shooter.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/1237970/header.jpg"
+  },
+  {
+    "id": "game-5",
+    "name": "League of Legends",
+    "genre": "MOBA",
+    "description": "The world's most-played multiplayer battle arena.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/434610/header.jpg"
+  },
+  {
+    "id": "game-6",
+    "name": "Rocket League",
+    "genre": "Sports",
+    "description": "High-octane soccer with rocket-powered cars.",
+    "imageUrl": "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg"
   }
 ]

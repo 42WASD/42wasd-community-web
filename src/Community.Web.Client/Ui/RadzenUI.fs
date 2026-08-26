@@ -446,3 +446,28 @@ module RadzenUI =
         comp<RadzenCarouselItem> {
             children
         }
+
+    // ---------------------------------------------------------------- media
+
+    /// A RadzenImage — renders an `<img>` from a URL, base64 data, or app asset.
+    /// `alt` is shown by screen readers and when the image fails to load.
+    let image (src: string) (alt: string) =
+        comp<RadzenImage> {
+            "Path" => src
+            "AlternateText" => alt
+        }
+
+    /// A RadzenChip label with a badge-style color and an optional fill variant.
+    let chip (textValue: string) (style: BadgeStyle) =
+        comp<RadzenChip> {
+            "Text" => textValue
+            "ChipStyle" => style
+        }
+
+    /// A read-only RadzenRating showing a star rating out of `max`.
+    let rating (value: float) (max: int) =
+        comp<RadzenRating> {
+            "Value" => (int value)
+            "Stars" => max
+            "ReadOnly" => true
+        }

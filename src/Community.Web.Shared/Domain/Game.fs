@@ -7,4 +7,6 @@ type Game =
         name: string
         genre: string
         description: string
+        /// A banner/cover image URL used on the landing carousel & cards.
+        imageUrl: string
     }

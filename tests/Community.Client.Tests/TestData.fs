@@ -29,8 +29,8 @@ module TestData =
     /// Two sample games keyed by id, used to assert cache normalization.
     let sampleGames : Game[] =
         [|
-            { id = "game-1"; name = "Counter-Strike 2"; genre = "FPS"; description = "Tactical shooter" }
-            { id = "game-2"; name = "Dota 2"; genre = "MOBA"; description = "5v5 arena" }
+            { id = "game-1"; name = "Counter-Strike 2"; genre = "FPS"; description = "Tactical shooter"; imageUrl = "https://img/game1.jpg" }
+            { id = "game-2"; name = "Dota 2"; genre = "MOBA"; description = "5v5 arena"; imageUrl = "https://img/game2.jpg" }
         |]
 
     /// One open and one closed tournament, used to assert the cross-feature

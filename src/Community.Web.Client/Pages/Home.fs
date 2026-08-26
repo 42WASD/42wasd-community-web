@@ -61,10 +61,12 @@ module Home =
         }))
 
     /// The "latest news" section rendered as a vertical RadzenTimeline, so the
-    /// (previously invisible) News cache surfaces as announcements.
+    /// (previously invisible) News cache surfaces as announcements. Sorted so
+    /// the most recent post is FIRST (top of the timeline).
     let newsTimeline (news: Map<string, News>) =
         let items =
             Map.toArray news
+            |> Array.sortByDescending (fun (_, n) -> n.publishedAt)
             |> Array.map (fun (_, n) ->
                 RadzenUI.timelineItem (n.publishedAt.ToString("yyyy-MM-dd")) RadzenUI.pointPrimary
                     (concat {
@@ -76,17 +78,23 @@ module Home =
             RadzenUI.timeline (forEach items (fun n -> n))
         }))
 
-    /// A "featured games" carousel cycling the canonical games cache, so the
-    /// Home hero shows off the community's titles rather than a flat list.
+    /// A "featured games" carousel cycling the canonical games cache. Each
+    /// slide is a rich card: a banner image, the title, a genre chip, and a
+    /// short description — so the hero shows off the community's titles.
     let featuredCarousel (games: Map<string, Game>) =
-        RadzenUI.carousel 3 (forEach (Map.toArray games) (fun (_, g) ->
-            RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-                RadzenUI.text RadzenUI.heading6 g.name
-                RadzenUI.badgePill RadzenUI.primaryBadge g.genre
-                RadzenUI.text RadzenUI.body2 g.description
-            })))))
+        let slides =
+            Map.toArray games
+            |> Array.map (fun (_, g) ->
+                RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+                    RadzenUI.image g.imageUrl g.name
+                    RadzenUI.text RadzenUI.heading6 g.name
+                    RadzenUI.chip g.genre RadzenUI.primaryBadge
+                    RadzenUI.text RadzenUI.body2 g.description
+                }))))
+        RadzenUI.carousel (min 3 slides.Length) (forEach slides (fun s -> s))
 
-    /// Render the dashboard from the selected shared slices.
+    /// Render the dashboard from the selected shared slices. Order: headline →
+    /// stats → featured games → live servers → latest news.
     let view (shared: SharedModel) =
         let gamesCount, onlineNow, openTournaments, memberCount, favoriteCount = stats shared
         RadzenUI.vStackGap "1.5rem" (concat {
@@ -94,6 +102,7 @@ module Home =
             RadzenUI.text RadzenUI.subtitle1
                 "Games we play, active servers, upcoming tournaments, and latest news."
 
+            // Live community stats strip.
             RadzenUI.rowGap "1rem" (concat {
                 statPanel 6 "Games" (gamesCount.ToString())
                 statPanel 6 "Players online" (onlineNow.ToString())
@@ -101,6 +110,11 @@ module Home =
                 statPanel 6 "Members" (memberCount.ToString())
                 statPanel 6 "Favourite games" (favoriteCount.ToString())
             })
+
+            // Latest news FIRST (surface the News data, most recent on top).
+            match shared.news with
+            | Loaded n when n.Count > 0 -> newsTimeline n
+            | _ -> empty ()
 
             // Featured games carousel (reads the canonical games cache).
             match shared.games with
@@ -115,10 +129,5 @@ module Home =
                     RadzenUI.rowGap "1rem" (forEach (Map.toArray servers) (fun (_, s) ->
                         RadzenUI.columnResponsive 12 6 4 (serverStatusRow s)))
                 }))
-            | _ -> empty ()
-
-            // Latest news, rendered as a timeline (surface the News data).
-            match shared.news with
-            | Loaded n when n.Count > 0 -> newsTimeline n
             | _ -> empty ()
         })
