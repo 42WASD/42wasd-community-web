@@ -5,6 +5,7 @@ open System.IO
 open System.Text.Json
 open System.Text.Json.Serialization
 open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Logging
 open Bolero
 open Bolero.Remoting
 open Bolero.Remoting.Server
@@ -18,12 +19,23 @@ module private Loaders =
         JsonSerializer.Deserialize<'a[]>(json)
 
     /// Serialize a JSON array back to a file under the server's data folder.
-    let saveJson<'a> (env: IWebHostEnvironment) (fileName: string) (value: 'a[]) =
+    /// **Never throws**: a failed write (e.g. read-only filesystem in the
+    /// container, where data/ is baked read-only) must not crash the request
+    /// or take down the site. The caller decides how to surface the failure.
+    /// Returns true on success, false on failure.
+    let saveJson<'a> (logger: ILogger) (env: IWebHostEnvironment) (fileName: string) (value: 'a[]) : bool =
         let path = Path.Combine(env.ContentRootPath, "data", fileName)
-        let json = JsonSerializer.Serialize(value, JsonSerializerOptions(WriteIndented = true))
-        File.WriteAllText(path, json)
+        try
+            let json = JsonSerializer.Serialize(value, JsonSerializerOptions(WriteIndented = true))
+            File.WriteAllText(path, json)
+            true
+        with exn ->
+            // Data is baked read-only in production; in-memory state still
+            // works, so a failed write is logged, not fatal.
+            logger.LogError(exn, "Failed to persist data to {Path}", path)
+            false
 
-type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
+type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment, logger: ILogger<CommunityApiService>) =
     inherit RemoteHandler<Community.Web.Shared.Remoting.CommunityApi>()
 
     let games = Loaders.loadJson<Game> env "games.json"
@@ -84,6 +96,13 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment) =
                             { p with handle = handle; bio = bio }
                         else
                             p)
-                Loaders.saveJson env "players.json" players
+                // The in-memory cache is always updated (the site stays
+                // alive); the file write is best-effort. A failed write
+                // (e.g. read-only filesystem) is caught inside saveJson —
+                // logged and reported to the caller as false, never an
+                // unhandled 500 (Bolero's remoting only catches
+                // RemoteUnauthorizedException, so any other exception would
+                // crash the request).
+                return Loaders.saveJson logger env "players.json" players
             }
         }

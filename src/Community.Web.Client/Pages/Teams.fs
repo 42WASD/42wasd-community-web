@@ -35,13 +35,21 @@ module Teams =
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
-            RadzenUI.loadingScaffold ()
+            // Dynamic skeleton mirrors the teams layout: heading + a splitter
+            // (side-by-side team cards). Two panes with team-card skeletons.
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.skeleton "width: 18%; height: 2rem;"
+                RadzenUI.splitter "height: 420px;" (concat {
+                    RadzenUI.splitterPane None (RadzenUI.cardOutlined (RadzenUI.skeletonTeamBody ()))
+                    RadzenUI.splitterPane None (RadzenUI.cardOutlined (RadzenUI.skeletonTeamBody ()))
+                })
+            })
         | Failed _ ->
             RadzenUI.failedView "teams"
         | Loaded m ->
-            let teams = Map.toArray m |> Array.map snd
+            let teams = SharedModel.values m
             let paneSize = (string (100.0 / float teams.Length)) + "%"
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Teams"
                 RadzenUI.splitter "height: 420px;" (concat {
                     for team in teams do
@@ -49,4 +57,4 @@ module Teams =
                             RadzenUI.cardOutlined (teamCard team)
                         })
                 })
-            })
+            }))

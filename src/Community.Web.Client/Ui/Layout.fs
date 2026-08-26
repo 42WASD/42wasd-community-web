@@ -26,6 +26,52 @@ let navItem (page: Page) (text: string) =
 let drawerItem (page: Page) (text: string) =
     RadzenUI.panelMenuItem text (router.Link page) (page = Home)
 
+/// The site navigation, defined ONCE and rendered by both the desktop
+/// horizontal menu and the mobile drawer. A `Leaf` is a plain page link; a
+/// `Group` is an expandable flyout (desktop submenu / drawer panel group)
+/// holding its own leaves. Adding or removing a page touches only this list —
+/// the two navigation surfaces can never drift apart.
+type NavItem =
+    | Leaf of Page * string
+    | Group of string * (Page * string) list
+
+let navItems: NavItem list =
+    [
+        Leaf (Home, "Home")
+        Leaf (Games, "Games")
+        Leaf (Servers, "Servers")
+        Leaf (Tournaments, "Tournaments")
+        Group ("Community", [ (MembersPage Router.noModel, "Members"); (Teams, "Teams") ])
+        Leaf (About, "About")
+        Leaf (AccountPage Router.noModel, "Account")
+    ]
+
+/// Render a nav item list as the desktop horizontal menu.
+let private menuFrom (items: NavItem list) =
+    concat {
+        for item in items do
+            match item with
+            | Leaf (page, label) -> navItem page label
+            | Group (group, leaves) ->
+                RadzenUI.menuSubmenu group (concat {
+                    for (page, label) in leaves do
+                        navItem page label
+                })
+    }
+
+/// Render the same nav item list as the mobile drawer panel menu.
+let private drawerFrom (items: NavItem list) =
+    concat {
+        for item in items do
+            match item with
+            | Leaf (page, label) -> drawerItem page label
+            | Group (groupLabel, leaves) ->
+                RadzenUI.panelMenuItemExpandable groupLabel (concat {
+                    for (page, label) in leaves do
+                        drawerItem page label
+                })
+    }
+
 /// The single root view. Only the layout shell lives here; each page renders
 /// itself via its owning feature module. The shared error notification is
 /// cross-feature UI and stays here.
@@ -46,18 +92,7 @@ let view (model: Model) (dispatch: Message -> unit) =
             attr.``class`` (if model.sidebarOpen then "mobile-nav-drawer is-open" else "mobile-nav-drawer")
             RadzenUI.sidebarExpanded model.sidebarOpen
                 (fun open' -> dispatch (SetSidebarOpen open'))
-                (RadzenUI.panelMenu (concat {
-                    drawerItem Home "Home"
-                    drawerItem Games "Games"
-                    drawerItem Servers "Servers"
-                    drawerItem Tournaments "Tournaments"
-                    RadzenUI.panelMenuItemExpandable "Community" (concat {
-                        drawerItem (MembersPage Router.noModel) "Members"
-                        drawerItem Teams "Teams"
-                    })
-                    drawerItem About "About"
-                    drawerItem (AccountPage Router.noModel) "Account"
-                }))
+                (RadzenUI.panelMenu (drawerFrom navItems))
         }
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
@@ -80,19 +115,7 @@ let view (model: Model) (dispatch: Message -> unit) =
                 }
                 // Desktop horizontal menu (hidden on mobile — the drawer
                 // replaces it).
-                RadzenUI.menu false (concat {
-                    navItem Home "Home"
-                    navItem Games "Games"
-                    navItem Servers "Servers"
-                    navItem Tournaments "Tournaments"
-                    // Community is a flyout submenu holding Members + Teams.
-                    RadzenUI.menuSubmenu "Community" (concat {
-                        navItem (MembersPage Router.noModel) "Members"
-                        navItem Teams "Teams"
-                    })
-                    navItem About "About"
-                    navItem (AccountPage Router.noModel) "Account"
-                })
+                RadzenUI.menu false (menuFrom navItems)
             })
             // A profile menu appears in the header when signed in.
             cond model.shared.account <| function
@@ -123,7 +146,7 @@ let view (model: Model) (dispatch: Message -> unit) =
                 | About -> About.view ()
                 | AccountPage pm ->
                     Account.view pm.Model model.shared.account model.shared.signInFailed
-                        model.shared.profileSaved
+                        model.shared.profileSaved model.shared.profileError
                         (fun msg -> dispatch (AccountMsg msg))
                         (fun () -> dispatch (SharedMsg Shared.SendSignOut))
             }

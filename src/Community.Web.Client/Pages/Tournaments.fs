@@ -44,24 +44,15 @@ module Tournaments =
                 RadzenUI.text RadzenUI.overline tournament.prize
                 RadzenUI.text RadzenUI.caption (tournament.startsAt.ToString("yyyy-MM-dd"))
             })
-            if tournament.registrationOpen then
-                RadzenUI.splitButton
-                    "Close registration"
-                    RadzenUI.dangerButton
-                    run
-                    (concat {
-                        RadzenUI.splitButtonItem "Close registration" "toggle"
-                        RadzenUI.splitButtonItem "View details" "details"
-                    })
-            else
-                RadzenUI.splitButton
-                    "Reopen registration"
-                    RadzenUI.successButton
-                    run
-                    (concat {
-                        RadzenUI.splitButtonItem "Reopen registration" "toggle"
-                        RadzenUI.splitButtonItem "View details" "details"
-                    })
+            // A single split-button definition whose label/style depend on
+            // registration state — avoids duplicating the two blocks.
+            let label, style =
+                if tournament.registrationOpen then "Close registration", RadzenUI.dangerButton
+                else "Reopen registration", RadzenUI.successButton
+            RadzenUI.splitButton label style run (concat {
+                RadzenUI.splitButtonItem label "toggle"
+                RadzenUI.splitButtonItem "View details" "details"
+            })
         })
 
     /// The Tournaments page view. Selects the canonical cache; renders a
@@ -69,12 +60,16 @@ module Tournaments =
     let view (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.tournaments <| function
         | NotAsked | Loading ->
-            RadzenUI.loadingScaffold ()
+            // Dynamic skeleton mirrors the tournament grid (12/6/4 cards).
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.skeleton "width: 30%; height: 2rem;"
+                RadzenUI.skeletonGrid 6 12 6 4 RadzenUI.skeletonCardBody
+            })
         | Failed _ ->
             RadzenUI.failedView "tournaments"
         | Loaded m ->
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Tournaments"
-                RadzenUI.rowGap "1rem" (forEach (Map.toArray m) (fun (_, t) ->
+                RadzenUI.rowGap "1rem" (forEach (SharedModel.values m) (fun t ->
                     RadzenUI.columnResponsive 12 6 4 (card t dispatch)))
-            })
+            }))

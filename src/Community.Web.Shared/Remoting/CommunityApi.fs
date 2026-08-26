@@ -37,7 +37,10 @@ type CommunityApi =
         getUsername: unit -> Async<string>
 
         /// Save the signed-in player's profile (display handle + bio).
-        saveProfile: string option * string option -> Async<unit>
+        /// Returns true if persisted, false if the write failed (e.g. the
+        /// data folder is read-only in production). The in-memory state is
+        /// still updated on the server either way.
+        saveProfile: string option * string option -> Async<bool>
 
         /// Sign out from the application.
         signOut: unit -> Async<unit>

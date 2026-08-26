@@ -52,7 +52,13 @@ module Members =
     let view (model: Model) (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.players <| function
         | NotAsked | Loading ->
-            RadzenUI.loadingScaffold ()
+            // Dynamic skeleton mirrors the Members layout: heading + search
+            // box + member data-grid.
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.skeleton "width: 22%; height: 2rem;"
+                RadzenUI.skeleton "width: 100%; height: 2.5rem;"
+                RadzenUI.cardOutlined (RadzenUI.skeletonTable [ "50%"; "46%" ])
+            })
         | Failed _ ->
             RadzenUI.failedView "members"
         | Loaded m ->
@@ -67,18 +73,17 @@ module Members =
             let query = search.Trim().ToLowerInvariant()
             // Filter the canonical roster by username or Discord handle.
             let players =
-                Map.toArray m
-                |> Array.map snd
+                SharedModel.values m
                 |> Array.filter (fun p ->
                     query = ""
                     || p.username.ToLowerInvariant().Contains query
                     || (defaultArg p.discord "").ToLowerInvariant().Contains query)
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Members"
                 // A search box that suggests usernames and drives the live
                 // filter on the roster below.
                 RadzenUI.autoComplete
-                    (Map.toArray m |> Array.map snd)
+                    (SharedModel.values m)
                     "username" search (fun v -> dispatch (SetSearch v))
                 RadzenUI.dataGrid<Player> players (concat {
                     // template columns (NOT dataGridColumn "property") — Radzen's
@@ -88,4 +93,4 @@ module Members =
                     RadzenUI.dataGridTemplateColumn<Player> "Discord" (fun p ->
                         RadzenUI.text RadzenUI.body1 (defaultArg p.discord ""))
                 })
-            })
+            }))

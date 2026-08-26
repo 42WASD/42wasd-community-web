@@ -36,6 +36,15 @@
   --rz-border-color: #2A2A2A;
   --rz-border-secondary-color: #2A2A2A;
 
+  /* --- Skeleton loading placeholders (pulse) ---
+     Tuned to sit on the #141414 card surface: a faint charcoal block that
+     reads as "structure still loading" without clashing with the accent
+     palette. Matches the brutalist low-contrast aesthetic. */
+  --rz-skeleton-background-color: #1C1C1C;
+  --rz-skeleton-animation-color: #282828;
+  --rz-skeleton-border-radius: 0px;
+  --rz-skeleton-animation-duration: 1.5s;
+
   /* --- Primary Brand (42 Network Cyan for active states) --- */
   --rz-primary: #00BABC;
   --rz-primary-light: #33CBCD;
@@ -278,9 +287,19 @@ button.rz-primary.rz-button {
 
 /* Fade/slide-in when the Elmish view swaps on navigation. */
 .fade-in {
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cross-fade old→new content during a skeleton→content swap. The browser
+   rasterizes both states and interpolates between them, so there is no
+   hard "pop". Supported in Chromium + modern Edge/Firefox; older browsers
+   degrade gracefully to the .fade-in above. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: ease-out;
 }

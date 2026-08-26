@@ -12,8 +12,8 @@ open TestData
 module SharedUpdateTests =
 
     [<Fact>]
-    let ``GotGames normalizes the array into an id-keyed map`` () =
-        let shared, _ = Shared.update stubApi SharedModel.init (Shared.GotGames sampleGames)
+    let ``Loaded (GamesLoaded) normalizes the array into an id-keyed map`` () =
+        let shared, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.GamesLoaded sampleGames))
         match shared.games with
         | Loaded m ->
             Assert.Equal(2, m.Count)
@@ -22,8 +22,8 @@ module SharedUpdateTests =
         | _ -> Assert.True(false, "Expected Loaded games")
 
     [<Fact>]
-    let ``GotTournament preserves registrationOpen from the payload`` () =
-        let shared, _ = Shared.update stubApi SharedModel.init (Shared.GotTournaments sampleTournaments)
+    let ``Loaded (TournamentsLoaded) preserves registrationOpen from the payload`` () =
+        let shared, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.TournamentsLoaded sampleTournaments))
         match shared.tournaments with
         | Loaded m ->
             Assert.True(m["t-1"].registrationOpen)
@@ -32,7 +32,7 @@ module SharedUpdateTests =
 
     [<Fact>]
     let ``ToggleTournament flips registrationOpen in the canonical cache`` () =
-        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.GotTournaments sampleTournaments)
+        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.TournamentsLoaded sampleTournaments))
         let after, _ = Shared.update stubApi loaded (Shared.ToggleTournament "t-1")
         match after.tournaments with
         | Loaded m ->
@@ -42,7 +42,7 @@ module SharedUpdateTests =
 
     [<Fact>]
     let ``ToggleTournament unknown id leaves the cache unchanged`` () =
-        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.GotTournaments sampleTournaments)
+        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.TournamentsLoaded sampleTournaments))
         let after, _ = Shared.update stubApi loaded (Shared.ToggleTournament "does-not-exist")
         Assert.Equal(loaded.tournaments, after.tournaments)
 
@@ -73,8 +73,8 @@ module SharedUpdateTests =
         Assert.False(signedOut.signInFailed)
 
     [<Fact>]
-    let ``GetGames sets only the games cache to Loading`` () =
-        let shared, _ = Shared.update stubApi SharedModel.init Shared.GetGames
+    let ``Load Games sets only the games cache to Loading`` () =
+        let shared, _ = Shared.update stubApi SharedModel.init (Shared.Load Shared.Games)
         Assert.Equal(Loading, shared.games)
         Assert.Equal(NotAsked, shared.servers)
         Assert.Equal(NotAsked, shared.tournaments)
@@ -86,6 +86,13 @@ module SharedUpdateTests =
         Assert.Equal(None, cleared.error)
 
     [<Fact>]
-    let ``RecvSaveProfile sets the profileSaved flag`` () =
-        let after, _ = Shared.update stubApi SharedModel.init Shared.RecvSaveProfile
+    let ``RecvSaveProfile true sets the profileSaved flag`` () =
+        let after, _ = Shared.update stubApi SharedModel.init (Shared.RecvSaveProfile true)
         Assert.True(after.profileSaved)
+        Assert.Equal(None, after.profileError)
+
+    [<Fact>]
+    let ``RecvSaveProfile false sets the profileError instead of profileSaved`` () =
+        let after, _ = Shared.update stubApi SharedModel.init (Shared.RecvSaveProfile false)
+        Assert.False(after.profileSaved)
+        Assert.True(after.profileError.IsSome)

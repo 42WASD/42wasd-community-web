@@ -28,14 +28,13 @@ let private counts = Dictionary<string, int>()
 
 /// Record one render of the named region (e.g. a list row). Purely
 /// observational: updates an out-of-band counter, never affects the nodes
-/// being built. Returns the total for this region since the last report.
-let touch (region: string) : int =
+/// being built. Returns nothing — the running total is logged by `report`.
+let touch (region: string) : unit =
     let n =
         match counts.TryGetValue region with
         | true, c -> c + 1
         | _ -> 1
     counts[region] <- n
-    n
 
 /// Log the running render totals to the browser console (WASM maps printfn
 /// output to console.log), then reset. Call at a stable point — e.g. once per
@@ -52,8 +51,8 @@ let report (label: string) : unit =
 #else
 
 /// No-op release stub: `touch` exists so DEBUG call sites compile unchanged,
-/// but in production it does nothing and returns a meaningless count.
-let touch (_region: string) : int = 0
+/// but in production it does nothing.
+let touch (_region: string) : unit = ()
 
 /// No-op release stub for `report`.
 let report (_label: string) : unit = ()

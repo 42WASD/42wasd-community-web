@@ -17,20 +17,22 @@ module Servers =
     /// (Phase 17c+): name, address, capacity, and status — with cell tooltips
     /// so long addresses and full capacity bars read clearly on hover.
     let serverTabs (servers: Map<string, GameServer>) (games: Map<string, Game>) =
-        let byGame =
-            games |> Map.toArray
-            |> Array.map (fun (gid, g) ->
-                let list =
-                    servers.Values
-                    |> Seq.filter (fun s -> s.gameId = gid)
-                    |> Seq.toArray
-                gid, g.name, list)
-            |> Array.filter (fun (_, _, list) -> list.Length > 0)
-        // Unassigned servers (a game id not in the games map) fall through.
-        let unassigned =
+        // Single pass over the server list: group by game id, then split into
+        // servers that belong to a known game vs. unassigned ones. This avoids
+        // the previous per-game `Seq.filter` (O(games × servers)).
+        let grouped, unassigned =
             servers.Values
-            |> Seq.filter (fun s -> not (games.ContainsKey s.gameId))
             |> Seq.toArray
+            |> Array.groupBy (fun s -> s.gameId)
+            |> Array.partition (fun (gid, _) -> games.ContainsKey gid)
+        // Preserve tab order: groups are ordered by each game's position in the
+        // manifest (games map), not by first-server-appearance order.
+        let rank = games |> Map.toArray |> Array.mapi (fun i (gid, _) -> gid, i) |> Map.ofArray
+        let byGame =
+            grouped
+            |> Array.map (fun (gid, list) -> gid, games[gid].name, list)
+            |> Array.sortBy (fun (gid, _, _) -> rank[gid])
+        let unassigned = unassigned |> Array.collect snd
 
         let serverGrid (list: GameServer[]) =
             RadzenUI.cardOutlined (RadzenUI.dataGrid<GameServer> list (concat {
@@ -59,13 +61,22 @@ module Servers =
     let view (shared: SharedModel) =
         cond shared.servers <| function
         | NotAsked | Loading ->
-            RadzenUI.loadingScaffold ()
+            // Dynamic skeleton: a heading + a tab strip + a data-grid block,
+            // mirroring the loaded ServerTabs layout.
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.skeleton "width: 20%; height: 2rem;"
+                RadzenUI.rowGap "0.75rem" (concat {
+                    for _ in 1..3 do
+                        RadzenUI.skeleton "width: 15%; height: 1.25rem;"
+                })
+                RadzenUI.cardOutlined (RadzenUI.skeletonTable [ "22%"; "30%"; "12%"; "12%"; "12%" ])
+            })
         | Failed _ ->
             RadzenUI.failedView "servers"
         | Loaded servers ->
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Servers"
                 match shared.games with
                 | Loaded games -> serverTabs servers games
                 | _ -> serverTabs servers Map.empty<string, Game>
-            })
+            }))

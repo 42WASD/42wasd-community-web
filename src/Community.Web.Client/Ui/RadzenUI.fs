@@ -295,17 +295,71 @@ module RadzenUI =
             "IsPill" => true
         }
 
-    /// A RadzenSkeleton loading placeholder.
-    let skeleton () =
+    /// A pulsing RadzenSkeleton loading placeholder, styled to mirror a bit of the
+    /// target content. `style` sets width/height (e.g. "width: 100%; height: 1rem").
+    /// The block color comes from the theme tokens in index.css
+    /// (`--rz-skeleton-*`), tuned to the brutalist palette.
+    let skeleton (style: string) =
         comp<RadzenSkeleton> {
             "Animation" => skeletonPulse
+            "Style" => style
         }
 
-    /// The standard page loading scaffold: two pulsing skeleton blocks shown
-    /// while a page's shared `RemoteData` is still `NotAsked`/`Loading`.
-    /// Every page uses this same shape (DRY).
-    let loadingScaffold () =
-        vStack (concat { skeleton (); skeleton () })
+    /// A vertical list of pulsing skeleton lines — a generic structural
+    /// placeholder. Variants (`text`/`circular`/`rectangular`) and widths
+    /// mirror common content shapes.
+    let skeletonLines (lines: string list) =
+        vStackGap "0.75rem" (concat {
+            for w in lines do
+                skeleton ("width: " + w + "; height: 1rem;")
+        })
+
+    /// A responsive row (RadzenRow) of `n` skeleton card placeholders, each
+    /// laid out with the SAME column breakpoints as the page's real content
+    /// grid. Sharing the grid shape means the skeleton mirrors the loaded
+    /// layout exactly, so a breakpoint change here auto-updates both. The
+    /// `cardBody` function renders one placeholder card's interior.
+    let skeletonGrid (n: int) (sm: int) (md: int) (lg: int) (cardBody: unit -> Node) =
+        rowGap "1rem" (concat {
+            for _ in 1..n do
+                columnResponsive sm md lg (cardOutlined (vStackGap "0.5rem" (cardBody ())))
+        })
+
+    /// A single game/tournament-style skeleton card body: image block + title
+    /// line + chip line + two body lines. Mirrors `gameCard`/tournament cards.
+    let skeletonCardBody () =
+        concat {
+            skeleton "width: 100%; height: 9rem;"
+            skeleton "width: 55%; height: 1.25rem;"
+            skeleton "width: 30%; height: 0.9rem;"
+            skeleton "width: 90%; height: 0.9rem;"
+        }
+
+    /// A single team-card skeleton body: name line + badge + roster lines.
+    let skeletonTeamBody () =
+        concat {
+            skeleton "width: 50%; height: 1.25rem;"
+            skeleton "width: 35%; height: 1rem;"
+            skeletonLines [ "80%"; "65%"; "72%" ]
+        }
+
+    /// A data-table skeleton: a heading line plus a row of column blocks,
+    /// mirroring a RadzenDataGrid. `cols` is a list of column widths.
+    let skeletonTable (cols: string list) =
+        vStackGap "0.75rem" (concat {
+            skeleton "width: 40%; height: 1.5rem;"
+            for _ in 1..5 do
+                rowGap "0.75rem" (concat {
+                    for w in cols do
+                        skeleton ("width: " + w + "; height: 1rem;")
+                })
+        })
+
+    /// Wrap content in a fade-in so a skeleton→content swap animates instead
+    /// of popping instantly. Each section's real content is wrapped in this
+    /// so it eases in as its data arrives (see `.fade-in` in index.css).
+    let fadeIn (children: Node) =
+        div { attr.``class`` "fade-in"; children }
 
     /// The standard page error message for a `Failed` `RemoteData` slice.
     /// `what` is the plain name of the failed resource (e.g. "games").

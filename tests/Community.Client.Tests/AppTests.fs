@@ -14,7 +14,7 @@ module AppTests =
 
     [<Fact>]
     let ``page change preserves shared state`` () =
-        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.GotGames sampleGames)
+        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.GamesLoaded sampleGames))
         let m = { initModel with shared = loaded }
         let after, _ = update stubApi (SetPage Page.Games) m
         Assert.Equal(Page.Games, after.page)
@@ -29,7 +29,7 @@ module AppTests =
 
     [<Fact>]
     let ``TournamentsMsg Toggle delegates to the shared effect`` () =
-        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.GotTournaments sampleTournaments)
+        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.TournamentsLoaded sampleTournaments))
         let m = { initModel with shared = loaded }
         let mid, _ = update stubApi (TournamentsMsg (Tournaments.ToggleRegistration "t-1")) m
         let after, _ = update stubApi (SharedMsg (Shared.ToggleTournament "t-1")) mid
@@ -45,17 +45,18 @@ module AppTests =
         Assert.Equal(Some "alice", after.shared.account)
 
     [<Fact>]
-    let ``AccountMsg Submit on the AccountPage is translated without losing the page`` () =
+    let ``AccountMsg Login translates to SendSignIn with the submitted credentials`` () =
         let pm : Bolero.PageModel<Account.Model> = { Model = Account.init }
         let m = { initModel with page = Page.AccountPage pm }
-        let after, _ = update stubApi (AccountMsg Account.Submit) m
+        // A single Login intent carries both fields and preserves the page.
+        let after, _ = update stubApi (AccountMsg (Account.Login ("alice", "password"))) m
         Assert.Equal(m.page, after.page)
 
     [<Fact>]
     let ``AccountMsg SaveProfile translates to a shared profile save, not a sign-in`` () =
         // Regression: the profile editor's Save button used to share the
-        // `Submit` message, which the root translated into SendSignIn with the
-        // EMPTY sign-in draft — logging the user out. `SaveProfile` must be
+        // `Submit`/sign-in message, which the root translated into SendSignIn
+        // with EMPTY credentials — logging the user out. `SaveProfile` must be
         // translated into a Shared.SaveProfile effect, never a sign-in, and it
         // must not clear the session or the drafts.
         let pm : Bolero.PageModel<Account.Model> = { Model = { Account.init with handle = "bob_the_gamer"; bio = "FPS" } }

@@ -69,49 +69,64 @@ module Home =
             })
         }))
 
-    /// The "latest news" section rendered as a vertical RadzenTimeline, so the
-    /// (previously invisible) News cache surfaces as announcements. Sorted so
-    /// the most recent post is FIRST (top of the timeline).
-    let newsTimeline (news: Map<string, News>) =
-        let items =
-            Map.toArray news
-            |> Array.sortByDescending (fun (_, n) -> n.publishedAt)
-            |> Array.map (fun (_, n) ->
-                RadzenUI.timelineItem (n.publishedAt.ToString("yyyy-MM-dd")) RadzenUI.pointPrimary
-                    (concat {
-                        RadzenUI.text RadzenUI.body1 n.title
-                        RadzenUI.text RadzenUI.caption n.body
-                    }))
+    /// The "latest news" card container: a heading + a vertical timeline. This is
+    /// the ONE place the news layout is defined. Both the real content and the
+    /// loading skeleton feed timeline `items` into this same container, so a
+    /// layout change here (e.g. a different heading, card variant, gap) is
+    /// reflected in the loading state automatically.
+    let newsCard (items: Node list) =
         RadzenUI.cardOutlined (RadzenUI.vStackGap "0.75rem" (concat {
             RadzenUI.text RadzenUI.heading6 "Latest news"
             RadzenUI.timeline (forEach items (fun n -> n))
         }))
 
-    /// A "featured games" carousel cycling the canonical games cache. Each
-    /// slide is a rich card: a banner image, the title, a genre chip, and a
-    /// short description — so the hero shows off the community's titles.
-    let featuredCarousel (games: Map<string, Game>) =
-        let slides =
-            Map.toArray games
-            |> Array.map (fun (_, g) ->
-                RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-                    RadzenUI.image g.imageUrl g.name
-                    RadzenUI.text RadzenUI.heading6 g.name
-                    RadzenUI.chip g.genre RadzenUI.primaryBadge
-                    RadzenUI.text RadzenUI.body2 g.description
-                }))))
+    /// A real news timeline item.
+    let newsItem (date: string) (title: string) (body: string) =
+        RadzenUI.timelineItem date RadzenUI.pointPrimary (concat {
+            RadzenUI.text RadzenUI.body1 title
+            RadzenUI.text RadzenUI.caption body
+        })
+
+    /// A skeleton news timeline item — same timeline-node shape, skeleton body.
+    let newsSkeletonItem () =
+        RadzenUI.timelineItem "" RadzenUI.pointPrimary (RadzenUI.skeletonLines [ "100%"; "78%" ])
+
+    /// The "featured games" carousel container. Same single-source principle as
+    /// `newsCard`: both real slides and skeleton slides flow through here, so
+    /// carousel layout changes update the loading state automatically.
+    let gamesCarousel (slides: Node list) =
         RadzenUI.carousel (min 3 slides.Length) (forEach slides (fun s -> s))
 
+    /// A real featured-game slide: banner image, title, genre chip, blurb.
+    let gameSlide (g: Game) =
+        RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.image g.imageUrl g.name
+            RadzenUI.text RadzenUI.heading6 g.name
+            RadzenUI.chip g.genre RadzenUI.primaryBadge
+            RadzenUI.text RadzenUI.body2 g.description
+        })))
+
+    /// A skeleton featured-game slide — same carousel-item shape, skeleton body.
+    let gameSkeletonSlide () =
+        RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.skeleton "width: 100%; height: 9rem;"
+            RadzenUI.skeleton "width: 55%; height: 1.25rem;"
+            RadzenUI.skeleton "width: 30%; height: 0.9rem;"
+            RadzenUI.skeleton "width: 85%; height: 0.9rem;"
+        })))
+
     /// Render the dashboard from the selected shared slices. Order: headline →
-    /// stats → featured games → live servers → latest news.
+    /// stats → featured games → live servers → latest news. Each section
+    /// transitions *independently*: it renders the SAME container (defined
+    /// above) with skeleton items while that slice's `RemoteData` is not
+    /// `Loaded`, then swaps to real items and fades in — no hardcoded look, no
+    /// atomic all-or-nothing swap, no pop/jitter.
     let view (shared: SharedModel) =
         let gamesCount, onlineNow, openTournaments, memberCount, favoriteCount = stats shared
-        RadzenUI.vStackGap "1.5rem" (concat {
-            RadzenUI.text RadzenUI.display3 "Welcome to the gaming community!"
-            RadzenUI.text RadzenUI.subtitle1
-                "Games we play, active servers, upcoming tournaments, and latest news."
 
-            // Live community stats strip.
+        // Stats strip — always present (values are 0 until loaded), but fades
+        // in once the primary caches are ready so it doesn't flash "0 0 0".
+        let statsSection =
             RadzenUI.rowGap "1rem" (concat {
                 statPanel 6 "Games" (gamesCount.ToString())
                 statPanel 6 "Players online" (onlineNow.ToString())
@@ -120,23 +135,51 @@ module Home =
                 statPanel 6 "Favourite games" (favoriteCount.ToString())
             })
 
-            // Latest news FIRST (surface the News data, most recent on top).
+        // Latest news: real timeline items once loaded, else skeleton items —
+        // both fed into the SAME newsCard container.
+        let newsItems =
             match shared.news with
-            | Loaded n when n.Count > 0 -> newsTimeline n
-            | _ -> empty ()
+            | Loaded n when n.Count > 0 ->
+                n |> SharedModel.values
+                |> Array.sortByDescending (fun x -> x.publishedAt)
+                |> Array.toList
+                |> List.map (fun x -> newsItem (x.publishedAt.ToString("yyyy-MM-dd")) x.title x.body)
+            | _ -> [ for _ in 1..3 -> newsSkeletonItem () ]
+        let newsSection = newsCard newsItems
 
-            // Featured games carousel (reads the canonical games cache).
-            match shared.games with
-            | Loaded g when g.Count > 0 -> featuredCarousel g
-            | _ -> empty ()
+        // Featured games: same gamesCarousel container, real vs skeleton slides.
+        let gamesSection =
+            cond shared.games <| function
+            | Loaded g when g.Count > 0 ->
+                RadzenUI.fadeIn (gamesCarousel (SharedModel.values g |> Array.toList |> List.map gameSlide))
+            | _ -> RadzenUI.fadeIn (gamesCarousel [ for _ in 1..3 -> gameSkeletonSlide () ])
 
-            // Live server status strip (reads the canonical servers cache).
+        // Live servers: SAME card + row container for real rows and skeleton
+        // cards, so the layout matches exactly.
+        let serversSection =
             cond shared.servers <| function
             | Loaded servers when servers.Count > 0 ->
-                RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+                RadzenUI.fadeIn (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
                     RadzenUI.text RadzenUI.heading6 "Live servers"
-                    RadzenUI.rowGap "1rem" (forEach (Map.toArray servers) (fun (_, s) ->
+                    RadzenUI.rowGap "1rem" (forEach (SharedModel.values servers) (fun s ->
                         RadzenUI.columnResponsive 12 6 4 (serverStatusRow s)))
+                })))
+            | _ ->
+                RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+                    RadzenUI.skeleton "width: 35%; height: 1.25rem;"
+                    RadzenUI.rowGap "1rem" (concat {
+                        for _ in 1..3 do
+                            RadzenUI.columnResponsive 12 6 4 (RadzenUI.skeleton "width: 100%; height: 5rem;")
+                    })
                 }))
-            | _ -> empty ()
+
+        RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.text RadzenUI.display3 "Welcome to the gaming community!"
+            RadzenUI.text RadzenUI.subtitle1
+                "Games we play, active servers, upcoming tournaments, and latest news."
+
+            RadzenUI.fadeIn statsSection
+            newsSection
+            gamesSection
+            serversSection
         })

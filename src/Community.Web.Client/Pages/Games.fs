@@ -24,7 +24,7 @@ module Games =
     /// dispatches a local ToggleFavorite (owned by this feature).
     let gameCard (game: Game) (isFavorite: bool) (dispatch: Msg -> unit) =
         // Phase 15 evidence: probe how often this game is rebuilt.
-        let _ = RenderProbe.touch $"game:{game.id}"
+        RenderProbe.touch $"game:{game.id}"
         RadzenUI.columnResponsive 12 6 4 (concat {
             RadzenUI.cardHover (RadzenUI.vStackGap "0.5rem" (concat {
                 RadzenUI.image game.imageUrl game.name
@@ -44,14 +44,20 @@ module Games =
         let favorites = shared.favoriteGames
         cond shared.games <| function
         | NotAsked | Loading ->
-            RadzenUI.loadingScaffold ()
+            // Dynamic skeleton: mirrors the real layout (a responsive grid of
+            // game cards at 12/6/4 breakpoints) so the swap to loaded content
+            // changes only the placeholder→live detail, never the structure.
+            RadzenUI.vStackGap "1.5rem" (concat {
+                RadzenUI.skeleton "width: 25%; height: 2rem;"
+                RadzenUI.skeletonGrid 6 12 6 4 RadzenUI.skeletonCardBody
+            })
         | Failed _ ->
             RadzenUI.failedView "games"
         | Loaded m ->
-            let rows = forEach (Map.toArray m) (fun (_, g) -> gameCard g (favorites.Contains g.id) dispatch)
+            let rows = forEach (SharedModel.values m) (fun g -> gameCard g (favorites.Contains g.id) dispatch)
             // Phase 15 evidence: report once per page render.
             RenderProbe.report "Games.view"
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Games"
                 RadzenUI.rowGap "1rem" rows
-            })
+            }))

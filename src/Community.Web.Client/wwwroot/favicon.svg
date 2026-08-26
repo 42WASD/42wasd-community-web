@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" shape-rendering="crispEdges">
+  <!-- 42WASD favicon — ACTIVE state. Transparent background, brand pink
+       (#C2185B). All fills are inlined (no internal <style> classes) so
+       Chrome and Edge reliably render it as the browser-tab icon. -->
+  <!-- W key -->
+  <g id="key-w">
+    <rect x="4" y="6" width="24" height="13" fill="#C2185B" />
+    <rect x="4" y="19" width="24" height="5" fill="#C2185B" />
+    <polygon points="5,19 27,19 24,23 8,23" fill="#7B0E3A" />
+    <g fill="#FFFFFF">
+      <rect x="8" y="9" width="2" height="5" />
+      <rect x="16" y="9" width="2" height="5" />
+      <rect x="10" y="13" width="2" height="2" />
+      <rect x="14" y="13" width="2" height="2" />
+      <rect x="12" y="11" width="2" height="3" />
+    </g>
+  </g>
+  <!-- A key -->
+  <g id="key-a">
+    <rect x="36" y="6" width="24" height="13" fill="#C2185B" />
+    <rect x="36" y="19" width="24" height="5" fill="#C2185B" />
+    <polygon points="37,19 59,19 56,23 40,23" fill="#7B0E3A" />
+    <g fill="#FFFFFF">
+      <rect x="42" y="9" width="6" height="2" />
+      <rect x="41" y="11" width="2" height="5" />
+      <rect x="47" y="11" width="2" height="5" />
+      <rect x="43" y="13" width="4" height="1" />
+    </g>
+  </g>
+  <!-- S key -->
+  <g id="key-s">
+    <rect x="4" y="38" width="24" height="13" fill="#C2185B" />
+    <rect x="4" y="51" width="24" height="5" fill="#C2185B" />
+    <polygon points="5,51 23,51 24,55 8,55" fill="#7B0E3A" />
+    <g fill="#FFFFFF">
+      <rect x="11" y="41" width="5" height="1" />
+      <rect x="10" y="41" width="2" height="3" />
+      <rect x="10" y="44" width="6" height="1" />
+      <rect x="14" y="44" width="2" height="3" />
+      <rect x="10" y="47" width="5" height="1" />
+    </g>
+  </g>
+  <!-- D key -->
+  <g id="key-d">
+    <rect x="36" y="38" width="24" height="13" fill="#C2185B" />
+    <rect x="36" y="51" width="24" height="5" fill="#C2185B" />
+    <polygon points="37,51 59,51 56,55 40,55" fill="#7B0E3A" />
+    <g fill="#FFFFFF">
+      <rect x="40" y="41" width="2" height="7" />
+      <rect x="42" y="41" width="4" height="1" />
+      <rect x="42" y="47" width="4" height="1" />
+      <rect x="45" y="42" width="2" height="5" />
+    </g>
+  </g>
+</svg>

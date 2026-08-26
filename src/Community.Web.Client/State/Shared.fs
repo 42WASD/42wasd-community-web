@@ -24,6 +24,9 @@ type SharedModel =
         /// True briefly after the signed-in player's profile is saved, driving
         /// the "Profile saved" confirmation on the Account page.
         profileSaved: bool
+        /// Set when a profile save fails (e.g. read-only data store) so the
+        /// user sees why it didn't persist, instead of a silent success.
+        profileError: string option
     }
 
 /// Helpers for building and querying shared state.
@@ -42,9 +45,15 @@ module SharedModel =
             error = None
             signInFailed = false
             profileSaved = false
+            profileError = None
         }
 
     /// Build a `Map<string, 'T>` from an array of entities keyed by id.
     let indexById (entities: 'T[]) (getId: 'T -> string) =
         entities
         |> Array.fold (fun (m: Map<string, 'T>) e -> m.Add(getId e, e)) Map.empty
+
+    /// The entities of a normalized cache, in id order, discarding the keys.
+    /// A common select: `Map.toArray m |> Array.map snd`.
+    let values (m: Map<string, 'T>) : 'T[] =
+        m |> Map.toArray |> Array.map snd
