@@ -55,14 +55,15 @@ module Account =
         | Clear -> init, Cmd.none
         | Submit -> model, Cmd.none
 
-    /// The sign-in form (signed out).
-    let signInForm (form: Model) (signInFailed: bool) (dispatch: Msg -> unit) =
+    /// The sign-in form (signed out), built on RadzenLogin.
+    let signInForm (_form: Model) (signInFailed: bool) (dispatch: Msg -> unit) =
         RadzenUI.vStackGap "1rem" (concat {
             RadzenUI.text RadzenUI.display3 "Sign in"
             RadzenUI.text RadzenUI.subtitle1 "Use any username and the password \"password\"."
-            RadzenUI.textBox form.username (fun s -> dispatch (SetUsername s))
-            RadzenUI.password form.password (fun s -> dispatch (SetPassword s))
-            RadzenUI.button "Sign in" RadzenUI.primaryButton (fun () -> Submit) dispatch
+            RadzenUI.login (fun (username, password) ->
+                dispatch (SetUsername username)
+                dispatch (SetPassword password)
+                dispatch Submit)
             cond signInFailed <| function
             | false -> empty()
             | true -> RadzenUI.alert RadzenUI.dangerAlert "Sign in failed."

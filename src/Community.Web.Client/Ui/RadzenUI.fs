@@ -325,6 +325,41 @@ module RadzenUI =
             "Match" => (if matchAll then navMatchAll else navMatchPrefix)
         }
 
+    /// A horizontal RadzenMenu — a top navigation bar. `clickToOpen` toggles
+    /// submenu interaction: `true` opens on click, `false` opens on hover
+    /// (desktop). `responsive` collapses to a hamburger on small screens.
+    /// Items are `menuItem`s (RadzenMenuItem), which navigate via their `Path`
+    /// and render nested items as hover/click flyout submenus.
+    let menu (clickToOpen: bool) (children: Node) =
+        comp<RadzenMenu> {
+            "ClickToOpen" => clickToOpen
+            "Responsive" => true
+            children
+        }
+
+    /// A leaf RadzenMenuItem — one entry in a horizontal `menu`. A leaf item
+    /// with a `path` renders as a NavLink and navigates on click. Built with a
+    /// raw node (NOT `comp`) so no `ChildContent` is emitted — otherwise
+    /// `RadzenMenuItem.ChildContent != null` renders the submenu arrow on every
+    /// item even when there is no dropdown.
+    let menuItem (textValue: string) (path: string option) (matchAll: bool) =
+        Node(fun c b i ->
+            b.OpenComponent<RadzenMenuItem>(i)
+            let n = i + 1
+            b.AddAttribute(n, "Text", textValue)
+            b.AddAttribute(n + 1, "Path", defaultArg path null)
+            b.AddAttribute(n + 2, "Match", (if matchAll then navMatchAll else navMatchPrefix))
+            b.CloseComponent()
+            n + 3)
+
+    /// A RadzenMenuItem with a flyout submenu. `children` are the nested
+    /// `menuItem` leaves; opened per the parent `menu`'s `ClickToOpen` mode.
+    let menuSubmenu (textValue: string) (children: Node) =
+        comp<RadzenMenuItem> {
+            "Text" => textValue
+            children
+        }
+
     /// A RadzenBreadCrumb — a horizontal trail of `breadcrumbItem`s showing the
     /// current page's location in the app.
     let breadcrumb (children: Node) =
@@ -372,6 +407,19 @@ module RadzenUI =
         comp<RadzenPassword> {
             "Value" => value
             attr.callback "ValueChanged" (fun (v: string) -> onChange v)
+        }
+
+    /// A RadzenLogin — a ready-made sign-in form (username/password fields with
+    /// built-in required validation). The `onLogin` callback receives the
+    /// submitted `(username, password)`.
+    let login (onLogin: string * string -> unit) =
+        comp<RadzenLogin> {
+            "AllowRegister" => false
+            "AllowResetPassword" => false
+            attr.callback "Login" (fun (args: LoginArgs) ->
+                let user = if isNull args.Username then "" else args.Username
+                let pass = if isNull args.Password then "" else args.Password
+                onLogin (user, pass))
         }
 
     // ---------------------------------------------------------------- cards

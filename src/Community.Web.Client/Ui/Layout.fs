@@ -10,48 +10,43 @@ open Community.Web.Shared.Domain
 
 /// The single shared layout shell, rebuilt on Radzen primitives (Phase 17b).
 /// This is cross-feature UI and lives only here: a responsive `RadzenLayout`
-/// with a `Header` (brand + sidebar toggle), a responsive `sidebar` holding the
-/// `RadzenPanelMenu` nav, a `body` carrying the active page, and a `footer`
-/// with the shared error alert.
+/// with a `Header` holding the brand + horizontal `RadzenMenu` nav, a `body`
+/// carrying the active page, and a `footer` with the shared error alert.
 ///
-/// Responsive design comes from the Radzen primitives themselves: the sidebar
-/// auto-collapses below 768px, the toggle flips `model.sidebarExpanded`, and
-/// page content uses the Radzen 12-col grid. No Bulma templates remain.
-let menuItem (model: Model) (page: Page) (text: string) =
-    RadzenUI.panelMenuItem text (router.Link page) (page = Home)
+/// Responsive design comes from the Radzen primitives themselves: the
+/// horizontal menu collapses to a hamburger below its breakpoint, and page
+/// content uses the Radzen 12-col grid. No Bulma templates remain.
 
-/// The human-readable name of the active page, used in the header breadcrumb.
-let pageTitle (page: Page) =
-    match page with
-    | Home -> "Home"
-    | Games -> "Games"
-    | Servers -> "Servers"
-    | Tournaments -> "Tournaments"
-    | Members -> "Members"
-    | Teams -> "Teams"
-    | About -> "About"
-    | AccountPage _ -> "Account"
-
-/// A RadzenBreadCrumb showing Home / current page, so the user always knows
-/// where they are in the app.
-let breadcrumb (page: Page) =
-    RadzenUI.breadcrumb (concat {
-        RadzenUI.breadcrumbItem "Home" (Some "")
-        RadzenUI.breadcrumbItem (pageTitle page) None
-    })
+/// A horizontal top-nav item. `matchAll` selects the exact route (Home/root);
+/// all other pages use Prefix-match so nested routes stay highlighted.
+let navItem (page: Page) (text: string) =
+    RadzenUI.menuItem text (Some (router.Link page)) (page = Home)
 
 /// The single root view. Only the layout shell lives here; each page renders
 /// itself via its owning feature module. The shared error notification is
 /// cross-feature UI and stays here.
+///
+/// Navigation is a horizontal `RadzenMenu` in the header (hover-to-open for
+/// any future submenus) — the responsive sidebar is gone, replaced by a clean
+/// top nav bar per the Nav/Layout cleanup.
 let view (model: Model) (dispatch: Message -> unit) =
     RadzenUI.layout (concat {
         // Host for the imperative Radzen services (Dialog/Notification/
         // Tooltip). Without this, NotificationService.Notify etc. are dropped.
         RadzenUI.components
         RadzenUI.header (concat {
-            RadzenUI.hStackGap "0.5rem" (concat {
-                RadzenUI.sidebarToggle (fun () -> dispatch ToggleSidebar)
+            RadzenUI.hStackGap "0.75rem" (concat {
                 RadzenUI.text RadzenUI.heading4 "42WASD"
+                RadzenUI.menu true (concat {
+                    navItem Home "Home"
+                    navItem Games "Games"
+                    navItem Servers "Servers"
+                    navItem Tournaments "Tournaments"
+                    navItem Members "Members"
+                    navItem Teams "Teams"
+                    navItem About "About"
+                    navItem (AccountPage Router.noModel) "Account"
+                })
             })
             // A profile menu appears in the header when signed in.
             cond model.shared.account <| function
@@ -66,20 +61,7 @@ let view (model: Model) (dispatch: Message -> unit) =
                         RadzenUI.profileMenuItem "Sign out" "signout"
                     })
         })
-        RadzenUI.sidebarExpanded model.sidebarExpanded (fun _ -> dispatch ToggleSidebar) (concat {
-            RadzenUI.panelMenu (concat {
-                menuItem model Home "Home"
-                menuItem model Games "Games"
-                menuItem model Servers "Servers"
-                menuItem model Tournaments "Tournaments"
-                menuItem model Members "Members"
-                menuItem model Teams "Teams"
-                menuItem model About "About"
-                menuItem model (AccountPage Router.noModel) "Account"
-            })
-        })
         RadzenUI.body (concat {
-            breadcrumb model.page
             cond model.page <| function
             | Home -> Home.view model.shared
             | Games -> Games.view model.shared (fun msg -> dispatch (GamesMsg msg))
