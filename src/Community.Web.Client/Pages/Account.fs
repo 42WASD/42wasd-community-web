@@ -51,9 +51,12 @@ module Account =
         | SetPassword s -> { model with password = s }, Cmd.none
         | SetHandle h -> { model with handle = h }, Cmd.none
         | SetBio b -> { model with bio = b }, Cmd.none
-        | SaveProfile -> model, Cmd.none
         | Clear -> init, Cmd.none
-        | Submit -> model, Cmd.none
+        // SaveProfile and Submit are *intent* messages, not local reducers:
+        // they carry no page-state change. The root interprets them as
+        // cross-feature effects (sign-in / profile save) in App.update, so
+        // here they are an explicit no-op rather than duplicated branches.
+        | SaveProfile | Submit -> model, Cmd.none
 
     /// The sign-in form (signed out), built on RadzenLogin.
     let signInForm (_form: Model) (signInFailed: bool) (dispatch: Msg -> unit) =

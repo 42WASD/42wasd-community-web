@@ -14,6 +14,13 @@ module Community.Web.Client.Ui.RenderProbe
 /// are pure functions, the probe currently confirms the whole page view is
 /// cheap to re-run — which is exactly the evidence that justifies NOT adding
 /// component isolation yet.
+///
+/// The counter is a mutable, out-of-band diagnostic. It is therefore compiled
+/// ONLY in DEBUG builds; in a Release build every entry point is a pure no-op
+/// so production carries no instrumentation state. This keeps the runtime
+/// purely functional while keeping the probe available for browser dev.
+
+#if DEBUG
 
 open System.Collections.Generic
 
@@ -41,3 +48,14 @@ let report (label: string) : unit =
         |> String.concat " | "
     counts.Clear()
     printfn $"[RenderProbe] {label}: {totals}"
+
+#else
+
+/// No-op release stub: `touch` exists so DEBUG call sites compile unchanged,
+/// but in production it does nothing and returns a meaningless count.
+let touch (_region: string) : int = 0
+
+/// No-op release stub for `report`.
+let report (_label: string) : unit = ()
+
+#endif

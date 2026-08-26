@@ -41,17 +41,7 @@ type MyApp() =
                 | _ -> Cmd.none
             model', Cmd.batch [ cmd; effect ]
         let program =
-            Program.mkProgram (fun _ ->
-                initModel,
-                Cmd.batch [
-                    Cmd.ofMsg (SharedMsg Shared.GetSignedInAs)
-                    Cmd.ofMsg (SharedMsg Shared.GetGames)
-                    Cmd.ofMsg (SharedMsg Shared.GetServers)
-                    Cmd.ofMsg (SharedMsg Shared.GetTournaments)
-                    Cmd.ofMsg (SharedMsg Shared.GetNews)
-                    Cmd.ofMsg (SharedMsg Shared.GetPlayers)
-                    Cmd.ofMsg (SharedMsg Shared.GetTeams)
-                ])
+            Program.mkProgram (fun _ -> initModel, App.initCmd)
                 update view
             |> Program.withRouter router
 #if DEBUG

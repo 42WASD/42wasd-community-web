@@ -187,6 +187,21 @@ type Message =
     | TournamentsMsg of Tournaments.Msg
     | GamesMsg of Games.Msg
 
+/// The startup command: load the shared, cross-page caches in parallel and
+/// resolve the initial session. Kept as a single named binding (rather than an
+/// inline list in Main) so the program composition stays declarative and the
+/// full startup intent is visible in one place.
+let initCmd =
+    Cmd.batch [
+        Cmd.ofMsg (SharedMsg Shared.GetSignedInAs)
+        Cmd.ofMsg (SharedMsg Shared.GetGames)
+        Cmd.ofMsg (SharedMsg Shared.GetServers)
+        Cmd.ofMsg (SharedMsg Shared.GetTournaments)
+        Cmd.ofMsg (SharedMsg Shared.GetNews)
+        Cmd.ofMsg (SharedMsg Shared.GetPlayers)
+        Cmd.ofMsg (SharedMsg Shared.GetTeams)
+    ]
+
 let update remote message model =
     match message with
     | SetPage page ->
