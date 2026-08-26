@@ -112,6 +112,10 @@ testing:
 4. Kill leftover servers you started **only** once you've confirmed via
    `ps`/`lsof` that they're yours, and prefer bumping the port over killing
    unless the conflict is genuinely your own stale process.
+5. **If a page takes more than ~3 seconds to load or the browser appears
+   stuck, bump the port by +1** and relaunch the server on the new port (per
+   rule 2), then point the browser at the new port. A slow/hanging load is
+   treated as a stuck server — do not keep retrying the same port.
 
 The browser page you drive must always navigate to the **current** port you
 started (the URLs must stay in sync).

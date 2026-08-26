@@ -107,7 +107,7 @@ button.rz-primary.rz-button {
    grid. The brand logo gets a larger size and a soft glow.
    ========================================================================= */
 
-/* Slim sticky navbar with a diagonal-grid texture + cyan underline glow. */
+/* Slim sticky navbar with a bold blueprint-grid texture + cyan underline. */
 .rz-header {
   position: sticky;
   top: 0;
@@ -117,23 +117,25 @@ button.rz-primary.rz-button {
   backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--rz-border-color);
   background-image:
-    radial-gradient(rgba(0, 186, 188, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(0, 186, 188, 0.22) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(0, 186, 188, 0.22) 2px, transparent 2px),
+    radial-gradient(rgba(0, 186, 188, 0.35) 1.5px, transparent 1.5px),
     repeating-linear-gradient(
       45deg,
-      rgba(0, 186, 188, 0.10) 0,
-      rgba(0, 186, 188, 0.10) 1px,
-      transparent 1px,
-      transparent 7px
+      rgba(0, 186, 188, 0.30) 0,
+      rgba(0, 186, 188, 0.30) 2px,
+      transparent 2px,
+      transparent 8px
     ),
     repeating-linear-gradient(
       -45deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 1px,
+      rgba(0, 186, 188, 0.20) 0,
+      rgba(0, 186, 188, 0.20) 1px,
       transparent 1px,
-      transparent 12px
+      transparent 10px
     );
-  background-size: 16px 16px, 100% 100%, 100% 100%;
-  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.45), 0 6px 18px rgba(0, 0, 0, 0.35);
+  background-size: 28px 28px, 28px 28px, 18px 18px, 100% 100%, 100% 100%;
+  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.55), 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 /* Keep the header content (logo + nav) away from the screen edges, and give
@@ -179,52 +181,62 @@ button.rz-primary.rz-button {
 }
 
 /* =========================================================================
-   Mobile: slim dropdown navbar (radzen menu -> absolute overlay panel)
+   Mobile: RadzenSidebar drawer + hidden horizontal menu
    -------------------------------------------------------------------------
-   Radzen's native responsive RadzenMenu, when opened on ≤768px, becomes a
-   `display:block` flex-item in the header row, which stretches the whole
-   header to ~360px tall. Instead we take the menu OUT of the header's flow on
-   small screens: anchor it to the header's right edge and let the opened
-   items drop down as a compact overlay panel, so the header stays a slim
-   50px bar. The hamburger stays vertically centred in the bar; the opened
-   items appear in a dropdown below it.
+   On mobile we replace the transparent horizontal RadzenMenu with a proper
+   opaque RadzenSidebar drawer (driven by model.sidebarOpen). The horizontal
+   menu and the brand sit in the slim header; a hamburger (mobile-nav-toggle)
+   opens the drawer. The sidebar only displays on small screens.
    ========================================================================= */
+
+/* The mobile drawer is hidden on desktop; shown as an overlay below 768px. */
+.mobile-nav-drawer {
+  display: none;
+}
+/* The mobile hamburger is hidden on desktop. */
+.mobile-nav-toggle {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  .rz-header {
-    position: relative;
+  /* Show the hamburger on mobile. */
+  .mobile-nav-toggle {
+    display: inline-flex;
   }
+  /* Hide the horizontal RadzenMenu on mobile — the drawer replaces it. */
   .rz-header .rz-menu {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    z-index: 200;
+    display: none !important;
   }
-  .rz-header .rz-menu .rz-menu-toggle {
-    margin-right: 0.5rem;
-  }
-  /* When open: drop the items in a compact panel below the toggle. */
-  .rz-header .rz-menu.rz-menu-open {
-    height: auto;
+  /* The drawer renders as a fixed overlay panel. RadzenLayout normally makes
+     the sidebar a static in-flow grid child; we override so it slides in from
+     the left on top of the content instead of pushing it down/right. */
+  .mobile-nav-drawer {
     display: block;
-    min-width: 220px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--rz-sidebar-width);
+    z-index: var(--rz-sidebar-z);
+    transform: translateX(-100%);
+    transition: transform var(--rz-transition);
     background-color: var(--rz-base-background-color);
-    border-left: 1px solid var(--rz-border-color);
-    border-bottom: 1px solid var(--rz-border-color);
-    box-shadow: -6px 10px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
   }
-  .rz-header .rz-menu.rz-menu-open .rz-menu-toggle-item {
-    justify-content: flex-end;
-    padding: 0.5rem;
+  /* When model.sidebarOpen is true the wrapper gets .is-open and slides in. */
+  .mobile-nav-drawer.is-open {
+    transform: translateX(0);
   }
-  .rz-header .rz-menu.rz-menu-open .rz-navigation-item {
-    width: 100%;
-  }
-  .rz-header .rz-menu.rz-menu-open .rz-navigation-item-link {
-    width: 100%;
-    padding-block: 0.75rem;
+  /* The mobile drawer uses the opaque base surface so the nav text is
+     readable (not transparent like the header texture). */
+  .mobile-nav-drawer .rz-sidebar {
+    background-color: transparent;
+    position: static;
+    width: auto;
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+    padding: 1rem;
   }
 }
 

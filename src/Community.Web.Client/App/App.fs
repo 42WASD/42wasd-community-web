@@ -163,11 +163,15 @@ type Model =
     {
         page: Page
         shared: SharedModel
+        /// Whether the mobile navigation drawer (RadzenSidebar) is open. Only
+        /// used on small screens; desktop uses the horizontal header menu.
+        sidebarOpen: bool
     }
 
 let initModel =
     { page = Home
-      shared = SharedModel.init }
+      shared = SharedModel.init
+      sidebarOpen = false }
 
 /// The root message is an orchestration boundary, not an event dump.
 /// Nested messages are composed into the root and lifted with Cmd.map:
@@ -176,6 +180,7 @@ let initModel =
 /// (reference: message-organization + the-root-message).
 type Message =
     | SetPage of Page
+    | SetSidebarOpen of bool
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
     | MembersMsg of Members.Msg
@@ -185,7 +190,12 @@ type Message =
 let update remote message model =
     match message with
     | SetPage page ->
-        { model with page = page }, Cmd.none
+        // Closing the nav drawer on navigation is intuitive: picking a link
+        // dismisses the drawer on mobile.
+        { model with page = page; sidebarOpen = false }, Cmd.none
+
+    | SetSidebarOpen open' ->
+        { model with sidebarOpen = open' }, Cmd.none
 
     | SharedMsg msg ->
         let shared, cmd = Shared.update remote model.shared msg

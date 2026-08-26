@@ -22,21 +22,51 @@ open Community.Web.Shared.Domain
 let navItem (page: Page) (text: string) =
     RadzenUI.menuItem text (Some (router.Link page)) (page = Home)
 
+/// A nav entry for the mobile drawer (RadzenSidebar + RadzenPanelMenu).
+let drawerItem (page: Page) (text: string) =
+    RadzenUI.panelMenuItem text (router.Link page) (page = Home)
+
 /// The single root view. Only the layout shell lives here; each page renders
 /// itself via its owning feature module. The shared error notification is
 /// cross-feature UI and stays here.
 ///
-/// Navigation is a horizontal `RadzenMenu` in the header (hover-to-open for
-/// any future submenus) — the responsive sidebar is gone, replaced by a clean
-/// top nav bar per the Nav/Layout cleanup.
+/// Navigation: a horizontal `RadzenMenu` in the header for desktop, plus a
+/// `RadzenSidebar` drawer (shown only on mobile via CSS) that gives the small-
+/// screen nav a proper opaque panel instead of a transparent stretched bar.
 let view (model: Model) (dispatch: Message -> unit) =
     RadzenUI.layout (concat {
         // Host for the imperative Radzen services (Dialog/Notification/
         // Tooltip). Without this, NotificationService.Notify etc. are dropped.
         RadzenUI.components
+        // Mobile-only drawer. `Expanded` is driven by model.sidebarOpen; it is
+        // hidden on desktop via `.mobile-nav-drawer { display:none }` in CSS.
+        // `.is-open` is toggled from F# so the wrapper overlay slides in/out
+        // in lock-step with the Radzen sidebar state.
+        div {
+            attr.``class`` (if model.sidebarOpen then "mobile-nav-drawer is-open" else "mobile-nav-drawer")
+            RadzenUI.sidebarExpanded model.sidebarOpen
+                (fun open' -> dispatch (SetSidebarOpen open'))
+                (RadzenUI.panelMenu (concat {
+                    drawerItem Home "Home"
+                    drawerItem Games "Games"
+                    drawerItem Servers "Servers"
+                    drawerItem Tournaments "Tournaments"
+                    RadzenUI.panelMenuItemExpandable "Community" (concat {
+                        drawerItem (MembersPage Router.noModel) "Members"
+                        drawerItem Teams "Teams"
+                    })
+                    drawerItem About "About"
+                    drawerItem (AccountPage Router.noModel) "Account"
+                }))
+        }
         RadzenUI.header (concat {
             RadzenUI.hStackGap "0.75rem" (concat {
-                // Brand lockup: the 42WASD logo + wordmark, linking to Home.
+                // Mobile-only hamburger that opens the drawer.
+                div {
+                    attr.``class`` "mobile-nav-toggle"
+                    RadzenUI.sidebarToggle (fun () ->
+                        dispatch (SetSidebarOpen (not model.sidebarOpen)))
+                }
                 // Brand lockup: just the 42WASD logo (SVG, higher quality),
                 // linking to Home. No wordmark text — the logo is the brand.
                 a {
@@ -48,6 +78,8 @@ let view (model: Model) (dispatch: Message -> unit) =
                         attr.title "42WASD"
                     }
                 }
+                // Desktop horizontal menu (hidden on mobile — the drawer
+                // replaces it).
                 RadzenUI.menu false (concat {
                     navItem Home "Home"
                     navItem Games "Games"

@@ -28,10 +28,11 @@ module Teams =
                 })
         })
 
-    /// The Teams page view. A `RadzenTileLayout` lays the team cards out as a
-    /// uniform, icon-led grid of tiles (each with the roster's gravatars),
-    /// read from the canonical teams cache. Tiles are laid out statically in
-    /// two columns of two rows.
+    /// The Teams page view. A responsive Radzen 12-col grid lays the team cards
+    /// out so each card auto-sizes to its roster (no fixed tile height, so no
+    /// clipped members / inner scroll). Cards flow 2-per-row on small screens
+    /// and up to 3-per-row on desktop, with non-uniform heights looking like a
+    /// dashboard.
     let view (shared: SharedModel) =
         cond shared.teams <| function
         | NotAsked | Loading ->
@@ -42,16 +43,10 @@ module Teams =
             let teams = Map.toArray m |> Array.map snd
             RadzenUI.vStackGap "1.5rem" (concat {
                 RadzenUI.text RadzenUI.display3 "Teams"
-                RadzenUI.tileLayout 6 (concat {
-                    for (idx, team) in teams |> Array.indexed do
-                        // Two per row (each spans 3 of 6 columns); row grows
-                        // by one grid row per pair.
-                        RadzenUI.tileLayoutItem
-                            team.name
-                            "groups"
-                            ((idx % 2) * 3 + 1)
-                            (idx / 2 + 1)
-                            3
-                            (teamCard team)
+                RadzenUI.rowGap "1rem" (concat {
+                    for team in teams do
+                        RadzenUI.columnResponsive 6 6 4 (concat {
+                            RadzenUI.cardOutlined (teamCard team)
+                        })
                 })
             })

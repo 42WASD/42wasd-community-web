@@ -338,6 +338,14 @@ module RadzenUI =
             "Match" => (if matchAll then navMatchAll else navMatchPrefix)
         }
 
+    /// A RadzenPanelMenuItem with an expandable submenu (for a parent group
+    /// like "Community"). `children` are nested `panelMenuItem` leaves.
+    let panelMenuItemExpandable (textValue: string) (children: Node) =
+        comp<RadzenPanelMenuItem> {
+            "Text" => textValue
+            children
+        }
+
     /// A horizontal RadzenMenu — a top navigation bar. `clickToOpen` toggles
     /// submenu interaction: `true` opens on click, `false` opens on hover
     /// (desktop). `responsive` collapses to a hamburger on small screens.
