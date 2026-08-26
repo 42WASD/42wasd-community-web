@@ -46,10 +46,14 @@ module Account =
         }
 
     let update msg model =
+        // Guard the null PageModel seen under Release SSR/trimming (same
+        // pattern as Members.update): the router may hand us a null model, so
+        // start from `init` before projecting onto it.
+        let model' = if isNull (box model) then init else model
         match msg with
-        | SetHandle h -> { model with handle = h }, Cmd.none
-        | SetBio b -> { model with bio = b }, Cmd.none
-        | ShowNotice msg -> { model with notice = Some msg }, Cmd.none
+        | SetHandle h -> { model' with handle = h }, Cmd.none
+        | SetBio b -> { model' with bio = b }, Cmd.none
+        | ShowNotice msg -> { model' with notice = Some msg }, Cmd.none
         | Clear -> init, Cmd.none
         // Login and SaveProfile are *intent* messages, not local reducers:
         // they carry no page-state change. The root interprets them as
@@ -103,6 +107,12 @@ module Account =
         })
 
     let view (form: Model) (username: option<string>) (signInFailed: bool) (profileSaved: bool) (profileError: string option) (localDispatch: Msg -> unit) (signOut: unit -> unit) =
+        // Guard the null PageModel seen under Release SSR/trimming (same
+        // pattern as Members.view): the router may construct AccountPage with
+        // a null Model, so fall back to a fresh `init` before reading fields
+        // (e.g. `notice`) that would otherwise throw NullReferenceException
+        // and 500 the SSR render.
+        let form = if isNull (box form) then init else form
         cond username <| function
         | Some name -> profileForm form name profileSaved profileError localDispatch signOut
         | None -> signInForm form signInFailed localDispatch
