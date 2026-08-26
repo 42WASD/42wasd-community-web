@@ -112,21 +112,33 @@ button.rz-primary.rz-button {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(10, 10, 10, 0.82);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background-color: rgba(10, 10, 10, 0.35);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid var(--rz-border-color);
   background-image:
-    radial-gradient(rgba(0, 186, 188, 0.12) 1px, transparent 1px),
+    radial-gradient(rgba(0, 186, 188, 0.18) 1px, transparent 1px),
     repeating-linear-gradient(
       45deg,
-      rgba(42, 42, 42, 0.35) 0,
-      rgba(42, 42, 42, 0.35) 1px,
+      rgba(0, 186, 188, 0.10) 0,
+      rgba(0, 186, 188, 0.10) 1px,
       transparent 1px,
-      transparent 8px
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 12px
     );
-  background-size: 14px 14px, 100% 100%;
-  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.35), 0 6px 18px rgba(0, 0, 0, 0.45);
+  background-size: 16px 16px, 100% 100%, 100% 100%;
+  box-shadow: 0 1px 0 rgba(0, 186, 188, 0.45), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* Keep the header content (logo + nav) away from the screen edges. */
+.rz-header .rz-stack {
+  padding-inline: 1rem;
 }
 
 /* Brand lockup: logo link in the header. */
