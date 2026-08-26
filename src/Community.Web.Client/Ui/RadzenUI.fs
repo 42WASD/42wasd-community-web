@@ -608,6 +608,7 @@ module RadzenUI =
         comp<RadzenCarousel> {
             "ItemsPerPage" => itemsPerPage
             "PagerPosition" => pagerBottom
+            "PagerOverlay" => false
             fragmentParam "Items" children
         }
 
@@ -621,13 +622,17 @@ module RadzenUI =
 
     /// A RadzenImage — renders an `<img>` from a URL, base64 data, or app asset.
     /// `alt` is shown by screen readers and when the image fails to load.
-    /// `max-width:100%; height:auto` keeps the image within its container so it
-    /// never overflows on narrow/phone viewports (e.g. inside a carousel card).
+    /// The box is UNIFORM across all games: full container width, a fixed
+    /// height, and `object-fit: cover` so any source aspect ratio (460×215,
+    /// 460×259, …) fills the same 9rem box by cropping rather than stretching
+    /// or leaving uneven gaps — every card in a row stays the same height. The
+    /// height matches the game-card skeleton's image block, so the skeleton and
+    /// the loaded content swap without a layout jump.
     let image (src: string) (alt: string) =
         comp<RadzenImage> {
             "Path" => src
             "AlternateText" => alt
-            "Style" => "max-width: 100%; height: auto;"
+            "Style" => "width: 100%; height: 9rem; object-fit: cover; display: block;"
         }
 
     /// A RadzenChip label with a badge-style color and an optional fill variant.
