@@ -2468,6 +2468,89 @@ docs/implementation/index.md
 
 `verify.sh` reports `VERIFY OK`.
 
+---
+
+## Post-phase fix — persistent, writable `/app/data` (saveProfile)
+
+**Intent:** the Phase 18 Deployment baked `data/` JSON into the image read-only
+(`/app/data` owned `root:root 755`). The `saveProfile` remoting call writes
+`players.json` to `/app/data`, so at runtime the app user (uid 1654) hit
+"Permission denied" — profile saves silently failed (the write is best-effort:
+it is caught in `Loaders.saveJson`, logged, and returns `false`, so the site
+stays up but the profile change does not persist). This change makes the data
+dir writable AND persistent across pod restarts, and wires the app into Argo CD.
+
+### Root cause (verified)
+
+```bash
+kubectl -n prd-42wasd-admin exec deploy/42wasd -- ls -la /app/data
+# drwxr-xr-x 2 root root  ... games.json news.json players.json ...
+kubectl -n prd-42wasd-admin exec deploy/42wasd -- sh -c "id; touch /app/data/test"
+# uid=1654(app) gid=1654(app)
+# touch: cannot touch '/app/data/test': Permission denied   <- NOT writable
+```
+
+### Fix: PVC + fsGroup + seed-data initContainer + Recreate
+
+1. `deploy/k8s/pvc.yaml` (new) — `42wasd-data`, `nvme-fast`, 1Gi, RWO.
+2. `deploy/k8s/deployment.yaml`:
+   - Pod `securityContext.fsGroup: 1654` → chowns the mounted volume so the
+     `app` user (uid/gid 1654) can write.
+   - `initContainers.seed-data` — same image, `cp -rn /app/data/. /pvc-data/`
+     to seed the baked JSON into the volume on first start (no-clobber so saved
+     `players.json` survives restarts).
+   - Main container `volumeMounts` — `data` at `/app/data`.
+   - `volumes` — `persistentVolumeClaim: claimName: 42wasd-data`.
+   - `strategy: Recreate` — RWO volume can't be shared during a rolling
+     update; Recreate terminates the old pod first (single replica, so the
+     brief downtime is acceptable).
+
+### Argo CD integration
+
+The Deployment was previously applied manually (no `argocd.argoproj.io/`
+tracking). Wired it into GitOps in the iac repo:
+
+- `infra/kubernetes/bootstrap/argocd/apps/tenant-community-web.yaml` (new) —
+  Application, project `tenant-42wasd-admin`, source
+  `github.com/42WASD/42wasd-community-web.git` path `deploy/k8s`, dest
+  `prd-42wasd-admin`, auto-sync + prune + selfHeal, `ServerSideApply=true`.
+- `infra/kubernetes/bootstrap/argocd/projects.yaml` — added
+  `42wasd-community-web.git` to `tenant-42wasd-admin` `sourceRepos`.
+
+```bash
+# iac repo: apply project (NOT Argo-managed — must be manual) + app
+kubectl -n argocd apply -f infra/kubernetes/bootstrap/argocd/projects.yaml
+kubectl -n argocd apply -f infra/kubernetes/bootstrap/argocd/apps/tenant-community-web.yaml
+kubectl -n argocd get app tenant-community-web   # Synced
+```
+
+The namespace `prd-42wasd-admin` is already Argo-owned by
+`platform-namespaces` (labels `platform.tier: tenant` + PSS `restricted`).
+
+### Verification
+
+```bash
+kubectl -n prd-42wasd-admin rollout status deploy/42wasd   # successfully rolled out
+kubectl -n prd-42wasd-admin exec deploy/42wasd -- ls -la /app/data
+# drwxrwsr-x 2 root app ...  <- group-writable by app via fsGroup
+kubectl -n prd-42wasd-admin exec deploy/42wasd -- sh -c "printf '[]' > /app/data/t.json && rm /app/data/t.json"   # WRITE-OK
+curl -s -o /dev/null -w "%{http_code}" http://wasd.42base.com/   # HTTP 200
+kubectl -n argocd get app tenant-community-web                   # Synced
+```
+
+The Deployment is `Synced + Healthy`. (The Argo app-level health shows
+"Progressing" solely because the Traefik Ingress does not populate
+`status.loadBalancer` — a known cosmetic ArgoCD quirk; the site serves HTTP 200
+by hostname and the pod is `Ready`.)
+
+### Key lesson
+
+Read-only baked data is a security win, but a write path must target a volume
+the app user owns. `fsGroup` (group ownership) + a non-root `initContainer`
+copy to a PVC is the pattern. A single-replica RWO workload also needs
+`strategy: Recreate` or a rolling update deadlocks (new pod can't bind the
+volume until the old pod releases it).
+
 </details>
 
 - ✅ `done` — [Phase 19 — Rollout order](../reference-design/03-step-by-step-implementation/phase-19-rollout-order/index.md)
