@@ -46,23 +46,24 @@ module Home =
     /// The cohesive KPI bar: ONE outlined card containing all five stats in a
     /// single wrapping flex row (`flex-1` cells). Because it's one card (not
     /// five independent cards), there is no 2-2-1 wrap and no orphaned cell —
-    /// the five numbers read as one dashboard strip. Each cell carries a
-    /// hairline divider on its left (except the first) so the strip has clear
-    /// vertical rhythm; on narrow screens the cells wrap and the dividers
-    /// simply mark the leading edge of each wrapped cell.
+    /// the five numbers read as one dashboard strip. Cells keep a min-width so
+    /// they wrap at even widths (never a squished 5th cell), and every
+    /// non-first cell carries a hairline divider on its top AND left so wrapped
+    /// rows still read as one aligned grid (`-mt-px/-ml-px` collapses doubled
+    /// borders between neighbors).
     let statsBar (items: (string * string) list) =
         let cells =
             items
             |> List.mapi (fun i (label, value) ->
+                let baseCls = "flex-1 min-w-[7rem] px-4 py-4"
+                let cls =
+                    if i > 0 then baseCls + " border-l border-t border-[var(--rz-border-color)] -mt-px -ml-px"
+                    else baseCls
                 div {
-                    attr.``class``
-                        (if i > 0 then
-                            "flex-1 min-w-0 px-4 py-4 border-l border-[var(--rz-border-color)]"
-                         else
-                            "flex-1 min-w-0 px-4 py-4")
+                    attr.``class`` cls
                     statCell label value
                 })
-        RadzenUI.cardOutlinedClass "rz-p-0" (
+        RadzenUI.cardOutlinedClass "rz-p-0 overflow-hidden" (
             div {
                 attr.``class`` "flex flex-wrap"
                 concat {
@@ -71,10 +72,12 @@ module Home =
                 }
             })
 
-    /// A compact live-server row: name, status badge, and a circular capacity
-    /// gauge. The online count comes straight from the canonical servers cache.
+    /// A compact live-server row: name + status badge on the left, circular
+    /// capacity gauge + counts on the right. `justifyBetween` spreads the two
+    /// groups to the card edges (no dead middle gap on narrow cards) and the
+    /// inner stacks align so badge/gauge baselines line up.
     let serverStatusRow (s: GameServer) =
-        RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
+        RadzenUI.cardOutlined (RadzenUI.hStackGapAlign "0.75rem" RadzenUI.alignCenter RadzenUI.justifyBetween (concat {
             RadzenUI.hStackGap "0.5rem" (concat {
                 // Pulsing status dot for live servers. Tailwind `animate-pulse`
                 // (opacity pulse) + `rounded-full` gives the same live-dot
@@ -85,18 +88,20 @@ module Home =
                 | "online" ->
                     div { attr.``class`` "animate-pulse rounded-full w-2.5 h-2.5 bg-[var(--rz-success)] motion-reduce:animate-none" }
                 | _ -> empty ()
-                RadzenUI.text RadzenUI.body1 s.name
-                RadzenUI.statusBadge s.status
+                RadzenUI.vStackGap "0.125rem" (concat {
+                    RadzenUI.text RadzenUI.body1 s.name
+                    RadzenUI.statusBadge s.status
+                })
             })
-            RadzenUI.hStackGap "1rem" (concat {
+            RadzenUI.hStackGap "0.75rem" (concat {
                 RadzenUI.progressBarCircular (float s.onlinePlayers) (float s.maxPlayers)
                     RadzenUI.circularMedium true
                     (if s.onlinePlayers >= s.maxPlayers then RadzenUI.progressBarDanger
                      elif float s.onlinePlayers / float (max s.maxPlayers 1) >= 0.8 then RadzenUI.progressBarWarning
                      else RadzenUI.progressBarSuccess)
-                RadzenUI.vStackGap "0.25rem" (concat {
+                RadzenUI.vStackGap "0.125rem" (concat {
                     RadzenUI.text RadzenUI.caption "capacity"
-                    RadzenUI.text RadzenUI.body1 (sprintf "%d / %d online" s.onlinePlayers s.maxPlayers)
+                    RadzenUI.text RadzenUI.body2 (sprintf "%d / %d online" s.onlinePlayers s.maxPlayers)
                 })
             })
         }))
@@ -129,14 +134,15 @@ module Home =
     let gamesCarousel (slides: Node list) =
         RadzenUI.carousel (min 3 slides.Length) (forEach slides (fun s -> s))
 
-    /// A real featured-game slide: banner image, title, genre chip, blurb.
+    /// A real featured-game slide: banner image, title, genre chip, blurb —
+    /// via the shared `mediaCard` wrapper so the slide matches the Games grid
+    /// cards exactly (uniform banner box + padded meta section).
     let gameSlide (g: Game) =
-        RadzenUI.carouselItem (RadzenUI.cardOutlined (RadzenUI.vStackGap "0.5rem" (concat {
-            RadzenUI.image g.imageUrl g.name
+        RadzenUI.carouselItem (RadzenUI.mediaCard g.imageUrl g.name (concat {
             RadzenUI.text RadzenUI.heading6 g.name
             RadzenUI.chip g.genre RadzenUI.primaryBadge
             RadzenUI.text RadzenUI.body2 g.description
-        })))
+        }))
 
     /// A skeleton featured-game slide — same carousel-item shape, skeleton body.
     let gameSkeletonSlide () =
@@ -188,6 +194,8 @@ module Home =
 
         // Live servers: SAME card + row container for real rows and skeleton
         // cards, so the layout matches exactly. Equal-height via `columnStretch`.
+        // Phone breakpoint is 12 (one card per row) — three ~125px-wide cards
+        // squeezed side-by-side was unreadable on 390px screens.
         let serversSection =
             cond shared.servers <| function
             | Loaded servers when servers.Count > 0 ->
@@ -206,11 +214,9 @@ module Home =
                 }))
 
         RadzenUI.vStackGap "1.5rem" (concat {
-            RadzenUI.rise (RadzenUI.vStackGap "0.25rem" (concat {
-                RadzenUI.text RadzenUI.display3 "Welcome to the gaming community!"
-                RadzenUI.text RadzenUI.subtitle1
-                    "Games we play, active servers, upcoming tournaments, and latest news."
-            }))
+            RadzenUI.pageHeading
+                "Welcome to the gaming community!"
+                (Some "Games we play, active servers, upcoming tournaments, and latest news.")
 
             RadzenUI.fadeIn statsSection
             newsSection

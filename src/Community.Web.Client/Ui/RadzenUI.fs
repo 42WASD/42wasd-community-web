@@ -469,6 +469,19 @@ module RadzenUI =
     let failedView (what: string) =
         text body1 ("Couldn't load " + what + ".")
 
+    /// The standard page header: a big display title, a short brand accent
+    /// bar beneath it (Radzen `--rz-primary` token), and an optional subtitle.
+    /// Every page opens with this one component so headings share the same
+    /// rhythm and get a brand accent instead of a bare text line.
+    let pageHeading (title: string) (subtitle: string option) =
+        rise (vStackGap "0.375rem" (concat {
+            text display3 title
+            div { attr.``class`` "h-1 w-14 bg-[var(--rz-primary)]" }
+            match subtitle with
+            | Some s -> text subtitle1 s
+            | None -> empty ()
+        }))
+
     /// The status badge for a `GameServer.status` string. Centralizes the
     /// `online`/`maintenance`/`offline` -> badge mapping so Home and Servers
     /// don't each hand-write the same match. Unknown values fall back to
@@ -558,6 +571,17 @@ module RadzenUI =
         comp<RadzenButton> {
             "Text" => textValue
             "ButtonStyle" => style
+            attr.callback "Click" (fun (_: MouseEventArgs) -> dispatch (onClickMsg ()))
+        }
+
+    /// A full-width Radzen button — the mobile-first CTA pattern: the button
+    /// stretches to its container so the touch target spans the whole card
+    /// (used for card actions like Games' Favourite).
+    let buttonWide (textValue: string) (style: ButtonStyle) (onClickMsg: unit -> 'Msg) (dispatch: 'Msg -> unit) =
+        comp<RadzenButton> {
+            "Text" => textValue
+            "ButtonStyle" => style
+            "Style" => "width: 100%;"
             attr.callback "Click" (fun (_: MouseEventArgs) -> dispatch (onClickMsg ()))
         }
 
@@ -761,14 +785,22 @@ module RadzenUI =
 
     // ---------------------------------------------------------------- carousel
 
-    /// A RadzenCarousel cycling through `carouselItem` children. `itemsPerPage`
-    /// controls how many are visible at once on large screens. Items are passed
-    /// via the `Items` render-fragment (see `fragmentParam`).
+    /// A RadzenCarousel cycling through `carouselItem` children. On desktop
+    /// (`lg`/`xl` breakpoints) `itemsPerPage` slides are visible at once; on
+    /// phones the carousel always pages ONE slide per view. Radzen's
+    /// `RadzenCarouselItem` hardcodes `flex: 0 0 calc(100% / n)` via an inline
+    /// style when `ItemsPerPage > 1` (no responsive variant exists — see its
+    /// `ItemStyle` in the vendored source), so the mobile 1-up is enforced in
+    /// CSS: the `app-carousel` hook class drives an
+    /// `@media (max-width: 767px)` override in index.css that forces every
+    /// slide to full width. `PagerPosition`/`PagerOverlay` follow the official
+    /// demo defaults for a static bottom dot pager (no text overlap).
     let carousel (itemsPerPage: int) (children: Node) =
         comp<RadzenCarousel> {
             "ItemsPerPage" => itemsPerPage
             "PagerPosition" => pagerBottom
             "PagerOverlay" => false
+            attr.``class`` "app-carousel"
             fragmentParam "Items" children
         }
 
@@ -794,6 +826,29 @@ module RadzenUI =
             "AlternateText" => alt
             "Style" => "width: 100%; height: 9rem; object-fit: cover; display: block;"
         }
+
+    /// A tidy media card: a uniform banner-image box + a padded content
+    /// (meta) section, as ONE component so every image-led card (featured-game
+    /// slide, game grid card, …) shares the exact same structure and spacing.
+    /// The image box uses a fixed aspect-ratio (16/9) with `object-fit: cover`,
+    /// so any source banner fills it edge-to-edge without distortion and every
+    /// card in a row/grid is the same height. The content section owns the
+    /// padding (the image is full-bleed to the card edges), and children flow
+    /// in a vertical stack — callers pass title/chip/text/button nodes.
+    let mediaCard (imageSrc: string) (imageAlt: string) (children: Node) =
+        cardOutlined (concat {
+            // Full-bleed image box: aspect-ratio keeps every banner identical;
+            // overflow hidden + display block clip any source ratio cleanly.
+            div {
+                attr.``class`` "overflow-hidden w-full"
+                image imageSrc imageAlt
+            }
+            // Padded meta section under the banner.
+            div {
+                attr.``class`` "flex flex-col gap-2 px-4 py-3"
+                children
+            }
+        })
 
     /// A RadzenChip label with a badge-style color and an optional fill variant.
     let chip (textValue: string) (style: BadgeStyle) =

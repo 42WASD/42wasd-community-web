@@ -24,17 +24,20 @@ module Games =
     /// dispatches a local ToggleFavorite (owned by this feature). Wrapped in a
     /// stretch column so cards in a row align to equal height at every
     /// breakpoint; the card itself fills the column so descriptions don't
-    /// leave ragged bottoms.
+    /// leave ragged bottoms. The card body uses the shared `mediaCard`
+    /// wrapper (uniform banner box + padded meta section) so the Games grid
+    /// and the Home featured-games carousel are pixel-identical.
     let gameCard (game: Game) (isFavorite: bool) (dispatch: Msg -> unit) =
         // Phase 15 evidence: probe how often this game is rebuilt.
         RenderProbe.touch $"game:{game.id}"
         RadzenUI.columnStretch 12 6 4 (concat {
-            RadzenUI.cardHover (RadzenUI.vStackGap "0.5rem" (concat {
-                RadzenUI.image game.imageUrl game.name
+            RadzenUI.cardHover (RadzenUI.mediaCard game.imageUrl game.name (concat {
                 RadzenUI.text RadzenUI.heading6 game.name
                 RadzenUI.chip game.genre RadzenUI.primaryBadge
                 RadzenUI.text RadzenUI.body2 game.description
-                RadzenUI.button
+                // Full-width CTA: spans the card so the touch target is the
+                // whole card width (mobile-first action).
+                RadzenUI.buttonWide
                     (if isFavorite then "Unfavourite" else "Favourite")
                     (if isFavorite then RadzenUI.lightButton else RadzenUI.primaryButton)
                     (fun () -> ToggleFavorite game.id)
@@ -61,6 +64,6 @@ module Games =
             // Phase 15 evidence: report once per page render.
             RenderProbe.report "Games.view"
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Games")
+                RadzenUI.pageHeading "Games" None
                 RadzenUI.rowGap "1rem" rows
             }))

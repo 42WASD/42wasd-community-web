@@ -63,7 +63,7 @@ module Tournaments =
             // Title + status badge block: on mobile full width, then 6/12ths.
             RadzenUI.columnResponsiveClass 12 7 6 "rz-p-4 rz-display-flex rz-align-items-center" (concat {
                 RadzenUI.vStackGap "0.25rem" (concat {
-                    RadzenUI.hStackGap "0.5rem" (concat {
+                    RadzenUI.hStackGapAlign "0.5rem" RadzenUI.alignCenter RadzenUI.justifyBetween (concat {
                         RadzenUI.text RadzenUI.heading6 tournament.name
                         status
                     })
@@ -73,13 +73,14 @@ module Tournaments =
                 })
             })
             // Prize — a clearly-labelled value column with equal height.
-            RadzenUI.columnResponsiveClass 12 5 3 "rz-p-4 rz-display-flex rz-align-items-center rz-justify-content-between" (concat {
+            RadzenUI.columnResponsiveClass 12 5 3 "rz-p-4 rz-display-flex rz-align-items-center" (concat {
                 RadzenUI.vStackGap "0.25rem" (concat {
                     RadzenUI.text RadzenUI.overline "Prize"
                     RadzenUI.text RadzenUI.subtitle1 tournament.prize
                 })
             })
-            // Action column: split button right-aligned (Radzen JustifyContent.End).
+            // Action column: full-width split button so the mobile touch
+            // target spans the card (right-aligned only on wide screens).
             RadzenUI.columnResponsiveClass 12 12 3 "rz-p-4 rz-display-flex rz-align-items-center rz-justify-content-end" action
         }))
 
@@ -98,6 +99,6 @@ module Tournaments =
             RadzenUI.failedView "tournaments"
         | Loaded m ->
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Tournaments")
+                RadzenUI.pageHeading "Tournaments" (Some "Upcoming competitions — open or closed for registration.")
                 RadzenUI.dataList<Tournament> (SharedModel.values m) false (fun t -> card t dispatch)
             }))

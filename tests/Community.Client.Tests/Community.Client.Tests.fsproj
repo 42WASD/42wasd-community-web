@@ -10,6 +10,8 @@
     <Compile Include="SharedUpdateTests.fs" />
     <Compile Include="AppTests.fs" />
     <Compile Include="RoutingTests.fs" />
+    <Compile Include="RouteDiscoveryTests.fs" />
+    <Compile Include="UiProbe.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,6 +19,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <!-- In-memory Blazor rendering for the UX-path probe (no browser). -->
+    <PackageReference Include="bunit" Version="1.35.3" />
   </ItemGroup>
 
   <ItemGroup>

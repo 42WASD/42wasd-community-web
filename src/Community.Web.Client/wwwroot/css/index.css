@@ -232,6 +232,40 @@ button.rz-primary.rz-button {
   padding-top: 0.75rem;
 }
 
+/* Mobile: page ONE slide per view. Radzen's RadzenCarouselItem hardcodes
+   `flex: 0 0 calc(100% / n)` as an inline style when ItemsPerPage > 1 (no
+   responsive variant exists in the library), so on phones the inline style
+   would squeeze 3 game cards into ~120px columns. This override (scoped to
+   the `.app-carousel` hook added by the `carousel` wrapper) forces every
+   slide to full width below 768px, where the desktop multi-up is not useful.
+   `!important` beats the inline style; the desktop rule does nothing. */
+@media (max-width: 767px) {
+  .app-carousel .rz-carousel-item {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* =========================================================================
+   Phones (<576px): every Radzen grid column stacks full-width
+   -------------------------------------------------------------------------
+   ROOT CAUSE: Radzen's breakpoint map starts `xs` at min-width: 576px, so
+   BELOW 576px no `rz-col-*` class applies and the base rule
+   `.rz-row > [class^='rz-col'] { flex: 1 0 0% }` kicks in — columns share the
+   row in EQUAL THIRDS instead of stacking. That is why three server cards
+   squeezed to ~125px each on a 390px phone. Every page already asks for
+   12-of-12 at the smallest breakpoint (SizeXS=12 / sm=12), so forcing
+   full-width columns below 576px matches the intent of every grid in the app
+   (server cards, game cards, tournament card sections, skeleton grids).
+   Radzen-internal override kept in index.css per the design convention.
+   ========================================================================= */
+@media (max-width: 575px) {
+  .rz-row > [class*='rz-col-'] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
 /* =========================================================================
    Vertical DataList card separation (Tournaments)
    -------------------------------------------------------------------------
@@ -245,24 +279,11 @@ button.rz-primary.rz-button {
   --rz-datalist-item-margin-block: 1rem;
 }
 
-/* Teams splitter: each pane's card fills the pane so uneven rosters balance
-   into a dashboard-like layout with no dead vertical space. */
-.rz-splitter-pane > .rz-card {
+/* Teams cards fill their stretch column so uneven rosters align to the
+   tallest card in a row (same "intelligent row height" pattern as Games). */
+.rz-row > .rz-col > .rz-card {
   height: 100%;
   box-sizing: border-box;
-  overflow: auto;
-}
-/* On small screens the horizontal splitter is too cramped, so stack the
-   panes vertically (the splitter's flex bars become horizontal dividers). */
-@media (max-width: 768px) {
-  .rz-splitter.rz-splitter-horizontal {
-    flex-direction: column;
-    height: auto !important;
-  }
-  .rz-splitter.rz-splitter-horizontal > .rz-splitter-pane {
-    width: 100%;
-    min-height: 140px;
-  }
 }
 
 /* Cross-fade old→new content during a skeleton→content swap. The browser

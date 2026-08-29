@@ -11,10 +11,11 @@ module About =
 
     let view () =
         RadzenUI.vStackGap "1.5rem" (concat {
-            RadzenUI.rise (RadzenUI.text RadzenUI.display3 "About")
-            RadzenUI.card (RadzenUI.vStackGap "0.5rem" (concat {
+            RadzenUI.pageHeading "About" (Some "What this community hub is built on.")
+            RadzenUI.card (RadzenUI.vStackGap "0.75rem" (concat {
                 RadzenUI.text RadzenUI.subtitle1
                     "The 42WASD gaming community."
+                RadzenUI.divider ()
                 RadzenUI.text RadzenUI.body1
                     "Built with Bolero + Elmish on a Radzen Blazor design system."
             }))

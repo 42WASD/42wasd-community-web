@@ -79,7 +79,7 @@ module Members =
                     || p.username.ToLowerInvariant().Contains query
                     || (defaultArg p.discord "").ToLowerInvariant().Contains query)
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Members")
+                RadzenUI.pageHeading "Members" (Some "Search the community roster by name or Discord handle.")
                 // A search box that suggests usernames and drives the live
                 // filter on the roster below.
                 RadzenUI.autoComplete

@@ -75,7 +75,7 @@ module Servers =
             RadzenUI.failedView "servers"
         | Loaded servers ->
             RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.rise (RadzenUI.text RadzenUI.display3 "Servers")
+                RadzenUI.pageHeading "Servers" (Some "Live game servers and their capacity.")
                 match shared.games with
                 | Loaded games -> serverTabs servers games
                 | _ -> serverTabs servers Map.empty<string, Game>

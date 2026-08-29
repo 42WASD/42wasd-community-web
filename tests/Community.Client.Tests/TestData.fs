@@ -1,6 +1,8 @@
 namespace Community.Client.Tests
 
 open System
+open Community.Web.Client.App
+open Community.Web.Client.State
 open Community.Web.Shared.Domain
 open Community.Web.Shared.Remoting
 
@@ -34,10 +36,56 @@ module TestData =
             { id = "game-2"; name = "Dota 2"; genre = "MOBA"; description = "5v5 arena"; imageUrl = "https://img/game2.jpg" }
         |]
 
-    /// One open and one closed tournament, used to assert the cross-feature
-    /// toggle (Phase 14) — toggling one leaves the other untouched.
+    /// Sample game servers covering every status for the Servers tabs.
+    let sampleServers : GameServer[] =
+        [|
+            { id = "s-1"; name = "CS2 Competitive #1"; gameId = "game-1"; address = "10.0.0.1:27015"; onlinePlayers = 7; maxPlayers = 12; status = "online" }
+            { id = "s-2"; name = "Dota 2 Lobby"; gameId = "game-2"; address = "10.0.0.2:27016"; onlinePlayers = 3; maxPlayers = 10; status = "online" }
+            { id = "s-3"; name = "CS2 Practice"; gameId = "game-1"; address = "10.0.0.3:27017"; onlinePlayers = 0; maxPlayers = 8; status = "offline" }
+        |]
+
+    /// Two tournaments: one open, one closed — used to assert the cross-
+    /// feature toggle (toggling one leaves the other untouched).
     let sampleTournaments : Tournament[] =
         [|
             { id = "t-1"; name = "CS2 Cup"; gameId = "game-1"; startsAt = System.DateTime(2026, 9, 1); prize = "$1k"; registrationOpen = true }
             { id = "t-2"; name = "Dota Invitational"; gameId = "game-2"; startsAt = System.DateTime(2026, 9, 5); prize = "$2k"; registrationOpen = false }
         |]
+
+    /// News posts for the Home page's latest-news section.
+    let sampleNews : News[] =
+        [|
+            { id = "n-1"; title = "Season 3 starts"; body = "New season begins."; publishedAt = System.DateTime(2026, 8, 20) }
+            { id = "n-2"; title = "New servers online"; body = "Two CS2 servers added."; publishedAt = System.DateTime(2026, 8, 25) }
+        |]
+
+    /// Players for the Members page.
+    let samplePlayers : Player[] =
+        [|
+            { id = "p-1"; username = "alice"; discord = Some "alice#1"; handle = Some "Alice"; bio = Some "FPS player" }
+            { id = "p-2"; username = "bob"; discord = None; handle = Some "Bob"; bio = None }
+        |]
+
+    /// Teams for the Teams page.
+    let sampleTeams : Team[] =
+        [|
+            { id = "team-1"; name = "Alpha Squad"; players = [| samplePlayers.[0] |] }
+            { id = "team-2"; name = "Beta Squad"; players = [| samplePlayers.[1] |] }
+        |]
+
+    /// Every DataLoaded payload at once — the fully-loaded shared cache used
+    /// by the UX probe so conditional rendering is fully resolved (real
+    /// cards/tabs instead of skeletons).
+    let loadedShared : SharedModel =
+        [ Shared.GamesLoaded sampleGames
+          Shared.ServersLoaded sampleServers
+          Shared.TournamentsLoaded sampleTournaments
+          Shared.NewsLoaded sampleNews
+          Shared.PlayersLoaded samplePlayers
+          Shared.TeamsLoaded sampleTeams ]
+        |> List.fold
+            (fun shared payload ->
+                let m, _ =
+                    Shared.update stubApi shared (Shared.DataLoaded payload)
+                m)
+            SharedModel.init
