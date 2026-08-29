@@ -1,0 +1,74 @@
+# Live-state expectations — the single source of truth for doc-impact probes.
+#
+# Each entry asserts ONE documented claim about live state (a host, a cluster,
+# a service). The pytest engine (projects/tests/test_doc_impact.py) interprets
+# this file; adding a check here is data, not code.
+#
+# THIS FILE SHIPS WITH PLACEHOLDER ENTRIES, ALL DISABLED VIA `skip:` — they
+# demonstrate every probe type but assert nothing. To activate:
+#   1. delete the `skip:` line on an entry you want
+#   2. point it at YOUR infrastructure and set the expected value
+#   3. run:  cd projects && uv run pytest tests/test_doc_impact.py -q
+#
+# Fields:
+#   id:         stable probe name (shows in pytest output)
+#   probe:      probe type (see engine): command|file_contains|service_active|
+#               swap_active|vg_present|kubectl_json|nodeport_owner|ssh
+#   expect:     expected value (type depends on probe)
+#   docs:       docs to fix if this drifts (paths relative to repo root)
+#   quick:      true = included in the fast battery (pytest -m quick)
+#   skip:       reason to disable the probe (placeholder entries ship skipped
+#               so CI never fails on claims that are not yours)
+#
+# Comparison rules:
+#   command        exact string match of last stdout line (stripped)
+#   file_contains  substring present in file
+#   service_active "active"/"inactive"
+#   swap_active    "active"/"inactive"
+#   vg_present     VG name exists in `vgs` output
+#   kubectl_json   expect: {dotted.path -> expected}; "ready" = Node Ready
+#                  condition; trailing "*" = startswith match
+#   nodeport_owner expect: "namespace/name" owning that nodePort
+#   ssh            expect: exact stdout; also auto-SKIPS if host unreachable
+
+checks:
+  # ---- examples for each probe type — delete `skip:` to activate ----
+
+  - id: example-service-running
+    probe: service_active
+    service: sshd                      # <- any systemd unit your docs mention
+    expect: active
+    docs:
+      - docs/reference-design/
+    quick: true
+    skip: placeholder — point at a real service first
+
+  - id: example-command-output
+    probe: command
+    command: sysctl -n net.ipv4.ip_forward
+    expect: "1"
+    docs:
+      - docs/reference-design/
+    quick: true
+    skip: placeholder — point at a real host claim first
+
+  - id: example-config-file
+    probe: file_contains
+    path: /etc/os-release
+    expect: ID=ubuntu
+    docs:
+      - docs/reference-design/
+    quick: true
+    skip: placeholder — point at a real config first
+
+  # kubernetes example (delete if your project has no cluster):
+  - id: example-cluster-nodes-ready
+    probe: kubectl_json
+    resource: nodes
+    select: ""                          # "" = first node; or an exact name
+    expect:
+      ready: "True"
+    docs:
+      - docs/reference-design/
+    quick: false
+    skip: placeholder — needs a reachable cluster + real node name

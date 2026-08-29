@@ -151,6 +151,24 @@ packages, writing to `/usr/lib`, `/usr/local`, `/var`, etc.):
 Rule of thumb: elevated work always goes through sudo; the user authenticates
 interactively.
 
+## Password-based SSH / remote commands (sshpass)
+
+- When a remote host must be reached with a **password** (no key installed),
+  never ask for it in chat for the first connection — prompt the user to run
+  it interactively, or use key-based auth / `BatchMode` and let it fail
+  cleanly.
+- **Once the user has typed the password into the chat** (a later turn), you
+  may use `sshpass` for subsequent commands non-interactively. Read it into
+  an env var rather than inlining it:
+  ```bash
+  SSHPASS='<password-from-user>' sshpass -e ssh -o StrictHostKeyChecking=accept-new user@host 'command'
+  ```
+- `sshpass -e` (env var) over `sshpass -p '<pw>'` — keeps the password out of
+  `ps` output and shell history.
+- For recurring access, prefer installing a key (`ssh-copy-id`) so later
+  turns need no password at all. Never echo the password back, never commit
+  it, never store it in a file inside the repo.
+
 ## Adding a new validation check
 
 1. Prefer `validate()` in `scripts/docs/docs_manifest.py` for structural
@@ -179,3 +197,28 @@ When working with the Bolero codebase or writing F# for it:
    what Bolero already provides.
 3. Debugging: the Elmish message trace runs in the **browser console**, not the
    server terminal.
+## Doc-impact — check docs for staleness after live commands
+
+- **After any successful run of new/implementing commands** (anything that
+  installed, configured, created, renamed, scaled, or removed something on
+  the host or cluster), run a quick doc-impact check **before finishing the
+  turn**:
+
+  **Step 1 — smart diff:** describe what changed and retrieve the docs that
+  talk about the same things (hybrid FTS5-BM25 + fuzzy over a committed
+  SQLite index):
+  ```bash
+  cd projects
+  uv run python ../scripts/docs/doc-impact/impact_search.py "what changed"
+  ```
+  **Step 2 — load and reconcile:** fix stale docs in the same turn.
+  **Step 3 — regression battery:**
+  ```bash
+  uv run pytest tests/test_doc_impact.py -q -m quick   # fast host-only
+  uv run pytest tests/test_doc_impact.py -q            # full probe
+  ```
+- Expectations live in `scripts/docs/doc-impact/live-expectations.yaml`
+  (ships with skipped placeholders — delete `skip:` and point at real
+  infrastructure). The committed index (`doc-index.db`) self-updates via the
+  post-commit hook; enable once per clone:
+  `bash scripts/docs/doc-impact/setup-git-hooks.sh`
