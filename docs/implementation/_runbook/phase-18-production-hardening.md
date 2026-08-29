@@ -117,11 +117,18 @@ tracking). Wired it into GitOps in the iac repo:
   `42wasd-community-web.git` to `tenant-42wasd-admin` `sourceRepos`.
 
 ```bash
-# iac repo: apply project (NOT Argo-managed — must be manual) + app
+# from the iac repo (42WASD/ubuntu-server-iac) — the manifests live there:
+cd ~/ubuntu-server-iac
 kubectl -n argocd apply -f infra/kubernetes/bootstrap/argocd/projects.yaml
 kubectl -n argocd apply -f infra/kubernetes/bootstrap/argocd/apps/tenant-community-web.yaml
 kubectl -n argocd get app tenant-community-web   # Synced
 ```
+
+> Status (re-verified 2026-08-29): app `tenant-community-web` is
+> `Synced` (health `Progressing` — Argo's kube-prometheus-style health
+> check on the raw Ingress lacks a hook; all pods 1/1 Running and the site
+> serves via `wasd.42base.com`). The workload manifests live in THIS repo
+> under `deploy/k8s/` — that is the path the Argo Application watches.
 
 The namespace `prd-42wasd-admin` is already Argo-owned by
 `platform-namespaces` (labels `platform.tier: tenant` + PSS `restricted`).
