@@ -197,6 +197,16 @@ When working with the Bolero codebase or writing F# for it:
    what Bolero already provides.
 3. Debugging: the Elmish message trace runs in the **browser console**, not the
    server terminal.
+## Argo CD health for on-prem Traefik ingresses
+
+The platform's Argo CD reports `Synced / Healthy` for this app thanks to an
+Ingress health customization in the iac repo
+(`infra/kubernetes/bootstrap/argocd/argocd-config.yaml`): on-prem Traefik
+never sets `status.loadBalancer`, so the built-in Ingress health check
+would keep the app `Progressing` forever. If a future app of this repo
+shows `Progressing` with all pods Running, check that customization
+first — not the workload.
+
 ## Doc-impact — check docs for staleness after live commands
 
 - **After any successful run of new/implementing commands** (anything that

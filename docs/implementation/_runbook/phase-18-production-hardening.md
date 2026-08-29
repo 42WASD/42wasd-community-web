@@ -125,10 +125,14 @@ kubectl -n argocd get app tenant-community-web   # Synced
 ```
 
 > Status (re-verified 2026-08-29): app `tenant-community-web` is
-> `Synced` (health `Progressing` — Argo's kube-prometheus-style health
-> check on the raw Ingress lacks a hook; all pods 1/1 Running and the site
-> serves via `wasd.42base.com`). The workload manifests live in THIS repo
-> under `deploy/k8s/` — that is the path the Argo Application watches.
+> `Synced / Healthy`. Health required an Argo CD resource customization:
+> on-prem Traefik never populates `status.loadBalancer`, so the built-in
+> Ingress health left the app `Progressing` forever. Fixed via
+> `resource.customizations.health.networking.k8s.io_Ingress` in the iac
+> repo (`infra/kubernetes/bootstrap/argocd/argocd-config.yaml` — spec-based
+> check, applied to `argocd-cm` by hand since Argo bootstraps itself).
+> The workload manifests live in THIS repo under `deploy/k8s/` — that is
+> the path the Argo Application watches.
 
 The namespace `prd-42wasd-admin` is already Argo-owned by
 `platform-namespaces` (labels `platform.tier: tenant` + PSS `restricted`).
