@@ -91,7 +91,10 @@ kubectl -n prd-42wasd-admin exec deploy/42wasd -- sh -c "id; touch /app/data/tes
 
 ### Fix: PVC + fsGroup + seed-data initContainer + Recreate
 
-1. `deploy/k8s/pvc.yaml` (new) — `42wasd-data`, `nvme-fast`, 1Gi, RWO.
+1. `deploy/k8s/pvc.yaml` — `42wasd-data-tmp`, `nvme-fast`, 1Gi, RWO.
+   (History: first introduced as `42wasd-data`; later swapped down to an
+   `emptyDir` in commit 3280b45; on 2026-08-30 re-introduced as a FRESH
+   `42wasd-data-tmp` claim per request — same pattern, new volume.)
 2. `deploy/k8s/deployment.yaml`:
    - Pod `securityContext.fsGroup: 1654` → chowns the mounted volume so the
      `app` user (uid/gid 1654) can write.
@@ -99,7 +102,7 @@ kubectl -n prd-42wasd-admin exec deploy/42wasd -- sh -c "id; touch /app/data/tes
      to seed the baked JSON into the volume on first start (no-clobber so saved
      `players.json` survives restarts).
    - Main container `volumeMounts` — `data` at `/app/data`.
-   - `volumes` — `persistentVolumeClaim: claimName: 42wasd-data`.
+   - `volumes` — `persistentVolumeClaim: claimName: 42wasd-data-tmp`.
    - `strategy: Recreate` — RWO volume can't be shared during a rolling
      update; Recreate terminates the old pod first (single replica, so the
      brief downtime is acceptable).
@@ -160,3 +163,32 @@ the app user owns. `fsGroup` (group ownership) + a non-root `initContainer`
 copy to a PVC is the pattern. A single-replica RWO workload also needs
 `strategy: Recreate` or a rolling update deadlocks (new pod can't bind the
 volume until the old pod releases it).
+
+### Post-fix (2026-08-30): fresh tmp PVC rollout — SSA emptyDir ghost
+
+Rolling the volume type back from `emptyDir` to a PVC
+(`42wasd-data-tmp`, new `deploy/k8s/pvc.yaml`) exposed an Argo CD
+server-side-apply trap: an OLD `argocd-controller Update` (the 3280b45
+emptyDir commit) still owned `f:emptyDir` on the volume entry. When the new
+git source changed the SAME `data` volume entry to `persistentVolumeClaim`,
+SSA merged BOTH types into the attempted object → the API server rejected
+the Deployment ("may not specify more than 1 volume type" + the volumeMount
+`data` references unresolved), and Argo reported `Failed (retried 5 times)`
+while the OLD pod kept serving. `kubectl apply --server-side --force-conflicts`
+hits the same merge, so it fails identically.
+
+Fix that worked: a JSON patch REPLACING the whole volumes array (bypasses
+the strategic-merge key merge):
+
+```bash
+kubectl -n prd-42wasd-admin patch deploy 42wasd --type=json -p='[{"op":"replace","path":"/spec/template/spec/volumes","value":[{"name":"data","persistentVolumeClaim":{"claimName":"42wasd-data-tmp"}}]}]'
+kubectl -n prd-42wasd-admin rollout status deploy/42wasd
+```
+
+The next Argo sync then converged (`Synced / Healthy` at the pushed rev).
+Lesson: after Argo reports a FAILED sync of an invalid object, the LIVE
+object may hold a merged half-old/half-new spec that no clean apply can fix
+— the failed apply never persisted, so every retry replays the same merge.
+Replacing the contested field out-of-band (JSON patch), or deleting the
+stale field manager, unblocks it. Also remember to clear/refresh a stale
+`kubectl.kubernetes.io/last-applied-configuration` annotation if one exists.
