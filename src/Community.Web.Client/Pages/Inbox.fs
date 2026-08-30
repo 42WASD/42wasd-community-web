@@ -40,6 +40,13 @@ module Inbox =
             let model' = if isNull (box model) then init else model
             { model' with search = s }, Cmd.none
 
+    /// SSR-safe accessor: the page model may be null under Release SSR
+    /// (router constructs the Page DU with `Router.noModel` for direct URL
+    /// requests — there is no Elmish state on the server). Reading `search`
+    /// off a null Model throws; this returns "" instead.
+    let private searchOf (model: Model) =
+        if isNull (box model) then "" else model.search
+
     // ------------------------------------------------------------ helpers
 
     /// One inbox item: unread dot + title + body + relative date, rendered
@@ -104,9 +111,15 @@ module Inbox =
 
     // -------------------------------------------------------------- page
 
-    /// The dedicated /inbox page view. Callbacks: reload (pull news again),
-    /// and the page-local search dispatch.
-    let view (news: RemoteData<Map<string, News>>) (search: string) (onSearch: string -> unit) (reload: unit -> unit) =
+    /// The dedicated /inbox page view. Takes the page's OWN Model (nullable!)
+    /// rather than the extracted search string: under Release SSR the router
+    /// renders the page with a NULL Model (no Elmish state server-side), and
+    /// evaluating `pm.Model.search` at the CALL SITE dereferences that null
+    /// and throws NRE before this function is even entered (observed live:
+    /// GET /inbox -> 500, Layout.fs InboxPage arm). Passing `pm.Model` and
+    /// null-guarding HERE is exactly the Members/Account page pattern.
+    let view (news: RemoteData<Map<string, News>>) (model: Model) (onSearch: string -> unit) (reload: unit -> unit) =
+        let search = searchOf model
         RadzenUI.vStackGap "var(--gap-section)" (concat {
             RadzenUI.pageHeadingCrumb "Notifications"
                 (Some "Everything that happened while you were away.")
