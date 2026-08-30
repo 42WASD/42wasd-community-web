@@ -1248,6 +1248,11 @@ module RadzenUI =
         comp<RadzenImage> {
             "Path" => src
             "AlternateText" => alt
+            // w-full + h-full: always fill the parent box (the 16/9 media
+            // box) — the image ENLARGES past its intrinsic size when the box
+            // is bigger, and object-fit:cover crops (never distorts) any
+            // source ratio to fill. display:block kills the inline-baseline
+            // gap under the img.
             "Style" => "width: 100%; height: 100%; object-fit: cover; display: block;"
         }
 
@@ -1267,8 +1272,11 @@ module RadzenUI =
             // Full-bleed image box with a LOCKED 16/9 aspect (audit #2:
             // intrinsic source ratios made card bottoms ragged — 16/9 crops
             // cleanly instead). Overflow hidden clips any source ratio.
+            // min-w-0: inside a flex/grid column the box must be allowed to
+            // GROW to the column width (a fixed intrinsic image width must
+            // never cap the box) — pairs with the w-full img below.
             div {
-                attr.``class`` "overflow-hidden w-full aspect-[16/9]"
+                attr.``class`` "overflow-hidden w-full min-w-0 aspect-[16/9]"
                 image imageSrc imageAlt
             }
             // Padded meta section; flex-1 so the caller's trailing mt-auto

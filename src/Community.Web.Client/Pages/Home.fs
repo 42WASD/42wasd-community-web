@@ -167,7 +167,15 @@ module Home =
     let gamePageGroup (group: Node list) =
         RadzenUI.carouselItem (
             div {
-                attr.``class`` "grid grid-cols-1 sm:grid-cols-2 gap-[var(--gap-grid)] items-stretch h-full"
+                // w-full: Radzen's `.rz-carousel-item` is display:flex +
+                // justify-content:center (verified _carousel.scss), so a plain
+                // grid child shrink-wraps to its content — slides with smaller
+                // source images (460px Steam headers) rendered narrower cards
+                // than slides with large art, and the 16/9 image box shrank
+                // with them. Forcing the grid to the FULL slide width makes
+                // every slide identical: the 16/9 media boxes then fill their
+                // column and object-fit:cover crops any source ratio to fill.
+                attr.``class`` "w-full grid grid-cols-1 sm:grid-cols-2 gap-[var(--gap-grid)] items-stretch h-full"
                 concat {
                     for slide in group do
                         slide
