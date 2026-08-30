@@ -44,8 +44,8 @@ module RouteDiscoveryTests =
         let navPages =
             Layout.navItems
             |> List.collect (function
-                | Layout.NavItem.Leaf (p, _) -> [ p ]
-                | Layout.NavItem.Group (_, leaves) -> leaves |> List.map fst)
+                | Layout.NavItem.Leaf (p, _, _) -> [ p ]
+                | Layout.NavItem.Group (_, _, leaves) -> leaves |> List.map (fun (p, _, _) -> p))
         let allPages =
             FSharpType.GetUnionCases(typeof<Page>)
             |> Array.choose (fun case ->
@@ -53,6 +53,9 @@ module RouteDiscoveryTests =
                     Some (FSharpValue.MakeUnion(case, [||]) :?> Page)
                 else None)
         for p in allPages do
-            Assert.True(
-                navPages |> List.contains p,
-                $"Page case {p} is not reachable from Layout.navItems")
+            // NotFound is the branded 404 dead-end (Router.withNotFound) —
+            // intentionally NOT a nav destination.
+            if p <> Page.NotFound then
+                Assert.True(
+                    navPages |> List.contains p,
+                    $"Page case {p} is not reachable from Layout.navItems")

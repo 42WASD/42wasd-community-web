@@ -48,8 +48,8 @@ module AppTests =
     let ``AccountMsg Login translates to SendSignIn with the submitted credentials`` () =
         let pm : Bolero.PageModel<Account.Model> = { Model = Account.init }
         let m = { initModel with page = Page.AccountPage pm }
-        // A single Login intent carries both fields and preserves the page.
-        let after, _ = update stubApi (AccountMsg (Account.Login ("alice", "password"))) m
+        // A single Login intent carries both fields + remember-me and preserves the page.
+        let after, _ = update stubApi (AccountMsg (Account.Login ("alice", "password", false))) m
         Assert.Equal(m.page, after.page)
 
     [<Fact>]

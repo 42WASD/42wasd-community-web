@@ -21,6 +21,9 @@ type SharedModel =
         favoriteGames: Set<string>
         error: string option
         signInFailed: bool
+        /// True while a profile save is in flight — drives the Save button's
+        /// busy spinner (RadzenButton IsBusy).
+        profileSaving: bool
         /// True briefly after the signed-in player's profile is saved, driving
         /// the "Profile saved" confirmation on the Account page.
         profileSaved: bool
@@ -44,6 +47,7 @@ module SharedModel =
             favoriteGames = Set.empty
             error = None
             signInFailed = false
+            profileSaving = false
             profileSaved = false
             profileError = None
         }

@@ -51,6 +51,38 @@
     return document.querySelectorAll('.rz-skeleton').length === 0;
   }
 
+  // Icon-font readiness (ghost-text fix): until "Material Symbols" is loaded,
+  // .rzi elements paint RAW LIGATURE TEXT ("sports_shooting") in the fallback
+  // font, smearing far outside their 1em box (CSS hides them until this class
+  // lands on <html>). document.fonts.ready resolves when ALL declared fonts
+  // finished loading for the current document.
+  function markIconsReady() {
+    if (document.fonts && document.fonts.check) {
+      var apply = function () {
+        if (document.fonts.check('24px "Material Symbols"')) {
+          document.documentElement.classList.add('icons-ready');
+          return true;
+        }
+        return false;
+      };
+      if (apply()) return;
+      document.fonts.ready.then(function () { apply(); });
+      // Safety net: if the font never arrives (offline/CDN down), reveal the
+      // fallback text anyway after 2s — a visible raw label beats invisible
+      // buttons. 'icons-fallback' opts the .rzi rule back in.
+      window.setTimeout(function () {
+        if (!document.fonts.check('24px "Material Symbols"')) {
+          document.documentElement.classList.add('icons-ready');
+        }
+      }, 2000);
+    } else {
+      // Ancient browser without FontFaceSet: show icons unconditionally
+      // (better a flash of raw text than permanently hidden icons).
+      document.documentElement.classList.add('icons-ready');
+    }
+  }
+  markIconsReady();
+
   function activate() {
     setFavicon(ACTIVE_SVG, ACTIVE_ICO);
     document.documentElement.setAttribute(MARKER, '');

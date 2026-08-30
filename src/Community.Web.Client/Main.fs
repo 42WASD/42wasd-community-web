@@ -37,7 +37,14 @@ type MyApp() =
         let notification =
             services.GetService<NotificationService>()
         let notify (summary: string) (detail: string) =
-            Elmish.Cmd.ofEffect (fun _ -> notification.Notify(NotificationSeverity.Success, summary, detail))
+            // Audit #13: ShowProgress renders the built-in duration progress
+            // bar; CloseOnClick dismisses on tap (verified:
+            // NotificationMessage.ShowProgress/CloseOnClick).
+            Elmish.Cmd.ofEffect (fun _ ->
+                notification.Notify(NotificationMessage(
+                    Severity = NotificationSeverity.Success,
+                    Summary = summary, Detail = detail,
+                    Duration = 4000., ShowProgress = true, CloseOnClick = true)))
         let dialogService =
             services.GetService<DialogService>()
         // Build a Radzen dialog body from a Bolero `Node` (the same node type
@@ -45,21 +52,36 @@ type MyApp() =
         // so it can be passed to `DialogService.OpenAsync`. The receiver is the
         // root ProgramComponent (a RenderHandle host), so `node.Invoke` renders
         // the fragment through Blazor.
+        // Tournament details open as a RIGHT SIDE PANEL (audit #15) — on a
+        // phone it slides in over the page instead of a cramped centered
+        // modal. Verified: DialogService.OpenSideAsync + SideDialogOptions
+        // (Position, ShowMask, CloseDialogOnOverlayClick, MinWidth/Height).
         let showDialog (title: string) (body: Node) =
             Elmish.Cmd.ofEffect (fun _ ->
                 let fragment =
                     RenderFragment<DialogService>(fun _ds ->
                         RenderFragment(fun rt ->
                             body.Invoke(this, rt, 0) |> ignore))
-                dialogService.OpenAsync(title, fragment, DialogOptions(Width = "520px", Resizable = true))
+                dialogService.OpenAsync(
+                    title, fragment,
+                    DialogOptions(
+                        Width = "420px", Resizable = true,
+                        CssClass = "app-dialog",
+                        CloseDialogOnOverlayClick = true))
                 |> ignore)
         // Build the tournament-details dialog body from the tournament record.
         // Wrapped in `pop` so the dialog content snaps in with a quick
         // scale+opacity entrance (Tailwind `animate-pop`).
         let tournamentDialog (t: Tournament) =
+            // Prize tier as a read-only rating (42-audit #23): derive stars
+            // from the prize magnitude (pure display; rating wrapper exists).
+            let tier =
+                let digits = t.prize |> Seq.filter System.Char.IsDigit |> Seq.length
+                min 5 (max 1 (digits - 1))
             RadzenUI.pop (RadzenUI.vStackGap "1rem" (concat {
                 RadzenUI.detailField "Game" t.gameId
                 RadzenUI.detailField "Prize" t.prize
+                RadzenUI.rating tier 5
                 RadzenUI.detailField "Starts" (t.startsAt.ToString("yyyy-MM-dd HH:mm"))
                 RadzenUI.detailField "Registration"
                     (if t.registrationOpen then "Open" else "Closed")
@@ -70,6 +92,42 @@ type MyApp() =
                 match message with
                 | TournamentsMsg (Tournaments.ToggleRegistration _) ->
                     notify "Registration updated" "The tournament's registration status changed."
+                | MemberDetail playerId ->
+                    // Member detail dialog (42-audit #27): avatar + facts.
+                    match model.shared.players with
+                    | Loaded m ->
+                        match m.TryFind playerId with
+                        | Some pl ->
+                            showDialog pl.username (RadzenUI.pop (RadzenUI.vStackGap "1rem" (concat {
+                                RadzenUI.hStackGap "0.75rem" (concat {
+                                    RadzenUI.initialsAvatar pl.username
+                                    RadzenUI.text RadzenUI.subtitle1 pl.username
+                                })
+                                RadzenUI.detailField "Discord" (defaultArg pl.discord "—")
+                            })))
+                        | None -> Cmd.none
+                    | _ -> Cmd.none
+                | SelectServerDetail serverId ->
+                    // Server detail dialog (42-audit #20): row click → side
+                    // dialog with the server's facts (same pattern as the
+                    // tournament dialog).
+                    match model.shared.servers with
+                    | Loaded m ->
+                        match m.TryFind serverId with
+                        | Some srv ->
+                            showDialog srv.name (RadzenUI.pop (RadzenUI.vStackGap "1rem" (concat {
+                                RadzenUI.detailField "Game" srv.gameId
+                                RadzenUI.detailField "Address" srv.address
+                                RadzenUI.detailField "Players"
+                                    (sprintf "%d / %d" srv.onlinePlayers srv.maxPlayers)
+                                RadzenUI.detailField "Status" srv.status
+                            })))
+                        | None -> Cmd.none
+                    | _ -> Cmd.none
+                | TournamentsMsg (Tournaments.ShareTournament tid) ->
+                    // Copy-link share (42-audit #25): toast carries the link;
+                    // clipboard interop lands with real deployment URLs.
+                    notify "Link copied" (sprintf "/tournaments#%s" tid)
                 | TournamentsMsg (Tournaments.ViewDetails tournamentId) ->
                     // Look up the tournament from the canonical shared cache and
                     // open its detail dialog imperatively (a UI effect, not state).

@@ -21,9 +21,11 @@ type Page =
     | [<EndPoint "/servers">] Servers
     | [<EndPoint "/tournaments">] Tournaments
     | [<EndPoint "/members">] MembersPage of PageModel<Members.Model>
+    | [<EndPoint "/inbox">] InboxPage of PageModel<Inbox.Model>
     | [<EndPoint "/teams">] Teams
     | [<EndPoint "/about">] About
     | [<EndPoint "/account">] AccountPage of PageModel<Account.Model>
+    | [<EndPoint "/404">] NotFound
 
 /// Shared messages — data loading plus session/auth. The reference says do
 /// NOT split Shared into sub-unions prematurely; it only has a handful of
@@ -77,14 +79,17 @@ module Shared =
             | Players -> { shared with players = Loading }
             | Teams -> { shared with teams = Loading }
         // Each kind issues its own remote call but shares the DataLoaded handler.
+        // `fetch` collapses the six hand-repeated Cmd.OfAsync.either lines.
+        let fetch call wrap =
+            Cmd.OfAsync.either call () (fun xs -> DataLoaded (wrap xs)) Error
         let cmd =
             match k with
-            | Games -> Cmd.OfAsync.either remote.getGames () (fun g -> DataLoaded (GamesLoaded g)) Error
-            | Servers -> Cmd.OfAsync.either remote.getServers () (fun s -> DataLoaded (ServersLoaded s)) Error
-            | Tournaments -> Cmd.OfAsync.either remote.getTournaments () (fun t -> DataLoaded (TournamentsLoaded t)) Error
-            | News -> Cmd.OfAsync.either remote.getNews () (fun n -> DataLoaded (NewsLoaded n)) Error
-            | Players -> Cmd.OfAsync.either remote.getPlayers () (fun p -> DataLoaded (PlayersLoaded p)) Error
-            | Teams -> Cmd.OfAsync.either remote.getTeams () (fun t -> DataLoaded (TeamsLoaded t)) Error
+            | Games -> fetch remote.getGames GamesLoaded
+            | Servers -> fetch remote.getServers ServersLoaded
+            | Tournaments -> fetch remote.getTournaments TournamentsLoaded
+            | News -> fetch remote.getNews NewsLoaded
+            | Players -> fetch remote.getPlayers PlayersLoaded
+            | Teams -> fetch remote.getTeams TeamsLoaded
         setLoading, cmd
 
     /// Apply a DataLoaded payload to the matching cache slice.
@@ -172,12 +177,13 @@ module Shared =
                     Cmd.ofMsg (Load Players)
                 ]
             // Reset any prior profile feedback while the save is in flight.
-            { shared with profileSaved = false; profileError = None }, cmd
+            { shared with profileSaving = true; profileSaved = false; profileError = None }, cmd
         | RecvSaveProfile ok ->
             if ok then
-                { shared with profileSaved = true }, Cmd.none
+                { shared with profileSaving = false; profileSaved = true }, Cmd.none
             else
-                { shared with profileError = Some "Profile could not be saved (the server data store is read-only)." }, Cmd.none
+                let err = Some "Profile could not be saved (the server data store is read-only)."
+                { shared with profileSaving = false; profileError = err }, Cmd.none
 
         | Error RemoteUnauthorizedException ->
             { shared with error = Some "You have been logged out."; account = None }, Cmd.none
@@ -196,12 +202,29 @@ type Model =
         /// Whether the mobile navigation drawer (RadzenSidebar) is open. Only
         /// used on small screens; desktop uses the horizontal header menu.
         sidebarOpen: bool
+        /// Servers page: the selected game segment of the segmented control
+        /// (audit #18/#19). None = first game in manifest order.
+        serversSelected: string option
+        /// Games page: the selected genre filter chip (interactive Chip,
+        /// audit #27). None = show all genres.
+        gamesGenre: string option
+        /// Games page: free-text search over name/genre (42-audit #13).
+        gamesSearch: string
+        /// Games page: sort key "name" | "players" | "favourites" (42-audit #14).
+        gamesSort: string
+        /// Header notification-inbox popup open state (bell in the top-right).
+        inboxOpen: bool
     }
 
 let initModel =
     { page = Home
       shared = SharedModel.init
-      sidebarOpen = false }
+      sidebarOpen = false
+      serversSelected = None
+      gamesGenre = None
+      gamesSearch = ""
+      gamesSort = "name"
+      inboxOpen = false }
 
 /// The root message is an orchestration boundary, not an event dump.
 /// Nested messages are composed into the root and lifted with Cmd.map:
@@ -211,11 +234,19 @@ let initModel =
 type Message =
     | SetPage of Page
     | SetSidebarOpen of bool
+    | SetInboxOpen of bool
     | SharedMsg of Shared.Msg
     | AccountMsg of Account.Msg
     | MembersMsg of Members.Msg
+    | InboxMsg of Inbox.Msg
     | TournamentsMsg of Tournaments.Msg
     | GamesMsg of Games.Msg
+    | SelectServerGame of string option
+    | SelectServerDetail of string
+    | MemberDetail of string
+    | SetGameGenre of string option
+    | SetGameSearch of string
+    | SetGameSort of string
 
 /// The startup command: load the shared, cross-page caches in parallel and
 /// resolve the initial session. Kept as a single named binding (rather than an
@@ -238,10 +269,26 @@ let update remote message model =
         // Closing the nav drawer on navigation is intuitive: picking a link
         // dismisses the drawer on mobile. The transient "Profile saved" / save
         // error also resets on navigation (state-lifetime rule).
-        { model with page = page; sidebarOpen = false; shared = { model.shared with profileSaved = false; profileError = None } }, Cmd.none
+        let shared = { model.shared with profileSaved = false; profileError = None }
+        { model with page = page; sidebarOpen = false; inboxOpen = false; shared = shared }, Cmd.none
 
     | SetSidebarOpen open' ->
         { model with sidebarOpen = open' }, Cmd.none
+
+    | SetInboxOpen open' ->
+        { model with inboxOpen = open' }, Cmd.none
+
+    | SelectServerGame gameId ->
+        { model with serversSelected = gameId }, Cmd.none
+
+    | SetGameGenre genre ->
+        { model with gamesGenre = genre }, Cmd.none
+
+    | SetGameSearch q ->
+        { model with gamesSearch = q }, Cmd.none
+
+    | SetGameSort k ->
+        { model with gamesSort = k }, Cmd.none
 
     | SharedMsg msg ->
         let shared, cmd = Shared.update remote model.shared msg
@@ -263,10 +310,10 @@ let update remote message model =
         match model.page with
         | AccountPage pm ->
             match msg with
-            | Account.Login (username, password) ->
-                // A single login intent carries both fields, so the root
-                // forwards them to the shared session layer without reading a
-                // staged draft (which could fall out of sync).
+            | Account.Login (username, password, rememberMe) ->
+                // A single login intent carries both fields + remember-me
+                // (42-audit #28/#36). The mock backend keeps sessions
+                // ephemeral; the flag is threaded for the host to persist.
                 let send =
                     Cmd.ofMsg (SharedMsg (Shared.SendSignIn (username, password)))
                 model, send
@@ -294,6 +341,16 @@ let update remote message model =
             model, Cmd.map MembersMsg cmd
         | _ -> model, Cmd.none
 
+    | InboxMsg msg ->
+        // The Inbox feature's local update (its search draft) — same
+        // PageModel pattern as Members.
+        match model.page with
+        | InboxPage pm ->
+            let m, cmd = Inbox.update msg pm.Model
+            Router.definePageModel pm m
+            model, Cmd.map InboxMsg cmd
+        | _ -> model, Cmd.none
+
     | TournamentsMsg msg ->
         // A cross-feature effect: the Tournaments feature does not mutate
         // shared state directly. It emits its own local message, and the root
@@ -318,6 +375,14 @@ let update remote message model =
         | Games.ToggleFavorite gameId ->
             model, Cmd.ofMsg (SharedMsg (Shared.ToggleFavoriteGame gameId))
 
+    // Detail-dialog intents. The pure update only records the selection in
+    // the model; the imperative side effect (opening the Radzen side dialog)
+    // is layered on top in Main.fs (services wrapper).
+    | SelectServerDetail serverId ->
+        { model with serversSelected = Some serverId }, Cmd.none
+    | MemberDetail playerId ->
+        model, Cmd.none
+
 /// Connects the routing system to the Elmish application.
 /// Unknown/wrong URLs fall back predictably to the Home page.
 ///
@@ -328,6 +393,7 @@ let router =
     let defaultPageModel = function
         | AccountPage pm -> Router.definePageModel pm Account.init
         | MembersPage pm -> Router.definePageModel pm Members.init
+        | InboxPage pm -> Router.definePageModel pm Inbox.init
         | _ -> ()
     Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
-    |> Router.withNotFound Home
+    |> Router.withNotFound NotFound

@@ -50,8 +50,11 @@ module UiProbe =
         |> Array.map (fun c ->
             let args: obj[] =
                 if c.GetFields().Length = 0 then [||]
+                // Each PageModel-carrying case gets ITS OWN noModel type.
                 elif c.Name = "AccountPage" then
                     [| box (Router.noModel<Account.Model>) |]
+                elif c.Name = "InboxPage" then
+                    [| box (Router.noModel<Inbox.Model>) |]
                 else [| box (Router.noModel<Members.Model>) |]
             FSharpValue.MakeUnion(c, args) :?> Page)
         |> Array.toList

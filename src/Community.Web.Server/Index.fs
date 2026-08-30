@@ -85,5 +85,51 @@ let page = doctypeHtml {
         // Swap the grey inactive tab icon → pink active icon once the app
         // has hydrated (skeletons gone). Pure JS, no interop.
         script { attr.src "js/favicon.js" }
+        // Publish the live sticky-header height as --app-header-height on
+        // :root. The mobile drawer's `top` anchors to it, so the drawer
+        // always starts exactly BELOW the navbar regardless of header content
+        // (logo, bell, menus) or viewport width. Pure JS, no interop.
+        script {
+            attr.``type`` "text/javascript"
+            // rawHtml: Bolero's `text` HTML-escapes the body (&#xA; per
+            // newline), which the JS parser then chokes on ("Unexpected
+            // token '&'") — the script silently never ran. Raw HTML keeps
+            // newlines/quotes literal.
+            rawHtml """
+(function () {
+  var last = -1;
+  function syncHeaderHeight() {
+    var h = document.querySelector('.rz-header');
+    if (!h) return;
+    var px = Math.round(h.getBoundingClientRect().height);
+    if (px !== last) {
+      last = px;
+      document.documentElement.style.setProperty('--app-header-height', px + 'px');
+    }
+  }
+  var apply = function () { requestAnimationFrame(syncHeaderHeight); };
+  window.addEventListener('resize', apply);
+  window.addEventListener('load', apply);
+  // The Blazor app replaces .rz-header content on hydration — re-measure on
+  // every DOM mutation (cheap: writes only when the height actually changed).
+  new MutationObserver(apply).observe(document.body, { childList: true, subtree: true });
+  // KEY: the header also RESIZES after the Tailwind CDN compiles (style-only
+  // change — childList mutations never fire). A ResizeObserver on the header
+  // catches every geometry change; a short rAF tick covers the interval
+  // before first compile. The drawer + notification popup anchor to
+  // --app-header-height, so both stay glued to the navbar's bottom edge.
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(apply);
+    var watch = function () {
+      var h = document.querySelector('.rz-header');
+      if (h) ro.observe(h); else requestAnimationFrame(watch);
+    };
+    watch();
+  }
+  (function tick(n) { if (n <= 0) return; apply(); requestAnimationFrame(function () { tick(n - 1); }); })(120);
+  syncHeaderHeight();
+})();
+"""
+        }
     }
 }

@@ -95,6 +95,99 @@ body, button, input, textarea {
 }
 
 /* =========================================================================
+   FLUID SPACING TOKENS (clamp) — one mathematical scale, no breakpoints
+   -------------------------------------------------------------------------
+   The audit's G1 fix: spacing that shrinks smoothly with the viewport
+   instead of snapping at breakpoints. Each token interpolates from a mobile
+   minimum up to a desktop maximum that EQUALS today's value (shrink-only:
+   desktop keeps exactly the rhythm the audit approved; only small screens
+   tighten). The dynamic term hits its max at ~1024px, so ≥1024px is bit-
+   for-bit today's layout.
+
+   Interpolation rule (mobile 390 → desktop 1024):
+     y = a + (b - a) * (100vw - 390px) / (1024px - 390px)
+     → y = (a - (b - a) * 390/634) + ((b - a) / 6.34) * 1vw
+
+   Consumption:
+   - F# markup uses Tailwind arbitrary values: `p-[var(--pad-card)]`.
+   - Radzen components are themed via their own CSS vars (verified to exist
+     in radzen.blazor 11.2.7) — see the override block right below.
+   ========================================================================= */
+:root {
+  /* Section stack gap (heading→content, card→section): 24px → 16px. */
+  --gap-section: clamp(1rem, 0.69rem + 1.26vw, 1.5rem);
+  /* Grid / card-to-card gap: 16px → 12px. */
+  --gap-grid: clamp(0.75rem, 0.6rem + 0.63vw, 1rem);
+  /* Card interior padding: 16px → 12px. */
+  --pad-card: clamp(0.75rem, 0.6rem + 0.63vw, 1rem);
+  /* Page-level / dialog content padding: 24px → 16px. */
+  --pad-page: clamp(1rem, 0.69rem + 1.26vw, 1.5rem);
+}
+
+/* --- Radzen theme vars, retargeted to the fluid tokens -------------------
+   Only vars VERIFIED to exist in the served theme CSS
+   (radzen.blazor/11.2.7 staticwebassets material-dark-base.css) are
+   overridden. NOTE: `--rz-button-padding` and `--rz-text-font-size` DO NOT
+   EXIST in this theme version — button padding is SCSS-compiled and the
+   font var is `--rz-body-font-size`; both are handled below/after. */
+:root {
+  --rz-card-padding: var(--pad-card);
+  --rz-dialog-content-padding: var(--pad-page);
+  --rz-dialog-title-padding-inline: var(--pad-page);
+  --rz-notification-padding: clamp(0.75rem, 0.5rem + 1vw, 1rem) 1.25rem;
+  --rz-notification-gap: clamp(0.5rem, 0.42rem + 0.32vw, 0.625rem);
+  --rz-datalist-item-margin-block: var(--gap-grid);
+  --rz-chip-padding-block: clamp(0.25rem, 0.2rem + 0.3vw, 0.375rem);
+  --rz-chip-padding-inline: clamp(0.5rem, 0.42rem + 0.32vw, 0.625rem);
+  --rz-badge-pill-padding: 0.125rem clamp(0.375rem, 0.3rem + 0.4vw, 0.5rem);
+  --rz-tabs-padding: clamp(0.75rem, 0.6rem + 0.63vw, 1rem);
+  --rz-tabs-tab-padding-block: clamp(0.5rem, 0.42rem + 0.32vw, 0.75rem);
+  --rz-tabs-tab-padding-inline: clamp(0.75rem, 0.6rem + 0.63vw, 1rem);
+  /* Carousel dot pager: library default is 0.75rem (12px) — far below the
+     44px touch-target minimum. Grow the dot; the surrounding button box is
+     padded in the scoped rules below. */
+  --rz-carousel-pager-button-width: 1rem;
+  --rz-carousel-pager-button-height: 1rem;
+  /* Body type scales gently (the ONE deliberate both-ways exception: max ==
+     today's 1rem, but long body lines read better slightly tighter on
+     phones). Affects every .rz-text-* component. */
+  --rz-body-font-size: clamp(0.9375rem, 0.9rem + 0.25vw, 1rem);
+}
+
+/* --- Scoped rules for things that are NOT vars ---------------------------- */
+
+/* Button padding is SCSS-compiled (no `--rz-button-padding` var): give every
+   Radzen button the same fluid vertical density. Horizontal padding is left
+   to the library (buttons are size-varianted). */
+button.rz-button,
+.rz-button {
+  padding-block: clamp(0.375rem, 0.3rem + 0.4vw, 0.5rem);
+}
+
+/* Notification close: library sets `padding: 0` on `.rz-notification-close`
+   → the × is ~24px and fails the 44px touch-target minimum (audit #16).
+   Padding (not size) keeps the icon visually identical while tripling the
+   hit box. */
+.rz-notification-close {
+  padding: 0.75rem;
+}
+
+/* Split-button / context popups render in a body-level `.rz-popup` with a
+   Radzen menu inside. Library default is a flat opaque `--rz-menu-background-
+   color` box (audit #13.3/#20: popup items read as button clones). Give the
+   popup a real surface + elevation and fluid item density. */
+.rz-popup .rz-menu {
+  background-color: var(--rz-panel-background-color);
+  box-shadow: var(--rz-shadow-9);
+  border: 1px solid var(--rz-border-color);
+  padding-block: 0.25rem;
+}
+.rz-popup .rz-menu .rz-navigation-item-link {
+  padding-block: clamp(0.625rem, 0.5rem + 0.5vw, 0.75rem);
+}
+
+
+/* =========================================================================
    Brand / layout polish
    -------------------------------------------------------------------------
    Radzen handles the responsive layout; these rules add the terminal
@@ -151,9 +244,65 @@ button.rz-primary.rz-button {
 }
 
 /* Keep the header content (logo + nav) away from the screen edges, and give
-   the logo some breathing room from the top of the viewport. */
+   the logo some breathing room from the top of the viewport. The header is a
+   flex row so the brand/nav stack and the trailing notification bell /
+   profile menu share ONE row; the bell group is pushed to the right edge by
+   `margin-inline-start:auto` (next rule). */
 .rz-header .rz-stack {
   padding: 0.75rem 1rem;
+}
+
+.rz-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* The bell + profile-menu group (direct .rz-header children after the main
+   stack) hugs the right edge of the navbar. */
+.rz-header > .relative.inline-flex,
+.rz-header > .rz-profile-menu {
+  margin-inline-start: auto;
+}
+
+/* Icon-font ghost-text fix (user report: giant "OOTING" smear over the
+   Servers accordion): Radzen's Material Symbols @font-face uses
+   `font-display: swap`, so while the woff2 loads, the RAW LIGATURE text
+   ("sports_shooting") paints in the fallback font at full width. The .rzi
+   box is only 1em wide with overflow:visible, so the text smears ~120px
+   beyond it. Fix: self-host the swap — hide .rzi glyphs until the icon font
+   is actually loaded (fonts.onloadingdone adds .icons-ready to <html>), and
+   clip the box so a fallback can never bleed. Ligatures then appear with a
+   clean fade-in and NEVER as raw text. */
+.rzi {
+  overflow: hidden;
+  inline-size: 1em;
+  block-size: 1em;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+html.icons-ready .rzi {
+  opacity: 1;
+}
+
+/* Notification bell (user request 2026-08-30): LARGER hit area and breathing
+   room from the navbar edge. `padding-inline-end` on the header stack's last
+   child's parent keeps the bell visually inset from the right edge; the
+   button itself grows to a comfortable 44px touch target (a11y minimum). */
+.app-bell-button.rz-button {
+  inline-size: 44px;
+  block-size: 44px;
+}
+
+.app-bell-button .rzi {
+  font-size: 1.375rem; /* 22px icon — noticeably larger than default */
+}
+
+/* The bell group sits 0.5rem from the right edge of the navbar (the header
+   stack already carries 1rem inline padding; this adds the visual gap). */
+.rz-header > .relative.inline-flex {
+  margin-inline-end: 0.5rem;
 }
 
 /* The horizontal nav menu should be transparent too — it inherits an opaque
@@ -190,17 +339,96 @@ button.rz-primary.rz-button {
   }
 }
 
-/* The mobile drawer's Radzen sidebar uses the opaque base surface so the nav
-   text is readable (not transparent like the header texture). The `div` hook
-   `.mobile-nav-drawer` is added in Layout.fs; Tailwind owns its layout. */
+/* Header height token: the mobile drawer AND the notification popup anchor
+   to it so both start exactly BELOW the sticky navbar. The value is kept
+   live by the Index.fs anchor script (ResizeObserver on .rz-header — it
+   re-fires when Tailwind CDN compiles and the header resizes). The static
+   value here is only the pre-hydration fallback. */
+:root {
+  --app-header-height: 111px;
+}
+
+/* The mobile drawer (42-audit #1 + user fixes): the Layout wrapper owns the
+   collapse animation (w-0 ↔ w-[var(--rz-sidebar-width)]) and clipping
+   (overflow-hidden). The Radzen sidebar inside is pinned to full width and
+   opacity: the native .rz-sidebar-responsive/.rz-sidebar-collapsed rules
+   (width:0;opacity:0) are defeated on purpose — open/close is the wrapper's
+   job now, so the sidebar never paints a half-hidden state of its own. */
 .mobile-nav-drawer .rz-sidebar {
-  background-color: transparent;
-  position: static;
-  width: auto;
-  margin: 0;
+  background-color: var(--rz-base-background-color);
+  padding: 0.75rem;
   border: 0;
-  box-shadow: none;
-  padding: 1rem;
+  width: var(--rz-sidebar-width) !important;
+  opacity: 1 !important;
+  height: 100%;
+}
+
+/* Inbox popup (user request 2026-08-30): a transparent backdrop closes the
+   inbox on outside click (the RadzenPopup-doc CloseOnClickOutside behavior,
+   implemented as plain MVU — no interop). The panel is Tailwind-styled in
+   Layout.fs; only the reset + backdrop live here. */
+.app-inbox-backdrop {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: default;
+  z-index: 80;
+}
+
+/* Dynamic navbar anchoring (user fix): both the mobile drawer and the
+   notification popup hang from the LIVE header height. Plain CSS `top` on
+   the token — resilient to Tailwind compile timing and to the header
+   resizing on any breakpoint, because the ResizeObserver in Index.fs keeps
+   the token in sync in real time. */
+.mobile-nav-drawer,
+.app-inbox-popup {
+  top: calc(var(--app-header-height, 111px) + 0px) !important;
+}
+
+/* The popup additionally rides the right edge under the bell, with a small
+   breathing gap from the header's bottom border. */
+.app-inbox-popup {
+  top: calc(var(--app-header-height, 111px) + 0.5rem) !important;
+}
+
+/* Keyboard a11y (42-audit #41): visible focus ring on every interactive
+   element we render, using the brand token. Native Radzen components have
+   their own focus treatment; this covers our div-based clickables. */
+button:focus-visible,
+a:focus-visible,
+.rz-chip:focus-visible {
+  outline: 2px solid var(--rz-primary);
+  outline-offset: 2px;
+}
+
+/* Servers grid row tints (audit: DataGrid RowRender technique). The classes
+   are attached by RadzenUI.dataGridAdvanced's RowRender hook; colours come
+   from the theme tokens. */
+tr.server-row-busy > td {
+  background-color: color-mix(in srgb, var(--rz-warning) 10%, transparent);
+}
+tr.server-row-full > td {
+  background-color: color-mix(in srgb, var(--rz-danger) 12%, transparent);
+}
+
+/* Drawer nav rows (audit #10/#11): the panel-menu items read as icon+label
+   rows with pill hover, and the ACTIVE route gets a left accent bar so "you
+   are here" is visible at a glance. */
+.mobile-nav-drawer .rz-navigation-item-link {
+  border-radius: 6px;
+  transition: background-color 0.15s ease-out;
+}
+.mobile-nav-drawer .rz-navigation-item-wrapper {
+  border-radius: 6px;
+}
+.mobile-nav-drawer .rz-navigation-item-wrapper:hover {
+  background-color: var(--rz-primary-lighter);
+}
+.mobile-nav-drawer .rz-navigation-item-wrapper-active {
+  box-shadow: inset 3px 0 0 var(--rz-primary);
+}
+.mobile-nav-drawer .rz-navigation-item-icon {
+  margin-inline-end: 0.75rem;
 }
 
 /* =========================================================================

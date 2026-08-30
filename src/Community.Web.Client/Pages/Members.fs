@@ -47,20 +47,27 @@ module Members =
     /// `RadzenText`, and the 3 NREs on Members = 3 rows implicate the cell
     /// body. Keep it as a single bare text node like Servers.
     let avatarCell (player: Player) =
-        RadzenUI.text RadzenUI.body1 player.username
+        // Audit #5: member row = initials avatar + username (NOT a bare text
+        // stack). Same initials-avatar primitive as Teams rosters.
+        RadzenUI.hStackGap "0.75rem" (concat {
+            RadzenUI.initialsAvatar player.username
+            RadzenUI.text RadzenUI.body1 player.username
+        })
 
-    let view (model: Model) (shared: SharedModel) (dispatch: Msg -> unit) =
+    let view
+        (onReload: unit -> unit) (onMemberDetail: string -> unit)
+        (model: Model) (shared: SharedModel) (dispatch: Msg -> unit) =
         cond shared.players <| function
         | NotAsked | Loading ->
             // Dynamic skeleton mirrors the Members layout: heading + search
             // box + member data-grid.
-            RadzenUI.vStackGap "1.5rem" (concat {
+            RadzenUI.vStackGap "var(--gap-section)" (concat {
                 RadzenUI.skeleton "width: 22%; height: 2rem;"
                 RadzenUI.skeleton "width: 100%; height: 2.5rem;"
                 RadzenUI.cardOutlined (RadzenUI.skeletonTable [ "50%"; "46%" ])
             })
         | Failed _ ->
-            RadzenUI.failedView "members"
+            RadzenUI.failedViewRetry "members" onReload
         | Loaded m ->
             // Defensive null guard: under trimming, the router's PageModel may
             // be constructed with a null Model (the `Unsafe.AsRef` write in
@@ -76,21 +83,23 @@ module Members =
                 SharedModel.values m
                 |> Array.filter (fun p ->
                     query = ""
-                    || p.username.ToLowerInvariant().Contains query
-                    || (defaultArg p.discord "").ToLowerInvariant().Contains query)
-            RadzenUI.fadeIn (RadzenUI.vStackGap "1.5rem" (concat {
-                RadzenUI.pageHeading "Members" (Some "Search the community roster by name or Discord handle.")
+                    || p.username.ToLowerInvariant().Contains query)
+            RadzenUI.fadeIn (RadzenUI.vStackGap "var(--gap-section)" (concat {
+                RadzenUI.pageHeadingCrumb "Members" (Some "Search the community roster by name.")
+                    [ ("Home", Some "/"); ("Community", None); ("Members", None) ]
                 // A search box that suggests usernames and drives the live
                 // filter on the roster below.
                 RadzenUI.autoComplete
                     (SharedModel.values m)
                     "username" search (fun v -> dispatch (SetSearch v))
-                RadzenUI.dataGrid<Player> players (concat {
+                RadzenUI.dataGridAdvanced<Player> players
+                    (Some "No members match that search.") false false None
+                    (Some (fun p -> onMemberDetail p.id)) (concat {
                     // template columns (NOT dataGridColumn "property") — Radzen's
                     // string-`Property` binding uses runtime reflection that
                     // AOT/trim strips. Typed F# lambdas avoid reflection.
                     RadzenUI.dataGridTemplateColumn<Player> "Member" avatarCell
-                    RadzenUI.dataGridTemplateColumn<Player> "Discord" (fun p ->
-                        RadzenUI.text RadzenUI.body1 (defaultArg p.discord ""))
+                    RadzenUI.dataGridTemplateColumn<Player> "Role" (fun p ->
+                        RadzenUI.text RadzenUI.caption "Member")
                 })
             }))
