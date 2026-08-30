@@ -15,14 +15,17 @@ open Community.Web.Shared.Domain
 ///                      items rendered full-width with page heading.
 /// Data = the shared News cache (canonical announcement source). Open state
 /// for the popup lives in the ROOT Model (`inboxOpen`) — pure MVU, no
-/// component state. Empty/loading/error states follow the RemoteData rules.
+/// component state. The page's search term lives in the page-local PageModel
+/// (state-ownership table: page-owned search → page Model); its write-back
+/// works in production thanks to the vendored Bolero SetModel fix
+/// (thirdparty/Bolero Router.fs: Unsafe.AsRef no-opped under trimmed WASM).
+/// Empty/loading/error states follow the RemoteData rules.
 module Inbox =
 
     // ---------------------------------------------------------------- page
 
-    /// The dedicated inbox page: local state (a read filter) so the page can
-    /// show All or only unread-style "announcements" — kept minimal: a
-    /// search term, mirroring the Members page pattern.
+    /// The dedicated inbox page: local state — a search term, mirroring the
+    /// Members page pattern.
     type Model =
         {
             search: string
@@ -39,13 +42,6 @@ module Inbox =
         | SetSearch s ->
             let model' = if isNull (box model) then init else model
             { model' with search = s }, Cmd.none
-
-    /// SSR-safe accessor: the page model may be null under Release SSR
-    /// (router constructs the Page DU with `Router.noModel` for direct URL
-    /// requests — there is no Elmish state on the server). Reading `search`
-    /// off a null Model throws; this returns "" instead.
-    let private searchOf (model: Model) =
-        if isNull (box model) then "" else model.search
 
     // ------------------------------------------------------------ helpers
 
@@ -111,15 +107,11 @@ module Inbox =
 
     // -------------------------------------------------------------- page
 
-    /// The dedicated /inbox page view. Takes the page's OWN Model (nullable!)
-    /// rather than the extracted search string: under Release SSR the router
-    /// renders the page with a NULL Model (no Elmish state server-side), and
-    /// evaluating `pm.Model.search` at the CALL SITE dereferences that null
-    /// and throws NRE before this function is even entered (observed live:
-    /// GET /inbox -> 500, Layout.fs InboxPage arm). Passing `pm.Model` and
-    /// null-guarding HERE is exactly the Members/Account page pattern.
+    /// The dedicated /inbox page view. Takes the page's OWN Model (nullable
+    /// under SSR — the router constructs the Page with a null Model; guard
+    /// before reading fields).
     let view (news: RemoteData<Map<string, News>>) (model: Model) (onSearch: string -> unit) (reload: unit -> unit) =
-        let search = searchOf model
+        let search = if isNull (box model) then "" else model.search
         RadzenUI.vStackGap "var(--gap-section)" (concat {
             RadzenUI.pageHeadingCrumb "Notifications"
                 (Some "Everything that happened while you were away.")

@@ -313,11 +313,8 @@ let view (model: Model) (dispatch: Message -> unit) =
                         (fun pid -> dispatch (MemberDetail pid))
                         pm.Model model.shared (fun msg -> dispatch (MembersMsg msg))
                 | InboxPage pm ->
-                    // Pass pm.Model (NOT pm.Model.search): under Release SSR
-                    // the PageModel's Model is null, and dereferencing
-                    // `.search` here would throw NRE before Inbox.view's own
-                    // null guard runs (live 500 on /inbox). Inbox.view
-                    // null-guards internally (Members/Account pattern).
+                    // Pass pm.Model (NOT pm.Model.search): the router may hand
+                    // a null Model to the view (SSR/trim); Inbox.view guards.
                     Inbox.view model.shared.news pm.Model
                         (fun q -> dispatch (InboxMsg (Inbox.SetSearch q)))
                         (fun () -> dispatch (SharedMsg (Shared.Load Shared.News)))

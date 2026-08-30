@@ -13,7 +13,9 @@ open Community.Web.Shared.Domain
 /// Holds a single piece of page-local state — the search term typed into the
 /// RadzenAutoComplete — which filters the grid's rows. (Phase 9 nested-page
 /// messages: Msg composed into the root Message, carried via the route's
-/// PageModel, discarded on navigation.)
+/// PageModel, discarded on navigation.) The PageModel write-back works in
+/// production thanks to the vendored Bolero SetModel fix (thirdparty/Bolero
+/// Router.fs: Unsafe.AsRef no-opped under trimmed WASM).
 module Members =
 
     /// The Members page's transient, page-local state: the live search term.
@@ -31,9 +33,6 @@ module Members =
     let update msg model =
         match msg with
         | SetSearch s ->
-            // Guard the same null PageModel seen in `view` under trimming (see
-            // view's `isNull (box model)`): if the router handed us a null
-            // model, start from `init` before projecting.
             let model' = if isNull (box model) then init else model
             { model' with search = s }, Cmd.none
 
@@ -69,12 +68,9 @@ module Members =
         | Failed _ ->
             RadzenUI.failedViewRetry "members" onReload
         | Loaded m ->
-            // Defensive null guard: under trimming, the router's PageModel may
-            // be constructed with a null Model (the `Unsafe.AsRef` write in
-            // `definePageModel` is a reflection-adjacent path that partial trim
-            // can drop). The page must still render, so treat a null model as
-            // "empty search". Live filtering still works when the model is
-            // non-null (the usual non-published case).
+            // Defensive null guard: under SSR/trimming the router may hand us
+            // a null Model. `search` lives in the PageModel (page-owned state
+            // per the state-ownership table).
             let search =
                 if isNull (box model) then "" else model.search
             let query = search.Trim().ToLowerInvariant()

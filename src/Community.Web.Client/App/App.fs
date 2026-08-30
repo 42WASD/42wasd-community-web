@@ -333,22 +333,29 @@ let update remote message model =
 
     | MembersMsg msg ->
         // The Members feature's local update runs against its own Model, held
-        // in the route's PageModel (same transient-state pattern as Account).
+        // in the route's PageModel — but the UPDATED model flows back through
+        // the root model (`page = MembersPage { Model = m }`), PURE MVU.
+        // We deliberately do NOT use Router.definePageModel here: it writes
+        // via PageModel.SetModel -> Unsafe.AsRef (Bolero Router.fs:194),
+        // which silently no-ops in the trimmed WASM build — the production
+        // MVU trace showed `SetSearch "WASD" -> page=MembersPage { Model =
+        // null }` on every keystroke. The router's per-case STATIC PageModel
+        // record (Bolero getCtor) is only a template for parsing; the app's
+        // source of truth is the Page value in `model.page`, replaced
+        // immutably here. Same pure pattern as every other update arm.
         match model.page with
         | MembersPage pm ->
             let m, cmd = Members.update msg pm.Model
-            Router.definePageModel pm m
-            model, Cmd.map MembersMsg cmd
+            { model with page = MembersPage { Model = m } }, Cmd.map MembersMsg cmd
         | _ -> model, Cmd.none
 
     | InboxMsg msg ->
-        // The Inbox feature's local update (its search draft) — same
-        // PageModel pattern as Members.
+        // Same immutable-PageModel flow as MembersMsg (pure MVU; no mutation
+        // of the router's static record, so it survives trimming).
         match model.page with
         | InboxPage pm ->
             let m, cmd = Inbox.update msg pm.Model
-            Router.definePageModel pm m
-            model, Cmd.map InboxMsg cmd
+            { model with page = InboxPage { Model = m } }, Cmd.map InboxMsg cmd
         | _ -> model, Cmd.none
 
     | TournamentsMsg msg ->
@@ -388,12 +395,13 @@ let update remote message model =
 ///
 /// inferWithModel supplies a default PageModel for the Account page: a fresh
 /// empty Account.Model each time the route is entered (per the state-lifetime
-/// rule, transient page state resets on fresh navigation).
+/// rule, transient page state resets on fresh navigation). Members/Inbox do
+/// NOT get a default: their state flows through the root model immutably
+/// (MembersMsg/InboxMsg arms) — the router's static template record is unused,
+/// and their update guards a null Model (SSR hands the view a null).
 let router =
     let defaultPageModel = function
         | AccountPage pm -> Router.definePageModel pm Account.init
-        | MembersPage pm -> Router.definePageModel pm Members.init
-        | InboxPage pm -> Router.definePageModel pm Inbox.init
         | _ -> ()
     Router.inferWithModel SetPage (fun model -> model.page) defaultPageModel
     |> Router.withNotFound NotFound

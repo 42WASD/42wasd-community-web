@@ -43,7 +43,7 @@ module UiProbe =
     // ------------------------------------------------------------------
 
     /// Every Page case instantiated via reflection. Parameterized cases
-    /// (MembersPage/AccountPage of PageModel<_>) are built with
+    /// (MembersPage/InboxPage/AccountPage of PageModel<_>) are built with
     /// Router.noModel — exactly what Layout.navItems uses for links.
     let allPages : Page list =
         FSharpType.GetUnionCases(typeof<Page>)
@@ -143,7 +143,7 @@ module UiProbe =
         // Base page states — every route with all data caches loaded.
         let baseStates =
             [ Home; Games; Servers; Tournaments
-              MembersPage Router.noModel; Teams; About
+              MembersPage Router.noModel; InboxPage Router.noModel; Teams; About
               AccountPage Router.noModel ]
             |> List.map (fun page ->
                 renderModel { initModel with page = page
