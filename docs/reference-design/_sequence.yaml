@@ -19,6 +19,13 @@
 #   - A section may have an optional `subsections` list for deeper nesting.
 #   - A part appears on the Implementation progress page iff `tracked: true`.
 #   - Slugs must match the actual folder names on disk.
+#
+# Reconciled 2026-08-31 with the verified architecture document
+# (verified_42wasd_community_web_architecture_2026-08-27_verified.md):
+# Part I carries the full ten-layer platform architecture, Part II the
+# tool/capability verification and cross-cutting requirements, Part III the
+# original client-build phases plus the 61 platform implementation phases,
+# Part IV the complete technical reference grouped by concern.
 
 parts:
   - 01-understand-the-architecture:
@@ -26,8 +33,57 @@ parts:
       sections:
         - the-one-sentence-idea
         - why-tempting-architectures-fail
-        - the-six-layer-mental-model
+        - the-ten-layer-mental-model
+        - functional-core-imperative-shell
         - the-state-ownership-model
+        - the-source-of-truth-model
+        - the-selected-tool-stack
+        - rejected-foundations
+        - route-scoped-synchronization
+        - client-query-coordinator
+        - client-local-database
+        - pwa-asset-model
+        - realtime-contract
+        - browser-bff-contract
+        - fsharp-domain-conventions
+        - internal-microservice-contracts
+        - id-convention
+        - postgres-schema-rules
+        - database-first-access
+        - migration-policy
+        - cache-architecture
+        - dragonfly-role
+        - signalr-scale-out
+        - dapr-role
+        - reference-applications
+        - service-template
+        - accounts-and-identity
+        - external-account-ownership
+        - byoa-media-model
+        - youtube-upload-flow
+        - image-file-provider-policy
+        - async-work-architecture
+        - rabbitmq-reliability
+        - transactional-outbox
+        - dapr-workflow
+        - rate-limiting-backpressure
+        - multi-source-page-rendering
+        - response-compression
+        - database-physical-storage
+        - writethrough-first
+        - cloudnative-pg
+        - pgbouncer-connection-pooling
+        - database-backup-policy
+        - cilium-security-model
+        - hubble-observability
+        - policy-discovery
+        - dapr-plus-cilium
+        - gitops-ownership-model
+        - central-infra-repository
+        - application-repository
+        - argo-application-generation
+        - local-development-aspire
+        - observability
         - message-organization
         - page-and-feature-organization
         - recommended-repository-structure
@@ -42,6 +98,8 @@ parts:
         - verified-framework-behavior
         - failure-modes-to-design-for
         - testing-boundaries
+        - observability-requirements
+        - security-boundaries
   - 03-step-by-step-implementation:
       tracked: true
       sections:
@@ -65,6 +123,67 @@ parts:
         - phase-17-design-system
         - phase-18-production-hardening
         - phase-19-rollout-order
+        - platform-phase-0-architecture-vocabulary
+        - platform-phase-1-baseline-and-preflight
+        - platform-phase-2-upgrade-web-runtime
+        - platform-phase-3-local-aspire-apphost
+        - platform-phase-4-prepare-gitops-ownership
+        - platform-phase-5-cilium-hubble-baseline
+        - platform-phase-6-build-dm-cache-volume
+        - platform-phase-7-expose-database-storage
+        - platform-phase-8-install-cloudnativepg
+        - platform-phase-9-database-roles-least-privilege
+        - platform-phase-10-first-atlas-schema
+        - platform-phase-11-sqlprovider-access
+        - platform-phase-12-migrate-json-data
+        - platform-phase-13-replace-placeholder-authentication
+        - platform-phase-14-formalize-shared-contracts
+        - platform-phase-15-explicit-bff
+        - platform-phase-16-pwa-service-worker
+        - platform-phase-17-indexeddb-local-store
+        - platform-phase-18-indexeddb-migration-policy
+        - platform-phase-19-query-coordinator
+        - platform-phase-20-cursor-keyset-pagination
+        - platform-phase-21-active-route-synchronization
+        - platform-phase-22-entity-versions-tombstones
+        - platform-phase-23-optimistic-concurrency
+        - platform-phase-24-signalr-single-topic
+        - platform-phase-25-signalr-scoped-expansion
+        - platform-phase-26-hybridcache-l1
+        - platform-phase-27-dragonfly-l2
+        - platform-phase-28-cache-invalidation-events
+        - platform-phase-29-response-compression
+        - platform-phase-30-rate-limiting
+        - platform-phase-31-dapr-deny-by-default
+        - platform-phase-32-create-service-template
+        - platform-phase-33-extract-forum-service
+        - platform-phase-34-extract-accounts-service
+        - platform-phase-35-extract-game-server-service
+        - platform-phase-36-extract-tournament-service
+        - platform-phase-37-add-notification-service
+        - platform-phase-38-deploy-rabbitmq
+        - platform-phase-39-dapr-pubsub-rabbitmq
+        - platform-phase-40-transactional-outbox-publisher
+        - platform-phase-41-durable-background-jobs
+        - platform-phase-42-dapr-workflow
+        - platform-phase-43-byoa-media-abstraction
+        - platform-phase-44-youtube-oauth-resumable-upload
+        - platform-phase-45-media-preview-resolution
+        - platform-phase-46-progressive-aggregation
+        - platform-phase-47-add-search
+        - platform-phase-48-optional-webrtc
+        - platform-phase-49-argo-rollout-model
+        - platform-phase-50-ci-gates
+        - platform-phase-51-hubble-policy-workflow
+        - platform-phase-52-network-policy-ownership
+        - platform-phase-53-database-connection-budget
+        - platform-phase-54-database-indexing-review
+        - platform-phase-55-storage-performance-validation
+        - platform-phase-56-backup-recovery
+        - platform-phase-57-load-testing
+        - platform-phase-58-chaos-failure-testing
+        - platform-phase-59-pwa-mobile-release
+        - platform-phase-60-production-readiness-gate
   - 04-technical-reference:
       tracked: false
       sections:
@@ -83,3 +202,178 @@ parts:
         - abstraction-philosophy
         - primary-references
         - the-final-recommendation
+        - source-of-truth-model:
+            subsections:
+              - recommended-source-of-truth-model
+              - application-layer-ownership
+        - service-code-shape:
+            subsections:
+              - internal-code-shape-of-one-fsharp-service
+              - functional-core-imperative-shell-contract
+        - browser-scope-model:
+            subsections:
+              - browser-route-scope-model
+              - route-lifecycle-state-machine
+              - query-key-convention
+              - request-coordinator-policy
+        - client-local-database:
+            subsections:
+              - browser-indexeddb-database-layout
+              - indexeddb-schema-upgrade-policy
+              - app-runtime-cache-versioning
+        - contract-model:
+            subsections:
+              - browser-server-contract-handshake
+              - shared-fsharp-dto-organization
+              - strong-identifier-convention
+              - dto-projection-rule
+              - progressive-page-composition-contract
+              - streamed-page-fragment-operation
+        - realtime-model:
+            subsections:
+              - realtime-subscription-identity
+              - realtime-event-envelope
+              - active-scope-delta-synchronization-api
+              - first-load-pagination-policy
+              - client-prefetch-policy
+        - bff-contract:
+            subsections:
+              - bff-responsibilities
+              - bff-to-service-rule
+        - internal-contract-model:
+            subsections:
+              - internal-proto-repository-layout
+              - protobuf-evolution-rules
+              - why-not-share-fsharp-types
+        - persistence-model:
+            subsections:
+              - postgresql-logical-schema-organization
+              - core-forum-schema-example
+              - change-log-design-for-active-scope-sync
+              - change-log-retention
+              - optimistic-concurrency-in-postgresql
+              - transactional-outbox-schema
+              - inbox-idempotency-schema
+              - atlas-migration-repository
+              - migration-release-compatibility
+              - sqlprovider-role
+        - database-topology:
+            subsections:
+              - database-connection-topology
+              - connection-budget-formula
+              - cloudnativepg-baseline-cluster
+              - cloudnativepg-pooler-baseline
+              - postgresql-durability-versus-caching
+        - cache-model:
+            subsections:
+              - cache-candidate-rule
+              - cache-key-versioning
+              - hybridcache-configuration-intent
+              - cross-pod-cache-invalidation-caveat
+              - dragonfly-role
+              - signalr-backplane-qualification-test
+        - messaging-model:
+            subsections:
+              - rabbitmq-topology
+              - interactive-versus-queued-work
+              - job-envelope
+              - worker-concurrency-policy
+              - batch-policy
+              - rabbitmq-reliability
+        - dapr-model:
+            subsections:
+              - dapr-component-ownership
+              - dapr-service-invocation-contract
+              - dapr-pubsub-contract
+              - dapr-workflow-qualification
+        - byoa-media-model:
+            subsections:
+              - byoa-mediaref-contract
+              - byoa-upload-state-machine
+              - youtube-upload-client-rules
+              - external-media-rendering-security
+        - identity-model:
+            subsections:
+              - identity-data-model
+              - login-resolution
+        - admission-control:
+            subsections:
+              - rate-limit-policy-classes
+              - backpressure-state
+              - response-compression-policy
+              - serialization-policy-by-boundary
+        - storage-model:
+            subsections:
+              - database-physical-storage-contract
+              - lvm-dm-cache-creation-runbook
+              - why-writethrough-first
+              - postgresql-explicit-hot-cold-placement
+        - backup-model:
+            subsections:
+              - backup-architecture
+              - backup-test-policy
+        - network-model:
+            subsections:
+              - cilium-service-dependency-graph
+              - default-deny-ownership
+              - cilium-policy-example
+              - hubble-policy-development-workflow
+              - hubble-operator-queries
+        - gitops-model:
+            subsections:
+              - gitops-repository-ownership
+              - difference-from-strict-config-repo-gitops-guidance
+              - third-party-component-ownership
+              - argo-appproject-boundaries
+              - applicationset-role
+              - secrets-model
+              - aspnet-data-protection
+        - observability-reference:
+            subsections:
+              - observability-semantic-conventions
+              - metrics-that-matter
+              - product-slo-candidates
+              - alerting-priorities
+        - product-capabilities:
+            subsections:
+              - search-architecture
+              - optional-webrtc-boundary
+              - mobile-path
+        - release-model:
+            subsections:
+              - release-artifact
+              - upgrade-order
+              - contract-deprecation-policy
+              - database-growth-policy
+              - nvme-cache-capacity-expectations
+        - end-to-end-state-machines:
+            subsections:
+              - end-to-end-forum-read-state-machine
+              - end-to-end-realtime-mutation-state-machine
+              - end-to-end-reconnect-state-machine
+              - end-to-end-rapid-navigation-state-machine
+              - end-to-end-cache-miss-state-machine
+              - end-to-end-queued-command-state-machine
+              - end-to-end-byoa-video-state-machine
+              - end-to-end-external-account-login
+        - failure-behavior:
+            subsections:
+              - network-failure-behavior
+              - external-provider-failure-behavior
+        - security-invariants
+        - acceptance-tests:
+            subsections:
+              - platform-functional-acceptance-test
+              - performance-acceptance-test
+              - load-test-scenarios
+              - upgrade-test-matrix
+              - disaster-test-matrix
+        - capacity-model:
+            subsections:
+              - capacity-planning
+              - what-not-to-optimize-prematurely
+              - what-to-optimize-first-when-traffic-grows
+        - platform-order:
+            subsections:
+              - final-production-dependency-order
+              - final-master-checklist

@@ -8,12 +8,18 @@ on the Implementation progress page.
 
 ## Reading order
 
-- **Capability cheat sheet** — which tool owns which concern.
-- **Maturity tiers** — a staged adoption path from foundation to polish.
+- **Capability cheat sheet** — which tool owns which concern, plus the
+  platform capability matrix (component × concern boundaries).
+- **Maturity tiers** — a staged adoption path from foundation to polish, plus
+  the platform tiers A–F.
 - **Verified framework behavior** — what the current Bolero docs actually
-  state.
-- **Failure modes to design for** — symptoms and fixes as the app grows.
+  state, plus the 2026-08-27 platform verification notes and version
+  decisions.
+- **Failure modes to design for** — symptoms and fixes as the app grows, plus
+  the platform failure-mode table.
 - **Testing boundaries** — where the valuable tests live.
+- **Observability requirements** — what to track per boundary.
+- **Security boundaries** — what each boundary must never leak or trust.
 
 The guiding principle is that Bolero and Elmish provide the *machinery*, and
 this reference design decides *how to compose it* so the app stays

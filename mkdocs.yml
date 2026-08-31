@@ -57,8 +57,57 @@ nav:
     - Overview: reference-design/01-understand-the-architecture/index.md
     - The one-sentence idea: reference-design/01-understand-the-architecture/the-one-sentence-idea/index.md
     - Why tempting architectures fail: reference-design/01-understand-the-architecture/why-tempting-architectures-fail/index.md
-    - The six-layer mental model: reference-design/01-understand-the-architecture/the-six-layer-mental-model/index.md
+    - The ten-layer mental model: reference-design/01-understand-the-architecture/the-ten-layer-mental-model/index.md
+    - Functional core, imperative shell: reference-design/01-understand-the-architecture/functional-core-imperative-shell/index.md
     - The state ownership model: reference-design/01-understand-the-architecture/the-state-ownership-model/index.md
+    - The source-of-truth model: reference-design/01-understand-the-architecture/the-source-of-truth-model/index.md
+    - The selected tool stack: reference-design/01-understand-the-architecture/the-selected-tool-stack/index.md
+    - Rejected foundations: reference-design/01-understand-the-architecture/rejected-foundations/index.md
+    - Route-scoped synchronization contract: reference-design/01-understand-the-architecture/route-scoped-synchronization/index.md
+    - Client query coordinator: reference-design/01-understand-the-architecture/client-query-coordinator/index.md
+    - Client local database layout: reference-design/01-understand-the-architecture/client-local-database/index.md
+    - PWA asset model: reference-design/01-understand-the-architecture/pwa-asset-model/index.md
+    - Realtime contract: reference-design/01-understand-the-architecture/realtime-contract/index.md
+    - Browser/BFF contract design: reference-design/01-understand-the-architecture/browser-bff-contract/index.md
+    - F# domain type conventions: reference-design/01-understand-the-architecture/fsharp-domain-conventions/index.md
+    - Internal microservice contracts: reference-design/01-understand-the-architecture/internal-microservice-contracts/index.md
+    - ID convention: reference-design/01-understand-the-architecture/id-convention/index.md
+    - PostgreSQL schema design rules: reference-design/01-understand-the-architecture/postgres-schema-rules/index.md
+    - Database-first F# access: reference-design/01-understand-the-architecture/database-first-access/index.md
+    - Migration policy: reference-design/01-understand-the-architecture/migration-policy/index.md
+    - Cache architecture: reference-design/01-understand-the-architecture/cache-architecture/index.md
+    - Dragonfly role: reference-design/01-understand-the-architecture/dragonfly-role/index.md
+    - SignalR scale-out: reference-design/01-understand-the-architecture/signalr-scale-out/index.md
+    - Dapr role: reference-design/01-understand-the-architecture/dapr-role/index.md
+    - Reference applications to study, not blindly fork: reference-design/01-understand-the-architecture/reference-applications/index.md
+    - The 42wasd-service-template: reference-design/01-understand-the-architecture/service-template/index.md
+    - Accounts and identity model: reference-design/01-understand-the-architecture/accounts-and-identity/index.md
+    - External account ownership rules: reference-design/01-understand-the-architecture/external-account-ownership/index.md
+    - BYOA media model: reference-design/01-understand-the-architecture/byoa-media-model/index.md
+    - YouTube upload flow: reference-design/01-understand-the-architecture/youtube-upload-flow/index.md
+    - Image/file BYOA provider policy: reference-design/01-understand-the-architecture/image-file-provider-policy/index.md
+    - Async work architecture: reference-design/01-understand-the-architecture/async-work-architecture/index.md
+    - RabbitMQ reliability rules: reference-design/01-understand-the-architecture/rabbitmq-reliability/index.md
+    - Transactional outbox: reference-design/01-understand-the-architecture/transactional-outbox/index.md
+    - Dapr Workflow: reference-design/01-understand-the-architecture/dapr-workflow/index.md
+    - Rate limiting and backpressure: reference-design/01-understand-the-architecture/rate-limiting-backpressure/index.md
+    - Multi-source page rendering: reference-design/01-understand-the-architecture/multi-source-page-rendering/index.md
+    - Response compression: reference-design/01-understand-the-architecture/response-compression/index.md
+    - Database physical storage: reference-design/01-understand-the-architecture/database-physical-storage/index.md
+    - Why writethrough initially: reference-design/01-understand-the-architecture/writethrough-first/index.md
+    - CloudNativePG: reference-design/01-understand-the-architecture/cloudnative-pg/index.md
+    - PgBouncer connection pooling: reference-design/01-understand-the-architecture/pgbouncer-connection-pooling/index.md
+    - Database backup policy: reference-design/01-understand-the-architecture/database-backup-policy/index.md
+    - Cilium security model: reference-design/01-understand-the-architecture/cilium-security-model/index.md
+    - Hubble observability: reference-design/01-understand-the-architecture/hubble-observability/index.md
+    - Policy discovery: reference-design/01-understand-the-architecture/policy-discovery/index.md
+    - Dapr plus Cilium: reference-design/01-understand-the-architecture/dapr-plus-cilium/index.md
+    - GitOps ownership model: reference-design/01-understand-the-architecture/gitops-ownership-model/index.md
+    - Central infrastructure repository: reference-design/01-understand-the-architecture/central-infra-repository/index.md
+    - Application repository: reference-design/01-understand-the-architecture/application-repository/index.md
+    - Argo CD application generation: reference-design/01-understand-the-architecture/argo-application-generation/index.md
+    - Local development with Aspire: reference-design/01-understand-the-architecture/local-development-aspire/index.md
+    - Observability: reference-design/01-understand-the-architecture/observability/index.md
     - Message organization: reference-design/01-understand-the-architecture/message-organization/index.md
     - Page and feature organization: reference-design/01-understand-the-architecture/page-and-feature-organization/index.md
     - Recommended repository structure: reference-design/01-understand-the-architecture/recommended-repository-structure/index.md
@@ -72,6 +121,8 @@ nav:
     - Verified framework behavior: reference-design/02-framework-pieces/verified-framework-behavior/index.md
     - Failure modes to design for: reference-design/02-framework-pieces/failure-modes-to-design-for/index.md
     - Testing boundaries: reference-design/02-framework-pieces/testing-boundaries/index.md
+    - Observability requirements: reference-design/02-framework-pieces/observability-requirements/index.md
+    - Security boundaries: reference-design/02-framework-pieces/security-boundaries/index.md
   - III — Step-by-step implementation:
     - Overview: reference-design/03-step-by-step-implementation/index.md
     - Phase 0 — Ownership rules: reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md
@@ -94,6 +145,67 @@ nav:
     - Phase 17 — Design system: reference-design/03-step-by-step-implementation/phase-17-design-system/index.md
     - Phase 18 — Production hardening: reference-design/03-step-by-step-implementation/phase-18-production-hardening/index.md
     - Phase 19 — Rollout order: reference-design/03-step-by-step-implementation/phase-19-rollout-order/index.md
+    - Phase 20 — Architecture vocabulary freeze: reference-design/03-step-by-step-implementation/platform-phase-0-architecture-vocabulary/index.md
+    - Phase 21 — Baseline and platform preflight: reference-design/03-step-by-step-implementation/platform-phase-1-baseline-and-preflight/index.md
+    - Phase 22 — Upgrade the web runtime deliberately: reference-design/03-step-by-step-implementation/platform-phase-2-upgrade-web-runtime/index.md
+    - Phase 23 — Local Aspire AppHost: reference-design/03-step-by-step-implementation/platform-phase-3-local-aspire-apphost/index.md
+    - Phase 24 — Prepare GitOps ownership: reference-design/03-step-by-step-implementation/platform-phase-4-prepare-gitops-ownership/index.md
+    - Phase 25 — Cilium/Hubble platform baseline: reference-design/03-step-by-step-implementation/platform-phase-5-cilium-hubble-baseline/index.md
+    - Phase 26 — Build the HDD + NVMe dm-cache volume: reference-design/03-step-by-step-implementation/platform-phase-6-build-dm-cache-volume/index.md
+    - Phase 27 — Expose database storage to Kubernetes: reference-design/03-step-by-step-implementation/platform-phase-7-expose-database-storage/index.md
+    - Phase 28 — Install CloudNativePG: reference-design/03-step-by-step-implementation/platform-phase-8-install-cloudnativepg/index.md
+    - Phase 29 — Database roles with least privilege: reference-design/03-step-by-step-implementation/platform-phase-9-database-roles-least-privilege/index.md
+    - Phase 30 — Create the first Atlas schema: reference-design/03-step-by-step-implementation/platform-phase-10-first-atlas-schema/index.md
+    - Phase 31 — Add SQLProvider PostgreSQL access: reference-design/03-step-by-step-implementation/platform-phase-11-sqlprovider-access/index.md
+    - Phase 32 — Migrate current JSON-backed data: reference-design/03-step-by-step-implementation/platform-phase-12-migrate-json-data/index.md
+    - Phase 33 — Replace placeholder authentication: reference-design/03-step-by-step-implementation/platform-phase-13-replace-placeholder-authentication/index.md
+    - Phase 34 — Formalize Shared browser contracts: reference-design/03-step-by-step-implementation/platform-phase-14-formalize-shared-contracts/index.md
+    - Phase 35 — Turn Community.Web.Server into an explicit BFF: reference-design/03-step-by-step-implementation/platform-phase-15-explicit-bff/index.md
+    - Phase 36 — Enable PWA Service Worker: reference-design/03-step-by-step-implementation/platform-phase-16-pwa-service-worker/index.md
+    - Phase 37 — Implement IndexedDB local-store abstraction: reference-design/03-step-by-step-implementation/platform-phase-17-indexeddb-local-store/index.md
+    - Phase 38 — Define IndexedDB version/migration policy: reference-design/03-step-by-step-implementation/platform-phase-18-indexeddb-migration-policy/index.md
+    - Phase 39 — Build the IQueryCoordinator: reference-design/03-step-by-step-implementation/platform-phase-19-query-coordinator/index.md
+    - Phase 40 — Implement cursor/keyset pagination: reference-design/03-step-by-step-implementation/platform-phase-20-cursor-keyset-pagination/index.md
+    - Phase 41 — Implement active-route synchronization: reference-design/03-step-by-step-implementation/platform-phase-21-active-route-synchronization/index.md
+    - Phase 42 — Add entity versions and tombstones: reference-design/03-step-by-step-implementation/platform-phase-22-entity-versions-tombstones/index.md
+    - Phase 43 — Add optimistic concurrency: reference-design/03-step-by-step-implementation/platform-phase-23-optimistic-concurrency/index.md
+    - Phase 44 — Add SignalR for one topic only: reference-design/03-step-by-step-implementation/platform-phase-24-signalr-single-topic/index.md
+    - Phase 45 — Expand SignalR to list/tournament/conversation scopes: reference-design/03-step-by-step-implementation/platform-phase-25-signalr-scoped-expansion/index.md
+    - Phase 46 — Add HybridCache L1: reference-design/03-step-by-step-implementation/platform-phase-26-hybridcache-l1/index.md
+    - Phase 47 — Deploy Dragonfly L2: reference-design/03-step-by-step-implementation/platform-phase-27-dragonfly-l2/index.md
+    - Phase 48 — Implement cache invalidation events: reference-design/03-step-by-step-implementation/platform-phase-28-cache-invalidation-events/index.md
+    - Phase 49 — Add response compression: reference-design/03-step-by-step-implementation/platform-phase-29-response-compression/index.md
+    - Phase 50 — Add rate limiting: reference-design/03-step-by-step-implementation/platform-phase-30-rate-limiting/index.md
+    - Phase 51 — Install Dapr and make service invocation deny-by-default: reference-design/03-step-by-step-implementation/platform-phase-31-dapr-deny-by-default/index.md
+    - Phase 52 — Create the 42wasd-service-template: reference-design/03-step-by-step-implementation/platform-phase-32-create-service-template/index.md
+    - Phase 53 — Extract the Forum Service: reference-design/03-step-by-step-implementation/platform-phase-33-extract-forum-service/index.md
+    - Phase 54 — Extract the Accounts Service: reference-design/03-step-by-step-implementation/platform-phase-34-extract-accounts-service/index.md
+    - Phase 55 — Extract the Game/Server Service: reference-design/03-step-by-step-implementation/platform-phase-35-extract-game-server-service/index.md
+    - Phase 56 — Extract the Tournament Service: reference-design/03-step-by-step-implementation/platform-phase-36-extract-tournament-service/index.md
+    - Phase 57 — Add the Notification Service: reference-design/03-step-by-step-implementation/platform-phase-37-add-notification-service/index.md
+    - Phase 58 — Deploy RabbitMQ: reference-design/03-step-by-step-implementation/platform-phase-38-deploy-rabbitmq/index.md
+    - Phase 59 — Configure Dapr Pub/Sub over RabbitMQ with explicit reliability settings: reference-design/03-step-by-step-implementation/platform-phase-39-dapr-pubsub-rabbitmq/index.md
+    - Phase 60 — Implement the transactional outbox publisher: reference-design/03-step-by-step-implementation/platform-phase-40-transactional-outbox-publisher/index.md
+    - Phase 61 — Add durable background jobs: reference-design/03-step-by-step-implementation/platform-phase-41-durable-background-jobs/index.md
+    - Phase 62 — Add Dapr Workflow only for multi-step cases: reference-design/03-step-by-step-implementation/platform-phase-42-dapr-workflow/index.md
+    - Phase 63 — Implement the BYOA media provider abstraction: reference-design/03-step-by-step-implementation/platform-phase-43-byoa-media-abstraction/index.md
+    - Phase 64 — YouTube OAuth and resumable upload: reference-design/03-step-by-step-implementation/platform-phase-44-youtube-oauth-resumable-upload/index.md
+    - Phase 65 — Media preview/resolution: reference-design/03-step-by-step-implementation/platform-phase-45-media-preview-resolution/index.md
+    - Phase 66 — Add page-level progressive aggregation: reference-design/03-step-by-step-implementation/platform-phase-46-progressive-aggregation/index.md
+    - Phase 67 — Add Search: reference-design/03-step-by-step-implementation/platform-phase-47-add-search/index.md
+    - Phase 68 — Optional WebRTC for heavy P2P: reference-design/03-step-by-step-implementation/platform-phase-48-optional-webrtc/index.md
+    - Phase 69 — Argo rollout model for services: reference-design/03-step-by-step-implementation/platform-phase-49-argo-rollout-model/index.md
+    - Phase 70 — CI gates: reference-design/03-step-by-step-implementation/platform-phase-50-ci-gates/index.md
+    - Phase 71 — Hubble-driven network-policy workflow: reference-design/03-step-by-step-implementation/platform-phase-51-hubble-policy-workflow/index.md
+    - Phase 72 — Network policy ownership: reference-design/03-step-by-step-implementation/platform-phase-52-network-policy-ownership/index.md
+    - Phase 73 — Database connection budget: reference-design/03-step-by-step-implementation/platform-phase-53-database-connection-budget/index.md
+    - Phase 74 — Database indexing review: reference-design/03-step-by-step-implementation/platform-phase-54-database-indexing-review/index.md
+    - Phase 75 — Storage performance validation: reference-design/03-step-by-step-implementation/platform-phase-55-storage-performance-validation/index.md
+    - Phase 76 — Backup/recovery: reference-design/03-step-by-step-implementation/platform-phase-56-backup-recovery/index.md
+    - Phase 77 — Load testing: reference-design/03-step-by-step-implementation/platform-phase-57-load-testing/index.md
+    - Phase 78 — Chaos/failure testing: reference-design/03-step-by-step-implementation/platform-phase-58-chaos-failure-testing/index.md
+    - Phase 79 — PWA/mobile release: reference-design/03-step-by-step-implementation/platform-phase-59-pwa-mobile-release/index.md
+    - Phase 80 — Production readiness gate: reference-design/03-step-by-step-implementation/platform-phase-60-production-readiness-gate/index.md
   - IV — Technical reference:
     - Overview: reference-design/04-technical-reference/index.md
     - The root source of truth model: reference-design/04-technical-reference/the-root-source-of-truth-model/index.md
@@ -111,6 +223,181 @@ nav:
     - Abstraction philosophy: reference-design/04-technical-reference/abstraction-philosophy/index.md
     - Primary references: reference-design/04-technical-reference/primary-references/index.md
     - The final recommendation: reference-design/04-technical-reference/the-final-recommendation/index.md
+    - Source-of-truth model:
+      - reference-design/04-technical-reference/source-of-truth-model/index.md
+      - Recommended source-of-truth model: reference-design/04-technical-reference/source-of-truth-model/recommended-source-of-truth-model/index.md
+      - Application-layer ownership: reference-design/04-technical-reference/source-of-truth-model/application-layer-ownership/index.md
+    - Service code shape:
+      - reference-design/04-technical-reference/service-code-shape/index.md
+      - Internal code shape of one F# service: reference-design/04-technical-reference/service-code-shape/internal-code-shape-of-one-fsharp-service/index.md
+      - Functional Core / Imperative Shell contract: reference-design/04-technical-reference/service-code-shape/functional-core-imperative-shell-contract/index.md
+    - Browser scope model:
+      - reference-design/04-technical-reference/browser-scope-model/index.md
+      - Browser route-scope model: reference-design/04-technical-reference/browser-scope-model/browser-route-scope-model/index.md
+      - Route lifecycle state machine: reference-design/04-technical-reference/browser-scope-model/route-lifecycle-state-machine/index.md
+      - Query key convention: reference-design/04-technical-reference/browser-scope-model/query-key-convention/index.md
+      - RequestCoordinator policy: reference-design/04-technical-reference/browser-scope-model/request-coordinator-policy/index.md
+    - Client local database:
+      - reference-design/04-technical-reference/client-local-database/index.md
+      - Browser IndexedDB database layout: reference-design/04-technical-reference/client-local-database/browser-indexeddb-database-layout/index.md
+      - IndexedDB schema upgrade policy: reference-design/04-technical-reference/client-local-database/indexeddb-schema-upgrade-policy/index.md
+      - App/runtime cache versioning: reference-design/04-technical-reference/client-local-database/app-runtime-cache-versioning/index.md
+    - Contract model:
+      - reference-design/04-technical-reference/contract-model/index.md
+      - Browser/server contract handshake: reference-design/04-technical-reference/contract-model/browser-server-contract-handshake/index.md
+      - Shared F# DTO organization: reference-design/04-technical-reference/contract-model/shared-fsharp-dto-organization/index.md
+      - Strong identifier convention: reference-design/04-technical-reference/contract-model/strong-identifier-convention/index.md
+      - DTO projection rule: reference-design/04-technical-reference/contract-model/dto-projection-rule/index.md
+      - Progressive page composition contract: reference-design/04-technical-reference/contract-model/progressive-page-composition-contract/index.md
+      - Streamed page-fragment operation: reference-design/04-technical-reference/contract-model/streamed-page-fragment-operation/index.md
+    - Realtime model:
+      - reference-design/04-technical-reference/realtime-model/index.md
+      - Realtime subscription identity: reference-design/04-technical-reference/realtime-model/realtime-subscription-identity/index.md
+      - Realtime event envelope: reference-design/04-technical-reference/realtime-model/realtime-event-envelope/index.md
+      - Active-scope delta synchronization API: reference-design/04-technical-reference/realtime-model/active-scope-delta-synchronization-api/index.md
+      - First-load pagination policy: reference-design/04-technical-reference/realtime-model/first-load-pagination-policy/index.md
+      - Client prefetch policy: reference-design/04-technical-reference/realtime-model/client-prefetch-policy/index.md
+    - BFF contract:
+      - reference-design/04-technical-reference/bff-contract/index.md
+      - BFF responsibilities: reference-design/04-technical-reference/bff-contract/bff-responsibilities/index.md
+      - BFF-to-service rule: reference-design/04-technical-reference/bff-contract/bff-to-service-rule/index.md
+    - Internal contract model:
+      - reference-design/04-technical-reference/internal-contract-model/index.md
+      - Internal `.proto` repository layout: reference-design/04-technical-reference/internal-contract-model/internal-proto-repository-layout/index.md
+      - Protobuf evolution rules: reference-design/04-technical-reference/internal-contract-model/protobuf-evolution-rules/index.md
+      - Why not share F# types between backend services: reference-design/04-technical-reference/internal-contract-model/why-not-share-fsharp-types/index.md
+    - Persistence model:
+      - reference-design/04-technical-reference/persistence-model/index.md
+      - PostgreSQL logical schema organization: reference-design/04-technical-reference/persistence-model/postgresql-logical-schema-organization/index.md
+      - Core forum schema example: reference-design/04-technical-reference/persistence-model/core-forum-schema-example/index.md
+      - Change-log design for active-scope sync: reference-design/04-technical-reference/persistence-model/change-log-design-for-active-scope-sync/index.md
+      - Change-log retention: reference-design/04-technical-reference/persistence-model/change-log-retention/index.md
+      - Optimistic concurrency in PostgreSQL: reference-design/04-technical-reference/persistence-model/optimistic-concurrency-in-postgresql/index.md
+      - Transactional outbox schema: reference-design/04-technical-reference/persistence-model/transactional-outbox-schema/index.md
+      - Inbox/idempotency schema: reference-design/04-technical-reference/persistence-model/inbox-idempotency-schema/index.md
+      - Atlas migration repository: reference-design/04-technical-reference/persistence-model/atlas-migration-repository/index.md
+      - Migration release compatibility: reference-design/04-technical-reference/persistence-model/migration-release-compatibility/index.md
+      - SQLProvider role: reference-design/04-technical-reference/persistence-model/sqlprovider-role/index.md
+    - Database topology:
+      - reference-design/04-technical-reference/database-topology/index.md
+      - Database connection topology: reference-design/04-technical-reference/database-topology/database-connection-topology/index.md
+      - Connection-budget formula: reference-design/04-technical-reference/database-topology/connection-budget-formula/index.md
+      - CloudNativePG baseline Cluster: reference-design/04-technical-reference/database-topology/cloudnativepg-baseline-cluster/index.md
+      - CloudNativePG Pooler baseline: reference-design/04-technical-reference/database-topology/cloudnativepg-pooler-baseline/index.md
+      - PostgreSQL durability versus caching: reference-design/04-technical-reference/database-topology/postgresql-durability-versus-caching/index.md
+    - Cache model:
+      - reference-design/04-technical-reference/cache-model/index.md
+      - Cache candidate rule: reference-design/04-technical-reference/cache-model/cache-candidate-rule/index.md
+      - Cache key versioning: reference-design/04-technical-reference/cache-model/cache-key-versioning/index.md
+      - HybridCache configuration intent: reference-design/04-technical-reference/cache-model/hybridcache-configuration-intent/index.md
+      - Cross-Pod cache invalidation caveat: reference-design/04-technical-reference/cache-model/cross-pod-cache-invalidation-caveat/index.md
+      - Dragonfly role: reference-design/04-technical-reference/cache-model/dragonfly-role/index.md
+      - SignalR backplane qualification test: reference-design/04-technical-reference/cache-model/signalr-backplane-qualification-test/index.md
+    - Messaging model:
+      - reference-design/04-technical-reference/messaging-model/index.md
+      - RabbitMQ topology: reference-design/04-technical-reference/messaging-model/rabbitmq-topology/index.md
+      - Interactive versus queued work: reference-design/04-technical-reference/messaging-model/interactive-versus-queued-work/index.md
+      - Job envelope: reference-design/04-technical-reference/messaging-model/job-envelope/index.md
+      - Worker concurrency policy: reference-design/04-technical-reference/messaging-model/worker-concurrency-policy/index.md
+      - Batch policy: reference-design/04-technical-reference/messaging-model/batch-policy/index.md
+      - RabbitMQ reliability: reference-design/04-technical-reference/messaging-model/rabbitmq-reliability/index.md
+    - Dapr model:
+      - reference-design/04-technical-reference/dapr-model/index.md
+      - Dapr component ownership: reference-design/04-technical-reference/dapr-model/dapr-component-ownership/index.md
+      - Dapr service invocation contract: reference-design/04-technical-reference/dapr-model/dapr-service-invocation-contract/index.md
+      - Dapr Pub/Sub contract: reference-design/04-technical-reference/dapr-model/dapr-pubsub-contract/index.md
+      - Dapr Workflow qualification: reference-design/04-technical-reference/dapr-model/dapr-workflow-qualification/index.md
+    - BYOA media model:
+      - reference-design/04-technical-reference/byoa-media-model/index.md
+      - BYOA MediaRef contract: reference-design/04-technical-reference/byoa-media-model/byoa-mediaref-contract/index.md
+      - BYOA upload state machine: reference-design/04-technical-reference/byoa-media-model/byoa-upload-state-machine/index.md
+      - YouTube upload client rules: reference-design/04-technical-reference/byoa-media-model/youtube-upload-client-rules/index.md
+      - External media rendering security: reference-design/04-technical-reference/byoa-media-model/external-media-rendering-security/index.md
+    - Identity model:
+      - reference-design/04-technical-reference/identity-model/index.md
+      - Identity data model: reference-design/04-technical-reference/identity-model/identity-data-model/index.md
+      - Login resolution: reference-design/04-technical-reference/identity-model/login-resolution/index.md
+    - Admission control:
+      - reference-design/04-technical-reference/admission-control/index.md
+      - Rate-limit policy classes: reference-design/04-technical-reference/admission-control/rate-limit-policy-classes/index.md
+      - Backpressure state: reference-design/04-technical-reference/admission-control/backpressure-state/index.md
+      - Response compression policy: reference-design/04-technical-reference/admission-control/response-compression-policy/index.md
+      - Serialization policy by boundary: reference-design/04-technical-reference/admission-control/serialization-policy-by-boundary/index.md
+    - Storage model:
+      - reference-design/04-technical-reference/storage-model/index.md
+      - Database physical storage contract: reference-design/04-technical-reference/storage-model/database-physical-storage-contract/index.md
+      - LVM dm-cache creation runbook: reference-design/04-technical-reference/storage-model/lvm-dm-cache-creation-runbook/index.md
+      - Why writethrough first: reference-design/04-technical-reference/storage-model/why-writethrough-first/index.md
+      - PostgreSQL explicit hot/cold placement: reference-design/04-technical-reference/storage-model/postgresql-explicit-hot-cold-placement/index.md
+    - Backup model:
+      - reference-design/04-technical-reference/backup-model/index.md
+      - Backup architecture: reference-design/04-technical-reference/backup-model/backup-architecture/index.md
+      - Backup test policy: reference-design/04-technical-reference/backup-model/backup-test-policy/index.md
+    - Network model:
+      - reference-design/04-technical-reference/network-model/index.md
+      - Cilium service dependency graph: reference-design/04-technical-reference/network-model/cilium-service-dependency-graph/index.md
+      - Default-deny ownership: reference-design/04-technical-reference/network-model/default-deny-ownership/index.md
+      - Cilium policy example: reference-design/04-technical-reference/network-model/cilium-policy-example/index.md
+      - Hubble policy-development workflow: reference-design/04-technical-reference/network-model/hubble-policy-development-workflow/index.md
+      - Hubble operator queries: reference-design/04-technical-reference/network-model/hubble-operator-queries/index.md
+    - GitOps model:
+      - reference-design/04-technical-reference/gitops-model/index.md
+      - GitOps repository ownership: reference-design/04-technical-reference/gitops-model/gitops-repository-ownership/index.md
+      - Difference from strict config-repo GitOps guidance: reference-design/04-technical-reference/gitops-model/difference-from-strict-config-repo-gitops-guidance/index.md
+      - Third-party component ownership: reference-design/04-technical-reference/gitops-model/third-party-component-ownership/index.md
+      - Argo AppProject boundaries: reference-design/04-technical-reference/gitops-model/argo-appproject-boundaries/index.md
+      - ApplicationSet role: reference-design/04-technical-reference/gitops-model/applicationset-role/index.md
+      - Secrets model: reference-design/04-technical-reference/gitops-model/secrets-model/index.md
+      - ASP.NET Data Protection: reference-design/04-technical-reference/gitops-model/aspnet-data-protection/index.md
+    - Observability reference:
+      - reference-design/04-technical-reference/observability-reference/index.md
+      - Observability semantic conventions: reference-design/04-technical-reference/observability-reference/observability-semantic-conventions/index.md
+      - Metrics that matter: reference-design/04-technical-reference/observability-reference/metrics-that-matter/index.md
+      - Product SLO candidates: reference-design/04-technical-reference/observability-reference/product-slo-candidates/index.md
+      - Alerting priorities: reference-design/04-technical-reference/observability-reference/alerting-priorities/index.md
+    - Product capabilities:
+      - reference-design/04-technical-reference/product-capabilities/index.md
+      - Search architecture: reference-design/04-technical-reference/product-capabilities/search-architecture/index.md
+      - Optional WebRTC boundary: reference-design/04-technical-reference/product-capabilities/optional-webrtc-boundary/index.md
+      - Mobile path: reference-design/04-technical-reference/product-capabilities/mobile-path/index.md
+    - Release model:
+      - reference-design/04-technical-reference/release-model/index.md
+      - Release artifact: reference-design/04-technical-reference/release-model/release-artifact/index.md
+      - Upgrade order: reference-design/04-technical-reference/release-model/upgrade-order/index.md
+      - Contract deprecation policy: reference-design/04-technical-reference/release-model/contract-deprecation-policy/index.md
+      - Database growth policy: reference-design/04-technical-reference/release-model/database-growth-policy/index.md
+      - NVMe cache capacity expectations: reference-design/04-technical-reference/release-model/nvme-cache-capacity-expectations/index.md
+    - End-to-end state machines:
+      - reference-design/04-technical-reference/end-to-end-state-machines/index.md
+      - End-to-end forum read state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-forum-read-state-machine/index.md
+      - End-to-end realtime mutation state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-realtime-mutation-state-machine/index.md
+      - End-to-end reconnect state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-reconnect-state-machine/index.md
+      - End-to-end rapid navigation state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-rapid-navigation-state-machine/index.md
+      - End-to-end cache miss state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-cache-miss-state-machine/index.md
+      - End-to-end queued command state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-queued-command-state-machine/index.md
+      - End-to-end BYOA video state machine: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-byoa-video-state-machine/index.md
+      - End-to-end external account login: reference-design/04-technical-reference/end-to-end-state-machines/end-to-end-external-account-login/index.md
+    - Failure behavior:
+      - reference-design/04-technical-reference/failure-behavior/index.md
+      - Network failure behavior: reference-design/04-technical-reference/failure-behavior/network-failure-behavior/index.md
+      - External provider failure behavior: reference-design/04-technical-reference/failure-behavior/external-provider-failure-behavior/index.md
+    - Security invariants: reference-design/04-technical-reference/security-invariants/index.md
+    - Acceptance tests:
+      - reference-design/04-technical-reference/acceptance-tests/index.md
+      - Platform functional acceptance test: reference-design/04-technical-reference/acceptance-tests/platform-functional-acceptance-test/index.md
+      - Performance acceptance test: reference-design/04-technical-reference/acceptance-tests/performance-acceptance-test/index.md
+      - Load-test scenarios: reference-design/04-technical-reference/acceptance-tests/load-test-scenarios/index.md
+      - Upgrade test matrix: reference-design/04-technical-reference/acceptance-tests/upgrade-test-matrix/index.md
+      - Disaster test matrix: reference-design/04-technical-reference/acceptance-tests/disaster-test-matrix/index.md
+    - Capacity model:
+      - reference-design/04-technical-reference/capacity-model/index.md
+      - Capacity planning: reference-design/04-technical-reference/capacity-model/capacity-planning/index.md
+      - What not to optimize prematurely: reference-design/04-technical-reference/capacity-model/what-not-to-optimize-prematurely/index.md
+      - What to optimize first when traffic grows: reference-design/04-technical-reference/capacity-model/what-to-optimize-first-when-traffic-grows/index.md
+    - Platform order:
+      - reference-design/04-technical-reference/platform-order/index.md
+      - Final production dependency order: reference-design/04-technical-reference/platform-order/final-production-dependency-order/index.md
+      - Final master checklist: reference-design/04-technical-reference/platform-order/final-master-checklist/index.md
 - Implementation:
   - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<

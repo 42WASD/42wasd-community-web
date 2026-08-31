@@ -27,23 +27,23 @@ assigned a status; a generator renders this page from
 
 ## Overall progress
 
-**20 / 20** phases/sections complete (**100%**).
+**20 / 81** phases/sections complete (**25%**).
 
-<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:100.0%"></div></div><div class="progress-pct">100%</div></div>
+<div class="progress-row" style="max-width:720px;padding:8px 0;"><div class="progress-track"><div class="progress-fill progress-fill--shimmer" style="--w:24.7%"></div></div><div class="progress-pct">25%</div></div>
 
 | Status | Count |
 |--------|-------|
 | ✅ done | 20 |
 | 🔶 in-progress | 0 |
-| ⬜ not-started | 0 |
+| ⬜ not-started | 61 |
 | ❌ blocked | 0 |
 | ⏸️ deferred | 0 |
 
 ## Progress by part
 
-### 100% — Part III — Step-by-step implementation
+### 25% — Part III — Step-by-step implementation
 
-<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:100.0%"></div></div><div class="progress-pct" style="font-size:.85em;">100%</div><div class="tip-box"><strong>Done (20)</strong>
+<div class="tip" style="display:flex;align-items:center;gap:8px;max-width:520px;padding:2px 0 10px;"><div class="progress-track"><div class="progress-fill" style="--w:25.0%"></div></div><div class="progress-pct" style="font-size:.85em;">25%</div><div class="tip-box"><strong>Done (20)</strong>
 • Ownership rules
 • Create the solution
 • Repository structure
@@ -64,8 +64,68 @@ assigned a status; a generator renders this page from
 • Design system
 • Production hardening
 • Rollout order
-<hr style="opacity:.3;margin:6px 0;"><strong>Pending (0)</strong>
-—</div></div>
+<hr style="opacity:.3;margin:6px 0;"><strong>Pending (61)</strong>
+• Architecture vocabulary freeze
+• Baseline and platform preflight
+• Upgrade the web runtime deliberately
+• Local Aspire AppHost
+• Prepare GitOps ownership
+• Cilium/Hubble platform baseline
+• Build the HDD + NVMe dm-cache volume
+• Expose database storage to Kubernetes
+• Install CloudNativePG
+• Database roles with least privilege
+• Create the first Atlas schema
+• Add SQLProvider PostgreSQL access
+• Migrate current JSON-backed data
+• Replace placeholder authentication
+• Formalize Shared browser contracts
+• Turn Community.Web.Server into an explicit BFF
+• Enable PWA Service Worker
+• Implement IndexedDB local-store abstraction
+• Define IndexedDB version/migration policy
+• Build the IQueryCoordinator
+• Implement cursor/keyset pagination
+• Implement active-route synchronization
+• Add entity versions and tombstones
+• Add optimistic concurrency
+• Add SignalR for one topic only
+• Expand SignalR to list/tournament/conversation scopes
+• Add HybridCache L1
+• Deploy Dragonfly L2
+• Implement cache invalidation events
+• Add response compression
+• Add rate limiting
+• Install Dapr and make service invocation deny-by-default
+• Create the 42wasd-service-template
+• Extract the Forum Service
+• Extract the Accounts Service
+• Extract the Game/Server Service
+• Extract the Tournament Service
+• Add the Notification Service
+• Deploy RabbitMQ
+• Configure Dapr Pub/Sub over RabbitMQ with explicit reliability settings
+• Implement the transactional outbox publisher
+• Add durable background jobs
+• Add Dapr Workflow only for multi-step cases
+• Implement the BYOA media provider abstraction
+• YouTube OAuth and resumable upload
+• Media preview/resolution
+• Add page-level progressive aggregation
+• Add Search
+• Optional WebRTC for heavy P2P
+• Argo rollout model for services
+• CI gates
+• Hubble-driven network-policy workflow
+• Network policy ownership
+• Database connection budget
+• Database indexing review
+• Storage performance validation
+• Backup/recovery
+• Load testing
+• Chaos/failure testing
+• PWA/mobile release
+• Production readiness gate</div></div>
 
 - ✅ `done` — [Phase 0 — Ownership rules](../reference-design/03-step-by-step-implementation/phase-0-ownership-rules/index.md)
 
@@ -2662,5 +2722,67 @@ docs/implementation/index.md
 `verify.sh` reports `VERIFY OK`.
 
 </details>
+
+- ⬜ `not-started` — [Phase 20 — Architecture vocabulary freeze](../reference-design/03-step-by-step-implementation/platform-phase-0-architecture-vocabulary/index.md)
+- ⬜ `not-started` — [Phase 21 — Baseline and platform preflight](../reference-design/03-step-by-step-implementation/platform-phase-1-baseline-and-preflight/index.md)
+- ⬜ `not-started` — [Phase 22 — Upgrade the web runtime deliberately](../reference-design/03-step-by-step-implementation/platform-phase-2-upgrade-web-runtime/index.md)
+- ⬜ `not-started` — [Phase 23 — Local Aspire AppHost](../reference-design/03-step-by-step-implementation/platform-phase-3-local-aspire-apphost/index.md)
+- ⬜ `not-started` — [Phase 24 — Prepare GitOps ownership](../reference-design/03-step-by-step-implementation/platform-phase-4-prepare-gitops-ownership/index.md)
+- ⬜ `not-started` — [Phase 25 — Cilium/Hubble platform baseline](../reference-design/03-step-by-step-implementation/platform-phase-5-cilium-hubble-baseline/index.md)
+- ⬜ `not-started` — [Phase 26 — Build the HDD + NVMe dm-cache volume](../reference-design/03-step-by-step-implementation/platform-phase-6-build-dm-cache-volume/index.md)
+- ⬜ `not-started` — [Phase 27 — Expose database storage to Kubernetes](../reference-design/03-step-by-step-implementation/platform-phase-7-expose-database-storage/index.md)
+- ⬜ `not-started` — [Phase 28 — Install CloudNativePG](../reference-design/03-step-by-step-implementation/platform-phase-8-install-cloudnativepg/index.md)
+- ⬜ `not-started` — [Phase 29 — Database roles with least privilege](../reference-design/03-step-by-step-implementation/platform-phase-9-database-roles-least-privilege/index.md)
+- ⬜ `not-started` — [Phase 30 — Create the first Atlas schema](../reference-design/03-step-by-step-implementation/platform-phase-10-first-atlas-schema/index.md)
+- ⬜ `not-started` — [Phase 31 — Add SQLProvider PostgreSQL access](../reference-design/03-step-by-step-implementation/platform-phase-11-sqlprovider-access/index.md)
+- ⬜ `not-started` — [Phase 32 — Migrate current JSON-backed data](../reference-design/03-step-by-step-implementation/platform-phase-12-migrate-json-data/index.md)
+- ⬜ `not-started` — [Phase 33 — Replace placeholder authentication](../reference-design/03-step-by-step-implementation/platform-phase-13-replace-placeholder-authentication/index.md)
+- ⬜ `not-started` — [Phase 34 — Formalize Shared browser contracts](../reference-design/03-step-by-step-implementation/platform-phase-14-formalize-shared-contracts/index.md)
+- ⬜ `not-started` — [Phase 35 — Turn Community.Web.Server into an explicit BFF](../reference-design/03-step-by-step-implementation/platform-phase-15-explicit-bff/index.md)
+- ⬜ `not-started` — [Phase 36 — Enable PWA Service Worker](../reference-design/03-step-by-step-implementation/platform-phase-16-pwa-service-worker/index.md)
+- ⬜ `not-started` — [Phase 37 — Implement IndexedDB local-store abstraction](../reference-design/03-step-by-step-implementation/platform-phase-17-indexeddb-local-store/index.md)
+- ⬜ `not-started` — [Phase 38 — Define IndexedDB version/migration policy](../reference-design/03-step-by-step-implementation/platform-phase-18-indexeddb-migration-policy/index.md)
+- ⬜ `not-started` — [Phase 39 — Build the IQueryCoordinator](../reference-design/03-step-by-step-implementation/platform-phase-19-query-coordinator/index.md)
+- ⬜ `not-started` — [Phase 40 — Implement cursor/keyset pagination](../reference-design/03-step-by-step-implementation/platform-phase-20-cursor-keyset-pagination/index.md)
+- ⬜ `not-started` — [Phase 41 — Implement active-route synchronization](../reference-design/03-step-by-step-implementation/platform-phase-21-active-route-synchronization/index.md)
+- ⬜ `not-started` — [Phase 42 — Add entity versions and tombstones](../reference-design/03-step-by-step-implementation/platform-phase-22-entity-versions-tombstones/index.md)
+- ⬜ `not-started` — [Phase 43 — Add optimistic concurrency](../reference-design/03-step-by-step-implementation/platform-phase-23-optimistic-concurrency/index.md)
+- ⬜ `not-started` — [Phase 44 — Add SignalR for one topic only](../reference-design/03-step-by-step-implementation/platform-phase-24-signalr-single-topic/index.md)
+- ⬜ `not-started` — [Phase 45 — Expand SignalR to list/tournament/conversation scopes](../reference-design/03-step-by-step-implementation/platform-phase-25-signalr-scoped-expansion/index.md)
+- ⬜ `not-started` — [Phase 46 — Add HybridCache L1](../reference-design/03-step-by-step-implementation/platform-phase-26-hybridcache-l1/index.md)
+- ⬜ `not-started` — [Phase 47 — Deploy Dragonfly L2](../reference-design/03-step-by-step-implementation/platform-phase-27-dragonfly-l2/index.md)
+- ⬜ `not-started` — [Phase 48 — Implement cache invalidation events](../reference-design/03-step-by-step-implementation/platform-phase-28-cache-invalidation-events/index.md)
+- ⬜ `not-started` — [Phase 49 — Add response compression](../reference-design/03-step-by-step-implementation/platform-phase-29-response-compression/index.md)
+- ⬜ `not-started` — [Phase 50 — Add rate limiting](../reference-design/03-step-by-step-implementation/platform-phase-30-rate-limiting/index.md)
+- ⬜ `not-started` — [Phase 51 — Install Dapr and make service invocation deny-by-default](../reference-design/03-step-by-step-implementation/platform-phase-31-dapr-deny-by-default/index.md)
+- ⬜ `not-started` — [Phase 52 — Create the 42wasd-service-template](../reference-design/03-step-by-step-implementation/platform-phase-32-create-service-template/index.md)
+- ⬜ `not-started` — [Phase 53 — Extract the Forum Service](../reference-design/03-step-by-step-implementation/platform-phase-33-extract-forum-service/index.md)
+- ⬜ `not-started` — [Phase 54 — Extract the Accounts Service](../reference-design/03-step-by-step-implementation/platform-phase-34-extract-accounts-service/index.md)
+- ⬜ `not-started` — [Phase 55 — Extract the Game/Server Service](../reference-design/03-step-by-step-implementation/platform-phase-35-extract-game-server-service/index.md)
+- ⬜ `not-started` — [Phase 56 — Extract the Tournament Service](../reference-design/03-step-by-step-implementation/platform-phase-36-extract-tournament-service/index.md)
+- ⬜ `not-started` — [Phase 57 — Add the Notification Service](../reference-design/03-step-by-step-implementation/platform-phase-37-add-notification-service/index.md)
+- ⬜ `not-started` — [Phase 58 — Deploy RabbitMQ](../reference-design/03-step-by-step-implementation/platform-phase-38-deploy-rabbitmq/index.md)
+- ⬜ `not-started` — [Phase 59 — Configure Dapr Pub/Sub over RabbitMQ with explicit reliability settings](../reference-design/03-step-by-step-implementation/platform-phase-39-dapr-pubsub-rabbitmq/index.md)
+- ⬜ `not-started` — [Phase 60 — Implement the transactional outbox publisher](../reference-design/03-step-by-step-implementation/platform-phase-40-transactional-outbox-publisher/index.md)
+- ⬜ `not-started` — [Phase 61 — Add durable background jobs](../reference-design/03-step-by-step-implementation/platform-phase-41-durable-background-jobs/index.md)
+- ⬜ `not-started` — [Phase 62 — Add Dapr Workflow only for multi-step cases](../reference-design/03-step-by-step-implementation/platform-phase-42-dapr-workflow/index.md)
+- ⬜ `not-started` — [Phase 63 — Implement the BYOA media provider abstraction](../reference-design/03-step-by-step-implementation/platform-phase-43-byoa-media-abstraction/index.md)
+- ⬜ `not-started` — [Phase 64 — YouTube OAuth and resumable upload](../reference-design/03-step-by-step-implementation/platform-phase-44-youtube-oauth-resumable-upload/index.md)
+- ⬜ `not-started` — [Phase 65 — Media preview/resolution](../reference-design/03-step-by-step-implementation/platform-phase-45-media-preview-resolution/index.md)
+- ⬜ `not-started` — [Phase 66 — Add page-level progressive aggregation](../reference-design/03-step-by-step-implementation/platform-phase-46-progressive-aggregation/index.md)
+- ⬜ `not-started` — [Phase 67 — Add Search](../reference-design/03-step-by-step-implementation/platform-phase-47-add-search/index.md)
+- ⬜ `not-started` — [Phase 68 — Optional WebRTC for heavy P2P](../reference-design/03-step-by-step-implementation/platform-phase-48-optional-webrtc/index.md)
+- ⬜ `not-started` — [Phase 69 — Argo rollout model for services](../reference-design/03-step-by-step-implementation/platform-phase-49-argo-rollout-model/index.md)
+- ⬜ `not-started` — [Phase 70 — CI gates](../reference-design/03-step-by-step-implementation/platform-phase-50-ci-gates/index.md)
+- ⬜ `not-started` — [Phase 71 — Hubble-driven network-policy workflow](../reference-design/03-step-by-step-implementation/platform-phase-51-hubble-policy-workflow/index.md)
+- ⬜ `not-started` — [Phase 72 — Network policy ownership](../reference-design/03-step-by-step-implementation/platform-phase-52-network-policy-ownership/index.md)
+- ⬜ `not-started` — [Phase 73 — Database connection budget](../reference-design/03-step-by-step-implementation/platform-phase-53-database-connection-budget/index.md)
+- ⬜ `not-started` — [Phase 74 — Database indexing review](../reference-design/03-step-by-step-implementation/platform-phase-54-database-indexing-review/index.md)
+- ⬜ `not-started` — [Phase 75 — Storage performance validation](../reference-design/03-step-by-step-implementation/platform-phase-55-storage-performance-validation/index.md)
+- ⬜ `not-started` — [Phase 76 — Backup/recovery](../reference-design/03-step-by-step-implementation/platform-phase-56-backup-recovery/index.md)
+- ⬜ `not-started` — [Phase 77 — Load testing](../reference-design/03-step-by-step-implementation/platform-phase-57-load-testing/index.md)
+- ⬜ `not-started` — [Phase 78 — Chaos/failure testing](../reference-design/03-step-by-step-implementation/platform-phase-58-chaos-failure-testing/index.md)
+- ⬜ `not-started` — [Phase 79 — PWA/mobile release](../reference-design/03-step-by-step-implementation/platform-phase-59-pwa-mobile-release/index.md)
+- ⬜ `not-started` — [Phase 80 — Production readiness gate](../reference-design/03-step-by-step-implementation/platform-phase-60-production-readiness-gate/index.md)
 
 <!-- END_GENERATED_IMPLEMENTATION -->
