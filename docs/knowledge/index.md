@@ -93,10 +93,10 @@ mindmap
 
 | Source | Short name | What it contributes |
 | --- | --- | --- |
-| *Domain Modeling Made Functional* (Scott Wlaschin) | **DMMF** | DDD + functional design: types, pipelines, errors, persistence |
-| *Elm in Action* (Richard Feldman) | **EIA** | The Elm Architecture, compiler-driven correctness, testing, SPA structure |
-| *Blazor for ASP.NET Web Forms Developers* (Microsoft) | **Blazor** | Component model, app services, hosting, migration from Web Forms |
-| *Enterprise Application Patterns Using .NET MAUI* (Microsoft) | **MAUI** | MVVM, DI, messaging, navigation, validation, remote data resilience |
+| *Domain Modeling Made Functional* (Scott Wlaschin) — [Pragmatic Bookshelf](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) | **DMMF** | DDD + functional design: types, pipelines, errors, persistence |
+| *Elm in Action* (Richard Feldman) — [Manning](https://www.manning.com/books/elm-in-action) | **EIA** | The Elm Architecture, compiler-driven correctness, testing, SPA structure |
+| *Blazor for ASP.NET Web Forms Developers* (Microsoft) — [free online](https://learn.microsoft.com/en-us/aspnet/core/blazor/migration/web-forms) | **Blazor** | Component model, app services, hosting, migration from Web Forms |
+| *Enterprise Application Patterns Using .NET MAUI* (Microsoft) — [free online](https://learn.microsoft.com/en-us/dotnet/architecture/maui/) | **MAUI** | MVVM, DI, messaging, navigation, validation, remote data resilience |
 
 ## Reading order (beginner → end)
 
