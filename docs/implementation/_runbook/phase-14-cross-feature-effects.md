@@ -205,3 +205,30 @@ docs/implementation/progress.yaml                   (phase-14: done)
 docs/implementation/index.md                       (regenerated)
 docs/implementation/_runbook/phase-14-cross-feature-effects.md  (this file)
 ```
+
+---
+
+## Post-phase note (2026-09-01): Tournaments is now a DataList + dialog page
+
+The Bulma table shown above is long gone (phases 17+ replaced every template
+with Radzen components). The page today is feature-owned UI end to end:
+
+- **Presentation**: `RadzenUI.dataList<Tournament>` (RadzenDataList card list,
+  `WrapItems=true` for the responsive multi-column flow) instead of a
+  `RadzenRow`/`RadzenColumn` grid — each card comes from a pure
+  `'T -> Node` template function.
+- **Second message**: `Tournaments.Msg` gained `ViewDetails of string`.
+  `actionMsg` maps the RadzenSplitButton's clicked `Value` (`None`/`"toggle"`
+  → `ToggleRegistration`, `"details"` → `ViewDetails`); the regression tests
+  in `AppTests.fs` assert that mapping.
+- **Root translation is per-message now**, not "every message → Shared":
+  `ToggleRegistration` → `Cmd.ofMsg (SharedMsg Shared.ToggleTournament …)`
+  (a shared state effect, unchanged), while `ViewDetails` → `Cmd.none` in the
+  pure `App.update` and the dialog is opened by the service-aware wrapper in
+  `Main.fs` (a UI effect, no state change). The split matters: pure update
+  stays testable without Radzen services.
+- **The dialog itself**: `DialogService.OpenAsync(title, RenderFragment<DialogService>,
+  DialogOptions)` resolved in `Main.fs` next to `NotificationService`, with
+  the body built from a Bolero `Node` (`RadzenUI.detailField` rows). It is
+  opened via `OpenSideAsync` + `SideDialogOptions` — verified working against
+  the vendored Radzen 11.2.7.

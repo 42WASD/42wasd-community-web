@@ -56,6 +56,8 @@ module Shared =
         | DataLoaded of LoadedData
         | ToggleTournament of string
         | ToggleFavoriteGame of string
+        | MarkNewsRead of string
+        | MarkAllNewsRead
         | GetSignedInAs
         | RecvSignedInAs of option<string>
         | SendSignIn of string * string
@@ -92,15 +94,43 @@ module Shared =
             | Teams -> fetch remote.getTeams TeamsLoaded
         setLoading, cmd
 
-    /// Apply a DataLoaded payload to the matching cache slice.
+    /// Apply a DataLoaded payload to the matching cache slice. Loading the
+    /// Players cache also re-seeds the signed-in user's per-user sets
+    /// (favoriteGames / readNews) from their persisted player record — the
+    /// DTO writes survive refresh because they come back on this record.
     let private applyLoaded (shared: SharedModel) (loaded: LoadedData) =
-        match loaded with
-        | GamesLoaded g -> { shared with games = Loaded (SharedModel.indexById g (fun x -> x.id)) }
-        | ServersLoaded s -> { shared with servers = Loaded (SharedModel.indexById s (fun x -> x.id)) }
-        | TournamentsLoaded t -> { shared with tournaments = Loaded (SharedModel.indexById t (fun x -> x.id)) }
-        | NewsLoaded n -> { shared with news = Loaded (SharedModel.indexById n (fun x -> x.id)) }
-        | PlayersLoaded p -> { shared with players = Loaded (SharedModel.indexById p (fun x -> x.id)) }
-        | TeamsLoaded t -> { shared with teams = Loaded (SharedModel.indexById t (fun x -> x.id)) }
+        let apply slice =
+            match loaded with
+            | GamesLoaded g -> { slice with games = Loaded (SharedModel.indexById g (fun x -> x.id)) }
+            | ServersLoaded s -> { slice with servers = Loaded (SharedModel.indexById s (fun x -> x.id)) }
+            | TournamentsLoaded t -> { slice with tournaments = Loaded (SharedModel.indexById t (fun x -> x.id)) }
+            | NewsLoaded n -> { slice with news = Loaded (SharedModel.indexById n (fun x -> x.id)) }
+            | PlayersLoaded p ->
+                let m = SharedModel.indexById p (fun x -> x.id)
+                let next = { slice with players = Loaded m }
+                match slice.account with
+                // The Players map is keyed by player ID, so find the signed-in
+                // user's record by USERNAME (the session name), then seed.
+                | Some name ->
+                    match p |> Array.tryFind (fun x -> x.username = name) with
+                    | Some me ->
+                        { next with
+                            favoriteGames = Set.ofList me.favoriteGames
+                            readNews = Set.ofList me.readNews }
+                    | None -> next
+                | None -> next
+            | TeamsLoaded t -> { slice with teams = Loaded (SharedModel.indexById t (fun x -> x.id)) }
+        apply shared
+
+    /// Map a player-record DTO echo (option<Player> — None when the caller has
+    /// no roster entry) into a DataLoaded message that merges the record into
+    /// the Players cache (and re-seeds the per-user sets). The optimistic
+    /// update already applied the change client-side; this only reconciles it
+    /// with what the server actually persisted.
+    let private playerEcho (echo: option<Player>) : Msg =
+        match echo with
+        | Some p -> DataLoaded (PlayersLoaded [| p |])
+        | None -> ClearError
 
     /// Update shared state for a Shared.Msg. Pure: takes the SharedModel and
     /// returns the new SharedModel + a command of Shared.Msg (the caller lifts
@@ -116,28 +146,73 @@ module Shared =
             // A shared effect: flip registrationOpen in the canonical
             // tournaments cache. Other pages reading that cache (e.g. Home's
             // "open tournaments" stat) reflect the change immediately — the
-            // cross-feature verification.
-            let tournaments =
+            // cross-feature verification. The new gate is ALSO PERSISTED via
+            // the setTournamentRegistration DTO: the UI flips optimistically,
+            // the fire-and-forget call reports failure through the shared
+            // Error handler (the footer alert). Uses Cmd.OfAsync.attempt so a
+            // failed write surfaces instead of vanishing.
+            let flip =
                 match shared.tournaments with
                 | Loaded m ->
                     match m.TryFind tournamentId with
-                    | Some t ->
-                        let t' = { t with registrationOpen = not t.registrationOpen }
-                        Loaded (m.Add(tournamentId, t'))
-                    | None -> Loaded m
-                | other -> other
-            { shared with tournaments = tournaments }, Cmd.none
+                    | Some t -> Some (not t.registrationOpen)
+                    | None -> None
+                | _ -> None
+            match flip with
+            | Some open' ->
+                let tournaments =
+                    match shared.tournaments with
+                    | Loaded m -> Loaded (m.Add(tournamentId, { m[tournamentId] with registrationOpen = open' }))
+                    | other -> other
+                let cmd = Cmd.OfAsync.attempt remote.setTournamentRegistration (tournamentId, open') Error
+                { shared with tournaments = tournaments }, cmd
+            | None -> shared, Cmd.none
 
         | ToggleFavoriteGame gameId ->
             // A shared effect: add/remove the game id in the favourite set.
-            // Home's "favourite games" stat reads the same set, so it reflects
-            // the change immediately (cross-feature verification).
+            // Home's "favourite games" stat reads the same set. When signed
+            // in, the new set is PERSISTED on the player record via the
+            // setFavoriteGames DTO (optimistic update; the server echo is
+            // folded back into the Players cache by DataLoaded).
             let favorites =
                 if shared.favoriteGames.Contains gameId then
                     shared.favoriteGames.Remove gameId
                 else
                     shared.favoriteGames.Add gameId
-            { shared with favoriteGames = favorites }, Cmd.none
+            let shared = { shared with favoriteGames = favorites }
+            let cmd =
+                match shared.account with
+                // The server echoes the updated player record; feeding it
+                // through PlayersLoaded keeps the Players cache AND the
+                // per-user sets in sync with what was persisted.
+                | Some _ -> Cmd.OfAsync.either remote.setFavoriteGames (Set.toList favorites) playerEcho Error
+                | None -> Cmd.none
+            shared, cmd
+
+        | MarkNewsRead newsId ->
+            // A shared effect: mark one inbox item read. The unread badge
+            // (Layout bell) and per-item dots recompute from the same set.
+            let read = shared.readNews.Add newsId
+            let shared = { shared with readNews = read }
+            let cmd =
+                match shared.account with
+                | Some _ -> Cmd.OfAsync.either remote.setReadNews (Set.toList read) playerEcho Error
+                | None -> Cmd.none
+            shared, cmd
+
+        | MarkAllNewsRead ->
+            // A shared effect: mark every loaded news item read (the inbox
+            // popup's "Mark all read" action).
+            let read =
+                match shared.news with
+                | Loaded ns -> Set.union shared.readNews (Set.ofSeq ns.Keys)
+                | _ -> shared.readNews
+            let shared = { shared with readNews = read }
+            let cmd =
+                match shared.account with
+                | Some _ -> Cmd.OfAsync.either remote.setReadNews (Set.toList read) playerEcho Error
+                | None -> Cmd.none
+            shared, cmd
 
         | GetSignedInAs ->
             let cmd = Cmd.OfAuthorized.either remote.getUsername () RecvSignedInAs Error
@@ -153,7 +228,9 @@ module Shared =
                 { shared with
                     account = username
                     signInFailed = Option.isNone username }
-            // Refresh the member list on success (Members reflects the new member).
+            // Refresh the member list on success (Members reflects the new
+            // member, AND the signed-in player's persisted favoriteGames /
+            // readNews seed the shared sets via the PlayersLoaded handler).
             let cmd =
                 match username with
                 | Some _ -> Cmd.ofMsg (Load Players)

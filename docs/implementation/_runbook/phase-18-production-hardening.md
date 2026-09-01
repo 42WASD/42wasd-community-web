@@ -192,3 +192,78 @@ object may hold a merged half-old/half-new spec that no clean apply can fix
 Replacing the contested field out-of-band (JSON patch), or deleting the
 stale field manager, unblocks it. Also remember to clear/refresh a stale
 `kubectl.kubernetes.io/last-applied-configuration` annotation if one exists.
+
+---
+
+## Post-phase fix (2026-08-31): disable AOT in the container — trim + interpreted; AOT remains the reference target
+
+**AOT stays a goal of this phase — it is NOT abandoned.** It is disabled in
+the serving image today for two UNRESOLVED reasons, both to be revisited:
+
+1. **Production breakage without a root cause.** With `RunAOTCompilation=true`
+   the image served but pages misbehaved (Members NRE et al). Suspects fixed
+   along the way (Radzen string-`Property` reflection, `RadzenGravatar`
+   localize path, `PageModel.SetModel`'s `Unsafe.AsRef` under trim) each
+   changed the failure shape but none was positively THE cause. Shipping AOT
+   with an unknown root cause is not acceptable, so it is off until identified.
+2. **Iteration cost.** An AOT publish took ~4–6 min per build, which made
+   root-causing the above impractical.
+
+**Re-enablement plan:** probe build with `RunAOTCompilation=true`, page-by-page
+live check with the MVU trace + managed stack traces, identify the exact
+stripping cause, fix, then flip AOT (+ `wasm-tools`) back on in the Dockerfile.
+The fsproj carries a comment marking the line to flip.
+
+### What changed
+
+- `src/Community.Web.Client/Community.Web.Client.fsproj`:
+  `RunAOTCompilation` `true` → **`false`**; `PublishTrimmed=true` and
+  `TrimMode=partial` stay. Added `<DefineConstants>$(DefineConstants);ELMISH_TRACE</DefineConstants>`
+  so the Elmish MVU trace survives Release publishes (the old `#if DEBUG`
+  gate stripped it from exactly the builds where bugs reproduce).
+- `Dockerfile`: the `dotnet workload install wasm-tools` line is commented
+  out until AOT is re-enabled.
+- **Payload (re-measured 2026-09-01, fresh Release publish):** 32 MB raw →
+  **6.9 MB gzip / 5.8 MB brotli** precompressed `_framework` assets.
+  Top contributors (gzip): `Radzen.Blazor` 1.4 MB, `FSharp.Core` 1.1 MB,
+  `System.Private.CoreLib` 0.7 MB, `System.Private.Xml` 0.7 MB,
+  `dotnet.native` 0.6 MB. Trimming is the payload lever; AOT's win is
+  CPU-bound execution speed, not size.
+- Publish is now **~1 min** instead of 5–6, and trimmed-no-AOT builds keep
+  REAL managed stack traces in the browser console (AOT reduced them to a bare
+  `ComponentState.RenderIntoBatch` frame) — which is exactly the tool needed
+  for the root-cause hunt when AOT comes back.
+
+### The trimming bug this uncovered (and its fix)
+
+Even `partial` trimming breaks Bolero's `Router.definePageModel`: it writes
+page state via `PageModel.SetModel` → `Unsafe.AsRef`
+(vendored `Bolero/src/Bolero/Router.fs`), which **silently no-ops** in the
+trimmed WASM build. Production MVU trace: `SetSearch "WASD" -> page=MembersPage
+{ Model = null }` on every keystroke — the page rendered but its search state
+never persisted (commit `69b9eb8`).
+
+Fix (pure MVU, no trim-sensitive byref write): the updated page model flows
+back through the root model immutably instead of mutating the router's static
+template record:
+
+```fsharp
+| MembersMsg msg ->
+    match model.page with
+    | MembersPage pm ->
+        let m, cmd = Members.update msg pm.Model
+        { model with page = MembersPage { Model = m } }, Cmd.map MembersMsg cmd
+```
+
+The same immutable flow is used by `InboxMsg`. Related SSR fix (commit
+`364a945`): under Release SSR the router renders pages with a **null**
+`PageModel.Model` (no Elmish state server-side), so every page view must
+null-guard its own model — `Members.view`/`Inbox.view`/`Account.view` all do
+(e.g. `searchOf`), and `Layout` passes `pm.Model` itself rather than
+dereferencing fields at the call site.
+
+### Lesson
+
+When a page "renders but its state resets", trace the MVU log first: a
+`Model = null` in the trace is real (not a formatting artifact) — check for a
+trim-sensitive write path (`Unsafe.AsRef`) before suspecting the view.

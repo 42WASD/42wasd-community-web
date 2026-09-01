@@ -26,6 +26,9 @@ module TestData =
             signIn = fun _ -> async { return failwith "not used in pure tests" }
             getUsername = fun () -> async { return failwith "not used in pure tests" }
             saveProfile = fun _ -> async { return failwith "not used in pure tests" }
+            setTournamentRegistration = fun _ -> async { return failwith "not used in pure tests" }
+            setFavoriteGames = fun _ -> async { return failwith "not used in pure tests" }
+            setReadNews = fun _ -> async { return failwith "not used in pure tests" }
             signOut = fun () -> async { return failwith "not used in pure tests" }
         }
 
@@ -59,11 +62,12 @@ module TestData =
             { id = "n-2"; title = "New servers online"; body = "Two CS2 servers added."; publishedAt = System.DateTime(2026, 8, 25) }
         |]
 
-    /// Players for the Members page.
+    /// Players for the Members page. bob carries a persisted favourite
+    /// (game-1) + read-news (n-9) set to exercise the per-user seeding.
     let samplePlayers : Player[] =
         [|
-            { id = "p-1"; username = "alice"; discord = Some "alice#1"; handle = Some "Alice"; bio = Some "FPS player" }
-            { id = "p-2"; username = "bob"; discord = None; handle = Some "Bob"; bio = None }
+            { id = "p-1"; username = "alice"; discord = Some "alice#1"; handle = Some "Alice"; bio = Some "FPS player"; favoriteGames = []; readNews = [] }
+            { id = "p-2"; username = "bob"; discord = None; handle = Some "Bob"; bio = None; favoriteGames = [ "game-1" ]; readNews = [ "n-9" ] }
         |]
 
     /// Teams for the Teams page.

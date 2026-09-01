@@ -3,24 +3,24 @@
     "id": "team-1",
     "name": "42 Tactical",
     "players": [
-      { "id": "player-1", "username": "WASDhero", "discord": "wasdhero#0001" },
-      { "id": "player-2", "username": "xX_ProGamer_Xx", "discord": "progamer#0002" }
+      { "id": "player-1", "username": "WASDhero", "discord": "wasdhero#0001", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] },
+      { "id": "player-2", "username": "xX_ProGamer_Xx", "discord": "progamer#0002", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] }
     ]
   },
   {
     "id": "team-2",
     "name": "Combo Breakers",
     "players": [
-      { "id": "player-3", "username": "42Member", "discord": "member42#0003" },
-      { "id": "player-4", "username": "RushKing", "discord": "rushking#0004" }
+      { "id": "player-3", "username": "42Member", "discord": "member42#0003", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] },
+      { "id": "player-4", "username": "RushKing", "discord": "rushking#0004", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] }
     ]
   },
   {
     "id": "team-3",
     "name": "No Scope Legends",
     "players": [
-      { "id": "player-5", "username": "ClutchGod", "discord": "clutchgod#0005" },
-      { "id": "player-6", "username": "PixelProwler", "discord": "pixelprowler#0006" }
+      { "id": "player-5", "username": "ClutchGod", "discord": "clutchgod#0005", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] },
+      { "id": "player-6", "username": "PixelProwler", "discord": "pixelprowler#0006", "handle": null, "bio": null, "favoriteGames": [], "readNews": [] }
     ]
   }
 ]

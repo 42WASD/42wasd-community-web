@@ -347,3 +347,21 @@ Dota 2 / Minecraft) and switching tabs shows each game's servers with capacity
 bars; the Home page shows the featured-games carousel, the live-server strip,
 and the news timeline. The MVU trace confirms the normal `Get*` → `Got*`
 flow with no dropped messages.
+
+---
+
+## Post-phase note (2026-09-01): DialogService IS now invoked — as an Elmish Cmd
+
+The "no `DialogService` … is invoked from `update`/`init`/`Cmd`" statement
+above was true when written (only `NotificationService` existed, wired in a
+later round). It is **outdated as of the Tournaments dialog work**: `Main.fs`
+now resolves `DialogService` alongside `NotificationService` and opens the
+tournament details dialog via `Cmd.ofEffect (fun _ -> …OpenAsync…)`.
+The invariant that actually matters held then and still holds:
+
+- **Never call Radzen services from `view` or pure `update`** — the view stays
+  a pure `Node` function and `App.update` stays service-free/testable.
+- Service calls live only in the **service-aware wrapper** in `Main.fs`
+  (resolved from `this.Services`), emitted as `Cmd.ofEffect` commands layered
+  on top of the pure update — exactly the "async Cmd" carve-out the original
+  note anticipated.

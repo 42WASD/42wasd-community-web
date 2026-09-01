@@ -18,7 +18,13 @@ type SharedModel =
         account: option<string>
         /// The set of game ids the signed-in user has favourited (a shared
         /// cross-feature value: set on the Games page, reflected on Home).
+        /// Seeded from the signed-in player's record; persisted via the
+        /// setFavoriteGames DTO when signed in.
         favoriteGames: Set<string>
+        /// The set of news ids the signed-in user has marked read (Inbox
+        /// unread dot + bell badge recompute from this). Seeded from the
+        /// signed-in player's record; persisted via the setReadNews DTO.
+        readNews: Set<string>
         error: string option
         signInFailed: bool
         /// True while a profile save is in flight — drives the Save button's
@@ -45,6 +51,7 @@ module SharedModel =
             teams = NotAsked
             account = None
             favoriteGames = Set.empty
+            readNews = Set.empty
             error = None
             signInFailed = false
             profileSaving = false

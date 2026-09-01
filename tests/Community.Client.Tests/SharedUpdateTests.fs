@@ -53,6 +53,39 @@ module SharedUpdateTests =
         let removed, _ = Shared.update stubApi added (Shared.ToggleFavoriteGame "game-1")
         Assert.DoesNotContain("game-1", removed.favoriteGames)
 
+    // --- persisted shared effects (DTO-backed, 2026-09-01) -----------------
+
+    [<Fact>]
+    let ``MarkNewsRead adds the id to the read set`` () =
+        let after, _ = Shared.update stubApi SharedModel.init (Shared.MarkNewsRead "n-1")
+        Assert.Contains("n-1", after.readNews)
+        // Idempotent: marking again keeps the set the same.
+        let again, _ = Shared.update stubApi after (Shared.MarkNewsRead "n-1")
+        Assert.Equal<Set<string>>(after.readNews, again.readNews)
+
+    [<Fact>]
+    let ``MarkAllNewsRead marks every loaded news id read`` () =
+        let loaded, _ = Shared.update stubApi SharedModel.init (Shared.DataLoaded (Shared.NewsLoaded sampleNews))
+        let after, _ = Shared.update stubApi loaded Shared.MarkAllNewsRead
+        match after.news with
+        | Loaded ns -> Assert.Equal<Set<string>>(Set.ofSeq ns.Keys, after.readNews)
+        | _ -> Assert.True(false, "Expected Loaded news")
+
+    [<Fact>]
+    let ``PlayersLoaded seeds favoriteGames and readNews from the signed-in player record`` () =
+        let signedIn, _ = Shared.update stubApi SharedModel.init (Shared.RecvSignIn (Some "bob"))
+        let loaded, _ = Shared.update stubApi signedIn (Shared.DataLoaded (Shared.PlayersLoaded samplePlayers))
+        // bob's persisted record carries favourite game-1 + read n-9.
+        Assert.Equal<Set<string>>(Set.ofList [ "game-1" ], loaded.favoriteGames)
+        Assert.Equal<Set<string>>(Set.ofList [ "n-9" ], loaded.readNews)
+
+    [<Fact>]
+    let ``PlayersLoaded with unknown account leaves the per-user sets empty`` () =
+        let signedIn, _ = Shared.update stubApi SharedModel.init (Shared.RecvSignIn (Some "ghost"))
+        let loaded, _ = Shared.update stubApi signedIn (Shared.DataLoaded (Shared.PlayersLoaded samplePlayers))
+        Assert.Empty(loaded.favoriteGames)
+        Assert.Empty(loaded.readNews)
+
     [<Fact>]
     let ``RecvSignIn Some records account and clears signInFailed`` () =
         let shared, _ = Shared.update stubApi SharedModel.init (Shared.RecvSignIn (Some "alice"))
@@ -96,3 +129,5 @@ module SharedUpdateTests =
         let after, _ = Shared.update stubApi SharedModel.init (Shared.RecvSaveProfile false)
         Assert.False(after.profileSaved)
         Assert.True(after.profileError.IsSome)
+
+

@@ -530,13 +530,26 @@ module RadzenUI =
     /// Dismissible alert (42-switches #12): `AllowClose=true` renders the ×
     /// and `Close` fires when dismissed (verified RadzenAlert.razor.cs:53,256)
     /// — lets the caller clear the underlying message.
+    ///
+    /// NOTE: `RadzenAlert.Close` is a NON-generic `EventCallback` (not
+    /// `EventCallback<'T>`), so Bolero's `attr.callback<'T>` (which builds
+    /// `EventCallback<'T>`) throws InvalidCastException at runtime — the exact
+    /// trap recorded in the repo notes ("keep AllowClose=false"). The fix is a
+    /// hand-built non-generic EventCallback attribute.
     let alertDismissible (style: AlertStyle) (textValue: string) (onClose: unit -> unit) =
-        comp<RadzenAlert> {
-            "AlertStyle" => style
-            "Text" => textValue
-            "AllowClose" => true
-            attr.callback "Close" (fun (_: Microsoft.AspNetCore.Components.Web.MouseEventArgs) -> onClose ())
-        }
+        Node(fun receiver builder i ->
+            builder.OpenComponent<RadzenAlert>(i)
+            let n = i + 1
+            builder.AddAttribute(n, "AlertStyle", style)
+            builder.AddAttribute(n + 1, "Text", textValue)
+            builder.AddAttribute(n + 2, "AllowClose", true)
+            // Non-generic EventCallback: RadzenAlert.Close is EventCallback
+            // (NOT EventCallback<'T>), so attr.callback<'T> would throw.
+            let cb =
+                EventCallback.Factory.Create(receiver, Action(fun () -> onClose ()))
+            builder.AddAttribute(n + 3, "Close", cb)
+            builder.CloseComponent()
+            n + 4)
 
     // ---------------------------------------------------------------- navigation
 
@@ -675,6 +688,16 @@ module RadzenUI =
             "Icon" => icon
             "Variant" => textVariant
             "ButtonStyle" => lightButton
+            attr.callback "Click" (fun (_: MouseEventArgs) -> onClick ())
+        }
+
+    /// A quiet, text-only Radzen button (Variant.Text) for inline row actions
+    /// like the inbox's "Mark read" / "Mark all read" — visually a link,
+    /// semantically a button (keeps keyboard focus + a11y).
+    let textButton (textValue: string) (onClick: unit -> unit) =
+        comp<RadzenButton> {
+            "Text" => textValue
+            "Variant" => textVariant
             attr.callback "Click" (fun (_: MouseEventArgs) -> onClick ())
         }
 

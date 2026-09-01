@@ -40,10 +40,23 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment, logger: 
 
     let games = Loaders.loadJson<Game> env "games.json"
     let servers = Loaders.loadJson<GameServer> env "servers.json"
-    let tournaments = Loaders.loadJson<Tournament> env "tournaments.json"
+    let mutable tournaments = Loaders.loadJson<Tournament> env "tournaments.json"
     let news = Loaders.loadJson<News> env "news.json"
     let mutable players = Loaders.loadJson<Player> env "players.json"
     let teams = Loaders.loadJson<Team> env "teams.json"
+
+    /// Replace the signed-in player's record in the in-memory roster and
+    /// persist players.json (best-effort, like saveProfile). Returns the
+    /// updated record, or None when the caller has no roster entry (the demo
+    /// backend signs in ANY username, not only rostered players).
+    let updateSignedInPlayer (name: string) (update: Player -> Player) : option<Player> =
+        match players |> Array.tryFind (fun p -> p.username = name) with
+        | None -> None
+        | Some p ->
+            let p' = update p
+            players <- players |> Array.map (fun x -> if x.id = p'.id then p' else x)
+            Loaders.saveJson logger env "players.json" players |> ignore
+            Some p'
 
     override this.Handler =
         {
@@ -57,6 +70,16 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment, logger: 
 
             getTournaments = fun () -> async {
                 return tournaments
+            }
+
+            setTournamentRegistration = ctx.Authorize <| fun (tournamentId, open') -> async {
+                // Shared effect: flip the canonical tournament's registration
+                // gate in memory and persist tournaments.json (best-effort).
+                tournaments <-
+                    tournaments
+                    |> Array.map (fun t ->
+                        if t.id = tournamentId then { t with registrationOpen = open' } else t)
+                return Loaders.saveJson logger env "tournaments.json" tournaments
             }
 
             getNews = fun () -> async {
@@ -104,5 +127,15 @@ type CommunityApiService(ctx: IRemoteContext, env: IWebHostEnvironment, logger: 
                 // RemoteUnauthorizedException, so any other exception would
                 // crash the request).
                 return Loaders.saveJson logger env "players.json" players
+            }
+
+            setFavoriteGames = ctx.Authorize <| fun (gameIds) -> async {
+                let name = ctx.HttpContext.User.Identity.Name
+                return updateSignedInPlayer name (fun p -> { p with favoriteGames = gameIds })
+            }
+
+            setReadNews = ctx.Authorize <| fun (newsIds) -> async {
+                let name = ctx.HttpContext.User.Identity.Name
+                return updateSignedInPlayer name (fun p -> { p with readNews = newsIds })
             }
         }

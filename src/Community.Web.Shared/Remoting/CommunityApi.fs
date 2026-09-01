@@ -42,6 +42,24 @@ type CommunityApi =
         /// still updated on the server either way.
         saveProfile: string option * string option -> Async<bool>
 
+        /// Shared effect: set/clear a tournament's registration gate.
+        /// (The Tournaments page's open/close action; Home's open-tournaments
+        /// stat reads the same canonical cache.) Returns true if persisted.
+        setTournamentRegistration: string * bool -> Async<bool>
+
+        /// Shared effect: replace the signed-in player's favourite-game id
+        /// set. (Games page toggle; Home's favourites stat reads the same
+        /// value.) Returns the full updated player record, or None when the
+        /// caller is not a known player (e.g. demo sign-in without a roster
+        /// entry) — the client then keeps an in-memory fallback set.
+        setFavoriteGames: string list -> Async<option<Player>>
+
+        /// Shared effect: replace the signed-in player's read-news id set.
+        /// (Inbox "mark read" actions drive the unread badge + dots.)
+        /// Returns the full updated player record, or None when the caller is
+        /// not a known player.
+        setReadNews: string list -> Async<option<Player>>
+
         /// Sign out from the application.
         signOut: unit -> Async<unit>
     }

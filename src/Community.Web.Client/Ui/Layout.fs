@@ -206,7 +206,8 @@ let view (model: Model) (dispatch: Message -> unit) =
                     (fun () -> dispatch (SetInboxOpen (not model.inboxOpen)))
                 let unread =
                     match model.shared.news with
-                    | Loaded ns -> ns.Count
+                    | Loaded ns ->
+                        ns.Keys |> Seq.filter (model.shared.readNews.Contains >> not) |> Seq.length
                     | _ -> 0
                 if unread > 0 then
                     div {
@@ -243,7 +244,9 @@ let view (model: Model) (dispatch: Message -> unit) =
                             + "shadow-[var(--rz-shadow-9)] p-[0.75rem] z-[90] animate-pop"
                         div {
                             attr.``class`` panelClass
-                            Inbox.popupContent model.shared.news
+                            Inbox.popupContent model.shared.news model.shared.readNews
+                                (fun id -> dispatch (SharedMsg (Shared.MarkNewsRead id)))
+                                (fun () -> dispatch (SharedMsg Shared.MarkAllNewsRead))
                                 (fun () -> dispatch (SharedMsg (Shared.Load Shared.News)))
                                 (fun () -> dispatch (SetInboxOpen false))
                         }
@@ -315,7 +318,10 @@ let view (model: Model) (dispatch: Message -> unit) =
                 | InboxPage pm ->
                     // Pass pm.Model (NOT pm.Model.search): the router may hand
                     // a null Model to the view (SSR/trim); Inbox.view guards.
-                    Inbox.view model.shared.news pm.Model
+                    Inbox.view model.shared.news model.shared.readNews
+                        (fun id -> dispatch (SharedMsg (Shared.MarkNewsRead id)))
+                        (fun () -> dispatch (SharedMsg Shared.MarkAllNewsRead))
+                        pm.Model
                         (fun q -> dispatch (InboxMsg (Inbox.SetSearch q)))
                         (fun () -> dispatch (SharedMsg (Shared.Load Shared.News)))
                 | Teams ->
