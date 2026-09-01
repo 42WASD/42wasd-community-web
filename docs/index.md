@@ -12,6 +12,12 @@ See the Reference Design section (auto-generated nav) for the ordered parts and
 phases. Only **actionable** phases (marked `tracked: true` in the manifest)
 appear on the Implementation progress page.
 
+## Architecture Crash Course
+
+New to the stack? The **Crash Course** tab is a distilled, reading-order guide
+to four books (DDD, functional domain modeling, Elm, Blazor/MVVM) that the
+architecture builds on — from first principles to production practice.
+
 ## Quick start — the Bolero spike
 
 The community web is a Bolero (F#/Elmish) application. Set it up the way the

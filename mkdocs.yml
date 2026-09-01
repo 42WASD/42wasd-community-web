@@ -398,6 +398,20 @@ nav:
       - reference-design/04-technical-reference/platform-order/index.md
       - Final production dependency order: reference-design/04-technical-reference/platform-order/final-production-dependency-order/index.md
       - Final master checklist: reference-design/04-technical-reference/platform-order/final-master-checklist/index.md
+- Crash Course:
+  - Overview: knowledge/index.md
+  - Domain-Driven Design — Understanding the Problem First: knowledge/domain-driven-design/index.md
+  - Functional Design and Types — Modeling the Domain with the Type System: knowledge/functional-design-and-types/index.md
+  - Workflows and Error Handling — Pipelines, Two-Track, Composition: knowledge/workflows-and-error-handling/index.md
+  - The Elm Architecture — Model, Update, View, and Talking to the Outside: knowledge/elm-architecture/index.md
+  - Blazor Components: knowledge/blazor-components/index.md
+  - MVVM Patterns — ViewModel, Binding, Commands, Messaging, Navigation: knowledge/mvvm-patterns/index.md
+  - Blazor App Services — Startup, DI, Configuration, State, Hosting: knowledge/blazor-app-services/index.md
+  - Remote Data and Security — APIs, Caching, Resilience, Auth: knowledge/remote-data-and-security/index.md
+  - Testing Practices — Unit, Fuzz, and Testing the Architecture: knowledge/testing-practices/index.md
+  - Persistence and Evolution — Serialization, Databases, and Changing the Design: knowledge/persistence-and-evolution/index.md
+  - Elm in Production — Data Modeling at Scale, SPAs, Performance: knowledge/elm-in-production/index.md
+  - Web Forms → Blazor Migration: knowledge/web-forms-migration/index.md
 - Implementation:
   - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<

@@ -27,3 +27,14 @@ obj/
 
 # Scratch design research (not part of the docs/source repo)
 design.md
+
+# Generated book-index database for knowledge/distill (rebuild with the script)
+knowledge/distill/_index/book-index.db
+
+# Source ebooks (copyrighted, local-only; the distilled guide in docs/knowledge
+# is what gets published — never push the raw book text to GitHub)
+knowledge/md/
+knowledge/src/
+
+# Python bytecode
+knowledge/distill/_index/__pycache__/

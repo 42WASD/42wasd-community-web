@@ -24,6 +24,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent.parent
 MKDOCS = REPO / "mkdocs.yml"
 REF = REPO / "docs" / "reference-design"
+KNOWLEDGE = REPO / "docs" / "knowledge"
+
+# Display name of the knowledge crash-course tab.
+KNOWLEDGE_TAB = "Crash Course"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from docs_manifest import assign_phase_numbers, load_sequence, phase_by_slug  # noqa: E402
@@ -111,12 +115,51 @@ def yaml_scalar(s: str) -> str:
     return s
 
 
+def knowledge_nav() -> list:
+    """Build the Crash Course nav from the guide's own reading order.
+
+    The SSOT for the course order is the numbered "Reading order" list in
+    docs/knowledge/index.md (Parts I..VI, entries "1. **[slug](slug/index.md)**").
+    Each topic folder contributes one page (its index.md), labeled with the
+    page's H1 title. The folder list on disk and the manifest are cross-checked:
+    a folder missing from the reading order (or vice versa) is a hard error so
+    the nav can never silently diverge from the guide.
+    """
+    idx = KNOWLEDGE / "index.md"
+    text = idx.read_text()
+    # Take only the reading-order section (the cross-reference table also
+    # mentions folders but carries no order).
+    m = re.search(r"^## Reading order.*?(?=^## )", text, flags=re.S | re.M)
+    section = m.group(0) if m else text
+    slugs = re.findall(r"^\d+\.\s+\*\*\[([a-z0-9-]+)\]", section, flags=re.M)
+
+    on_disk = sorted(
+        d.name for d in KNOWLEDGE.iterdir()
+        if d.is_dir() and (d / "index.md").is_file()
+    )
+    missing = sorted(set(on_disk) - set(slugs))
+    phantom = sorted(set(slugs) - set(on_disk))
+    if missing or phantom:
+        raise SystemExit(
+            f"knowledge guide out of sync with disk: "
+            f"folders not in reading order: {missing or 'none'}; "
+            f"reading-order entries without folders: {phantom or 'none'}"
+        )
+
+    entries = [{"Overview": "knowledge/index.md"}]
+    for slug in slugs:
+        title = display_title(KNOWLEDGE / slug / "index.md")
+        entries.append({title: f"knowledge/{slug}/index.md"})
+    return entries
+
+
 def main() -> int:
     parts = load_sequence()
     assign_phase_numbers(parts)
     static = [
         {"Home": "index.md"},
         {"Reference Design": [{"Overview": "reference-design/index.md"}, *build_nav(parts)]},
+        {KNOWLEDGE_TAB: knowledge_nav()},
         {"Implementation": [
             {"Progress": "implementation/index.md"},
         ]},
