@@ -83,3 +83,13 @@
   visibility: visible;
   opacity: 1;
 }
+/* --- Mermaid diagrams ---------------------------------------------------- */
+
+/* Soften diagram edge strokes so connectors stay behind node labels.
+   Material's themeCSS maps .flowchart-link to this variable. */
+:root {
+  --md-mermaid-edge-color: rgba(110, 120, 140, 0.35);
+}
+[data-md-color-scheme="slate"] {
+  --md-mermaid-edge-color: rgba(160, 170, 190, 0.30);
+}

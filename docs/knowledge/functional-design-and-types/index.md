@@ -8,50 +8,92 @@ A type = a named set of possible values. Build models from **AND** types
 requirements documents use become the code — design and code never drift.
 
 ```mermaid
-mindmap
-  root((Types model the domain))
-    Building blocks
-      simple types
-        single-case unions
-        wrappers around primitives
-        smart constructors
-      AND types
-        records
-        curly braces
-      OR types
-        choice types
-        discriminated unions
-        cases with data
-      built-ins
-        Option
-        Result
-        list
-        unit
-        units of measure
-    Identity
-      Value Object
-        no identity
-        structural equality
-        immutable
-      Entity
-        has Id
-        same id = same thing
-        copy-with-changes
-      Aggregate
-        consistency boundary
-        root entity
-        unit of persistence
-    Integrity
-      smart constructors
-      make illegal states unrepresentable
-      NonEmptyList
-      private constructors for proven facts
-    Consistency
-      within one aggregate
-      across contexts
-        events + eventual consistency
-        compensating actions
-      model transactions as entities
+flowchart LR
+    n1(["Types model the domain"])
+    n2["Building blocks"]
+    n3["simple types"]
+    n4["single-case unions"]
+    n5["wrappers around primitives"]
+    n6["smart constructors"]
+    n7["AND types"]
+    n8["records"]
+    n9["curly braces"]
+    n10["OR types"]
+    n11["choice types"]
+    n12["discriminated unions"]
+    n13["cases with data"]
+    n14["built-ins"]
+    n15["Option"]
+    n16["Result"]
+    n17["list"]
+    n18["unit"]
+    n19["units of measure"]
+    n20["Identity"]
+    n21["Value Object"]
+    n22["no identity"]
+    n23["structural equality"]
+    n24["immutable"]
+    n25["Entity"]
+    n26["has Id"]
+    n27["same id = same thing"]
+    n28["copy-with-changes"]
+    n29["Aggregate"]
+    n30["consistency boundary"]
+    n31["root entity"]
+    n32["unit of persistence"]
+    n33["Integrity"]
+    n34["smart constructors"]
+    n35["make illegal states unrepresentable"]
+    n36["NonEmptyList"]
+    n37["private constructors for proven facts"]
+    n38["Consistency"]
+    n39["within one aggregate"]
+    n40["across contexts"]
+    n41["events + eventual consistency"]
+    n42["compensating actions"]
+    n43["model transactions as entities"]
+    n1 --> n2
+    n2 --> n3
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n7
+    n7 --> n8
+    n7 --> n9
+    n2 --> n10
+    n10 --> n11
+    n10 --> n12
+    n10 --> n13
+    n2 --> n14
+    n14 --> n15
+    n14 --> n16
+    n14 --> n17
+    n14 --> n18
+    n14 --> n19
+    n1 --> n20
+    n20 --> n21
+    n21 --> n22
+    n21 --> n23
+    n21 --> n24
+    n20 --> n25
+    n25 --> n26
+    n25 --> n27
+    n25 --> n28
+    n20 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
+    n1 --> n33
+    n33 --> n34
+    n33 --> n35
+    n33 --> n36
+    n33 --> n37
+    n1 --> n38
+    n38 --> n39
+    n38 --> n40
+    n40 --> n41
+    n40 --> n42
+    n38 --> n43
 ```
 
 ## Types and functions (ch 4)

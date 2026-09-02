@@ -9,39 +9,70 @@ build a **shared model** between domain experts and developers so the code
 reflects the expert's mental model directly — no translation loss.
 
 ```mermaid
-mindmap
-  root((Domain-Driven Design))
-    Shared model
-      no translation loss
-      code reflects expert mental model
-      benefits
-        faster time to market
-        less waste
-        easier evolution
-    Discover via events
-      Event storming workshop
-      Domain events (past tense)
-      Commands (imperative)
-      event → command → workflow → events
-    Partition the domain
-      domains & subdomains
-      core vs supportive vs generic
-    Bounded contexts
-      problem space → solution space
-      context maps (upstream/downstream)
-      relationships
-        Shared Kernel
-        Customer\\/Supplier
-        Conformist
-        Anti-Corruption Layer
-    Ubiquitous language
-      one dialect per context
-      no Manager\\/Helper types
-    Functional architecture
-      workflows as pipelines
-      DTOs at trust boundaries
-      Onion Architecture
-      I\\/O at the edges
+flowchart LR
+    n1(["Domain-Driven Design"])
+    n2["Shared model"]
+    n3["no translation loss"]
+    n4["code reflects expert mental model"]
+    n5["benefits"]
+    n6["faster time to market"]
+    n7["less waste"]
+    n8["easier evolution"]
+    n9["Discover via events"]
+    n10["Event storming workshop"]
+    n11["Domain events (past tense)"]
+    n12["Commands (imperative)"]
+    n13["event → command → workflow → events"]
+    n14["Partition the domain"]
+    n15["domains &amp; subdomains"]
+    n16["core vs supportive vs generic"]
+    n17["Bounded contexts"]
+    n18["problem space → solution space"]
+    n19["context maps (upstream/downstream)"]
+    n20["relationships"]
+    n21["Shared Kernel"]
+    n22["Customer\/Supplier"]
+    n23["Conformist"]
+    n24["Anti-Corruption Layer"]
+    n25["Ubiquitous language"]
+    n26["one dialect per context"]
+    n27["no Manager\/Helper types"]
+    n28["Functional architecture"]
+    n29["workflows as pipelines"]
+    n30["DTOs at trust boundaries"]
+    n31["Onion Architecture"]
+    n32["I\/O at the edges"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n5 --> n6
+    n5 --> n7
+    n5 --> n8
+    n1 --> n9
+    n9 --> n10
+    n9 --> n11
+    n9 --> n12
+    n9 --> n13
+    n1 --> n14
+    n14 --> n15
+    n14 --> n16
+    n1 --> n17
+    n17 --> n18
+    n17 --> n19
+    n17 --> n20
+    n20 --> n21
+    n20 --> n22
+    n20 --> n23
+    n20 --> n24
+    n1 --> n25
+    n25 --> n26
+    n25 --> n27
+    n1 --> n28
+    n28 --> n29
+    n28 --> n30
+    n28 --> n31
+    n28 --> n32
 ```
 
 ## The shared model (ch 1)

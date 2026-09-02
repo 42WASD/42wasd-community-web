@@ -9,50 +9,92 @@ exceptions, a compiler that catches mistakes before users do, and one
 architecture — **The Elm Architecture (TEA)** — for all data flow.
 
 ```mermaid
-mindmap
-  root((The Elm Architecture))
-    Language basics
-      expressions only
-      no truthiness
-      if-expressions
-      let-expressions
-      lists & records & tuples (immutable)
-      currying & partial application
-      operators are prefix functions
-    TEA core
-      Model = single source of state
-      view : Model -> Html Msg
-      update : Msg -> Model -> (Model, Cmd Msg)
-      messages describe what happened
-      Browser.sandbox → element → document → application
-    Compiler as assistant
-      type annotations as docs
-      type variables & aliases
-      case-expressions
-      custom types
-        Maybe & Result
-        Msg as custom type
-        missing-patterns error
-      commands for effects
-      Random.generate
-    Talking to servers
-      managed effects (no side effects)
-      Http.get & expectJson
-      decoders validate JSON
-        primitives & list & field
-        pipeline: succeed + required
-        keyValuePairs & intermediate types
-        lazy for recursive JSON
-      Status custom type
-        Loading | Loaded | Errored
-    Talking to JavaScript
-      custom elements (node)
-      ports
-        "out: port x : a -> Cmd msg"
-        "in: port x : &#40;a -> msg&#41; -> Sub msg"
-      flags via init
-      Html.Events.on + Decoder
-      requestAnimationFrame timing
+flowchart LR
+    n1(["The Elm Architecture"])
+    n2["Language basics"]
+    n3["expressions only"]
+    n4["no truthiness"]
+    n5["if-expressions"]
+    n6["let-expressions"]
+    n7["lists &amp; records &amp; tuples (immutable)"]
+    n8["currying &amp; partial application"]
+    n9["operators are prefix functions"]
+    n10["TEA core"]
+    n11["Model = single source of state"]
+    n12["view : Model -&gt; Html Msg"]
+    n13["update : Msg -&gt; Model -&gt; (Model, Cmd Msg)"]
+    n14["messages describe what happened"]
+    n15["Browser.sandbox → element → document → application"]
+    n16["Compiler as assistant"]
+    n17["type annotations as docs"]
+    n18["type variables &amp; aliases"]
+    n19["case-expressions"]
+    n20["custom types"]
+    n21["Maybe &amp; Result"]
+    n22["Msg as custom type"]
+    n23["missing-patterns error"]
+    n24["commands for effects"]
+    n25["Random.generate"]
+    n26["Talking to servers"]
+    n27["managed effects (no side effects)"]
+    n28["Http.get &amp; expectJson"]
+    n29["decoders validate JSON"]
+    n30["primitives &amp; list &amp; field"]
+    n31["pipeline: succeed + required"]
+    n32["keyValuePairs &amp; intermediate types"]
+    n33["lazy for recursive JSON"]
+    n34["Status custom type"]
+    n35["Loading | Loaded | Errored"]
+    n36["Talking to JavaScript"]
+    n37["custom elements (node)"]
+    n38["ports"]
+    n39["out: port x : a -&gt; Cmd msg"]
+    n40["in: port x : (a -&gt; msg) -&gt; Sub msg"]
+    n41["flags via init"]
+    n42["Html.Events.on + Decoder"]
+    n43["requestAnimationFrame timing"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n2 --> n6
+    n2 --> n7
+    n2 --> n8
+    n2 --> n9
+    n1 --> n10
+    n10 --> n11
+    n10 --> n12
+    n10 --> n13
+    n10 --> n14
+    n10 --> n15
+    n1 --> n16
+    n16 --> n17
+    n16 --> n18
+    n16 --> n19
+    n16 --> n20
+    n20 --> n21
+    n20 --> n22
+    n20 --> n23
+    n16 --> n24
+    n16 --> n25
+    n1 --> n26
+    n26 --> n27
+    n26 --> n28
+    n26 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
+    n29 --> n33
+    n26 --> n34
+    n34 --> n35
+    n1 --> n36
+    n36 --> n37
+    n36 --> n38
+    n38 --> n39
+    n38 --> n40
+    n36 --> n41
+    n36 --> n42
+    n36 --> n43
 ```
 
 ## The language (ch 1)

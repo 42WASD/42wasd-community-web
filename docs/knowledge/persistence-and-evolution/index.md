@@ -9,51 +9,94 @@ mud. Three sections: serialize at the boundary, persist at the edges,
 evolve cleanly.
 
 ```mermaid
-mindmap
-  root((Edges & evolution))
-    Serialization
-      DTOs as contract
-      fromDomain (always succeeds)
-      toDomain (validates, Result)
-      mapping guidelines
-        simple types → primitives
-        options → nulls\\/Nullable
-        lists → arrays
-        enums → .NET enum (check unknown)
-        choice types → tag record
-        maps → KV arrays
-        wrap serializer in Result
-    Persistence principles
-      push I\\/O to the edges
-        IO sandwich
-        pure core decisions
-        no repository pattern
-      command-query separation
-        queries ≠ commands types
-        CQRS read\\/write models
-        event sourcing
-      contexts own their data
-        no direct cross-access
-        BI as its own context
-    Document DBs
-      DTO → JSON → blob
-    Relational DBs
-      tables ↔ records
-      choice types
-        one table (flags + nulls)
-        table per case
-      SQL type providers
-      toDomain validates DB too
-      transactions & compensation
-    Evolving the design
-      add a pipeline stage
-      add an input field
-        compiler errors guide you
-      change a dependency
-        factory functions
-      wrap the whole workflow
-        function transformers
-      consumer-driven contracts
+flowchart LR
+    n1(["Edges &amp; evolution"])
+    n2["Serialization"]
+    n3["DTOs as contract"]
+    n4["fromDomain (always succeeds)"]
+    n5["toDomain (validates, Result)"]
+    n6["mapping guidelines"]
+    n7["simple types → primitives"]
+    n8["options → nulls\/Nullable"]
+    n9["lists → arrays"]
+    n10["enums → .NET enum (check unknown)"]
+    n11["choice types → tag record"]
+    n12["maps → KV arrays"]
+    n13["wrap serializer in Result"]
+    n14["Persistence principles"]
+    n15["push I\/O to the edges"]
+    n16["IO sandwich"]
+    n17["pure core decisions"]
+    n18["no repository pattern"]
+    n19["command-query separation"]
+    n20["queries ≠ commands types"]
+    n21["CQRS read\/write models"]
+    n22["event sourcing"]
+    n23["contexts own their data"]
+    n24["no direct cross-access"]
+    n25["BI as its own context"]
+    n26["Document DBs"]
+    n27["DTO → JSON → blob"]
+    n28["Relational DBs"]
+    n29["tables ↔ records"]
+    n30["choice types"]
+    n31["one table (flags + nulls)"]
+    n32["table per case"]
+    n33["SQL type providers"]
+    n34["toDomain validates DB too"]
+    n35["transactions &amp; compensation"]
+    n36["Evolving the design"]
+    n37["add a pipeline stage"]
+    n38["add an input field"]
+    n39["compiler errors guide you"]
+    n40["change a dependency"]
+    n41["factory functions"]
+    n42["wrap the whole workflow"]
+    n43["function transformers"]
+    n44["consumer-driven contracts"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n2 --> n6
+    n6 --> n7
+    n6 --> n8
+    n6 --> n9
+    n6 --> n10
+    n6 --> n11
+    n6 --> n12
+    n6 --> n13
+    n1 --> n14
+    n14 --> n15
+    n15 --> n16
+    n15 --> n17
+    n15 --> n18
+    n14 --> n19
+    n19 --> n20
+    n19 --> n21
+    n19 --> n22
+    n14 --> n23
+    n23 --> n24
+    n23 --> n25
+    n1 --> n26
+    n26 --> n27
+    n1 --> n28
+    n28 --> n29
+    n28 --> n30
+    n30 --> n31
+    n30 --> n32
+    n28 --> n33
+    n28 --> n34
+    n28 --> n35
+    n1 --> n36
+    n36 --> n37
+    n36 --> n38
+    n38 --> n39
+    n36 --> n40
+    n40 --> n41
+    n36 --> n42
+    n42 --> n43
+    n36 --> n44
 ```
 
 ## Serialization (ch 11)

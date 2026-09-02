@@ -7,77 +7,146 @@ Every page cross-references the other books where the same concept appears —
 the course is meant to be read as one connected body of knowledge.
 
 ```mermaid
-mindmap
-  root((Build correct<br/>software))
-    Understand the domain
-      Domain-Driven Design
-        Shared model & ubiquitous language
-        Business events
-        Subdomains
-        Bounded contexts
-      Functional architecture
-        Workflows as pipelines
-        Contracts between contexts
-    Model with the type system
-      Types & functions
-        Simple values
-        Choice types
-        Records
-        Optional values & Results
-      Domain modeling
-        Value objects vs entities
-        Aggregates & identity
-        State machines
-        Invariants in types
-    Correctness techniques
-      Two-track error model
-        Result & bind & map
-        Computation expressions
-      Total functions & composition
-      Compiler as assistant
-        Type annotations
-        Case expressions & custom types
-    Build the app
-      Elmish / The Elm Architecture
-        Model & update & view
-        Messages & commands
-      Blazor components
-        Razor components & render tree
-        Routing & layouts
-        Forms & validation
-      MVVM patterns
-        ViewModel & data binding
-        Commands & messaging
-    Cross-cutting services
-      Dependency injection
-      Configuration
-      State management
-      Serialization
-      Persistence
-        Document databases
-        Pushing persistence to the edges
-    Talk to the outside world
-      Talking to servers
-        HTTP & JSON decoders
-      Talking to JavaScript
-        Ports & flags & custom elements
-      Remote data resilience
-        Caching & retry & circuit breaker
-    Verify it works
-      Testing practices
-        Unit & fuzz testing
-        Testing update functions
-        Testing views
-        Mocks & DI in tests
-    Ship & evolve
-      Single-page applications
-        Routing & page delegation
-      Hosting models
-        Blazor Server & WebAssembly
-      Migration strategies
-        Web Forms to Blazor
-      Evolving the design
-        Change scenarios & keeping it clean
+flowchart LR
+    n1(["Build correct<br/>software"])
+    n2["Understand the domain"]
+    n3["Domain-Driven Design"]
+    n4["Shared model &amp; ubiquitous language"]
+    n5["Business events"]
+    n6["Subdomains"]
+    n7["Bounded contexts"]
+    n8["Functional architecture"]
+    n9["Workflows as pipelines"]
+    n10["Contracts between contexts"]
+    n11["Model with the type system"]
+    n12["Types &amp; functions"]
+    n13["Simple values"]
+    n14["Choice types"]
+    n15["Records"]
+    n16["Optional values &amp; Results"]
+    n17["Domain modeling"]
+    n18["Value objects vs entities"]
+    n19["Aggregates &amp; identity"]
+    n20["State machines"]
+    n21["Invariants in types"]
+    n22["Correctness techniques"]
+    n23["Two-track error model"]
+    n24["Result &amp; bind &amp; map"]
+    n25["Computation expressions"]
+    n26["Total functions &amp; composition"]
+    n27["Compiler as assistant"]
+    n28["Type annotations"]
+    n29["Case expressions &amp; custom types"]
+    n30["Build the app"]
+    n31["Elmish / The Elm Architecture"]
+    n32["Model &amp; update &amp; view"]
+    n33["Messages &amp; commands"]
+    n34["Blazor components"]
+    n35["Razor components &amp; render tree"]
+    n36["Routing &amp; layouts"]
+    n37["Forms &amp; validation"]
+    n38["MVVM patterns"]
+    n39["ViewModel &amp; data binding"]
+    n40["Commands &amp; messaging"]
+    n41["Cross-cutting services"]
+    n42["Dependency injection"]
+    n43["Configuration"]
+    n44["State management"]
+    n45["Serialization"]
+    n46["Persistence"]
+    n47["Document databases"]
+    n48["Pushing persistence to the edges"]
+    n49["Talk to the outside world"]
+    n50["Talking to servers"]
+    n51["HTTP &amp; JSON decoders"]
+    n52["Talking to JavaScript"]
+    n53["Ports &amp; flags &amp; custom elements"]
+    n54["Remote data resilience"]
+    n55["Caching &amp; retry &amp; circuit breaker"]
+    n56["Verify it works"]
+    n57["Testing practices"]
+    n58["Unit &amp; fuzz testing"]
+    n59["Testing update functions"]
+    n60["Testing views"]
+    n61["Mocks &amp; DI in tests"]
+    n62["Ship &amp; evolve"]
+    n63["Single-page applications"]
+    n64["Routing &amp; page delegation"]
+    n65["Hosting models"]
+    n66["Blazor Server &amp; WebAssembly"]
+    n67["Migration strategies"]
+    n68["Web Forms to Blazor"]
+    n69["Evolving the design"]
+    n70["Change scenarios &amp; keeping it clean"]
+    n1 --> n2
+    n2 --> n3
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n3 --> n7
+    n2 --> n8
+    n8 --> n9
+    n8 --> n10
+    n1 --> n11
+    n11 --> n12
+    n12 --> n13
+    n12 --> n14
+    n12 --> n15
+    n12 --> n16
+    n11 --> n17
+    n17 --> n18
+    n17 --> n19
+    n17 --> n20
+    n17 --> n21
+    n1 --> n22
+    n22 --> n23
+    n23 --> n24
+    n23 --> n25
+    n22 --> n26
+    n22 --> n27
+    n27 --> n28
+    n27 --> n29
+    n1 --> n30
+    n30 --> n31
+    n31 --> n32
+    n31 --> n33
+    n30 --> n34
+    n34 --> n35
+    n34 --> n36
+    n34 --> n37
+    n30 --> n38
+    n38 --> n39
+    n38 --> n40
+    n1 --> n41
+    n41 --> n42
+    n41 --> n43
+    n41 --> n44
+    n41 --> n45
+    n41 --> n46
+    n46 --> n47
+    n46 --> n48
+    n1 --> n49
+    n49 --> n50
+    n50 --> n51
+    n49 --> n52
+    n52 --> n53
+    n49 --> n54
+    n54 --> n55
+    n1 --> n56
+    n56 --> n57
+    n57 --> n58
+    n57 --> n59
+    n57 --> n60
+    n57 --> n61
+    n1 --> n62
+    n62 --> n63
+    n63 --> n64
+    n62 --> n65
+    n65 --> n66
+    n62 --> n67
+    n67 --> n68
+    n62 --> n69
+    n69 --> n70
 ```
 
 ## How to use this guide

@@ -10,39 +10,70 @@ but: plain .NET types, run on client *or* server, render through a diffable
 tree.
 
 ```mermaid
-mindmap
-  root((Blazor components))
-    Razor syntax
-      "@expression / &#40;&#41; explicit"
-      "@code members"
-      Directives
-        "@page @layout @inject"
-        "@inherits @implements @typeparam"
-      Directive attributes
-        "@onclick @bind @key @ref"
-    Composition
-      Parameters
-      ChildContent RenderFragment
-      Templated RenderFragment<T>
-      EventCallback
-    Lifecycle
-      OnInitialized
-      OnParametersSet
-      OnAfterRender
-      IDisposable
-    State change
-      RenderTree diffing
-      StateHasChanged
-      ErrorBoundary
-    Pages & routing
-      @page route templates
-      Router / RouteView
-      NavigationManager
-      Layouts (nested)
-    Forms & validation
-      EditForm / EditContext
-      Input* components
-      DataAnnotationsValidator
+flowchart LR
+    n1(["Blazor components"])
+    n2["Razor syntax"]
+    n3["@expression / () explicit"]
+    n4["@code members"]
+    n5["Directives"]
+    n6["@page @layout @inject"]
+    n7["@inherits @implements @typeparam"]
+    n8["Directive attributes"]
+    n9["@onclick @bind @key @ref"]
+    n10["Composition"]
+    n11["Parameters"]
+    n12["ChildContent RenderFragment"]
+    n13["Templated RenderFragment&lt;T&gt;"]
+    n14["EventCallback"]
+    n15["Lifecycle"]
+    n16["OnInitialized"]
+    n17["OnParametersSet"]
+    n18["OnAfterRender"]
+    n19["IDisposable"]
+    n20["State change"]
+    n21["RenderTree diffing"]
+    n22["StateHasChanged"]
+    n23["ErrorBoundary"]
+    n24["Pages &amp; routing"]
+    n25["@page route templates"]
+    n26["Router / RouteView"]
+    n27["NavigationManager"]
+    n28["Layouts (nested)"]
+    n29["Forms &amp; validation"]
+    n30["EditForm / EditContext"]
+    n31["Input* components"]
+    n32["DataAnnotationsValidator"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n5 --> n6
+    n5 --> n7
+    n2 --> n8
+    n8 --> n9
+    n1 --> n10
+    n10 --> n11
+    n10 --> n12
+    n10 --> n13
+    n10 --> n14
+    n1 --> n15
+    n15 --> n16
+    n15 --> n17
+    n15 --> n18
+    n15 --> n19
+    n1 --> n20
+    n20 --> n21
+    n20 --> n22
+    n20 --> n23
+    n1 --> n24
+    n24 --> n25
+    n24 --> n26
+    n24 --> n27
+    n24 --> n28
+    n1 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
 ```
 
 ## Razor in two tables

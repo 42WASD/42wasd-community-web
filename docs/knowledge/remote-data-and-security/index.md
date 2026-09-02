@@ -11,60 +11,112 @@ reliability (retry, circuit breaker), and security (IdentityServer bearer
 tokens).
 
 ```mermaid
-mindmap
-  root((Remote data & security))
-    Microservices
-      monolith drawbacks
-      single-function services
-      independent scale-out
-      stateful services own data
-      rolling updates & rollback
-      eventual consistency
-      event bus (RabbitMQ)
-      containers
-        image vs container
-        shared OS, isolated processes
-        Docker standard
-      client-to-microservice vs API gateway
-    REST over HttpClient
-      resources & HTTP verbs
-      stateless, status codes
-      DTOs to batch remote calls
-      RequestProvider
-        GET\\/POST\\/DELETE
-        Lazy<HttpClient>
-        Bearer token header
-        HandleResponse throws on non-success
-    Caching
-      cache-aside pattern
-      private vs shared cache
-      cache is transient
-      expiration tuning
-      eviction (LRU)
-      image CacheValidity
-    Resilience
-      transient faults
-      retry pattern
-        retry\\/delay\\/cancel
-        exponential backoff
-        never endless
-      circuit breaker
-        proxy counting failures
-        prevents doomed operations
-        combine with retry
-    Authentication
-      OpenID Connect over OAuth 2.0
-      identity token vs access token
-      IdentityServer as STS
-      clients (grant types, scopes, PKCE)
-      hybrid flow
-      OIDC client library
-      sign-in\\/sign-out
-    Authorization
-      Authorize attribute
-      JWT bearer middleware
-      token validation
-      forward tokens on API calls
+flowchart LR
+    n1(["Remote data &amp; security"])
+    n2["Microservices"]
+    n3["monolith drawbacks"]
+    n4["single-function services"]
+    n5["independent scale-out"]
+    n6["stateful services own data"]
+    n7["rolling updates &amp; rollback"]
+    n8["eventual consistency"]
+    n9["event bus (RabbitMQ)"]
+    n10["containers"]
+    n11["image vs container"]
+    n12["shared OS, isolated processes"]
+    n13["Docker standard"]
+    n14["client-to-microservice vs API gateway"]
+    n15["REST over HttpClient"]
+    n16["resources &amp; HTTP verbs"]
+    n17["stateless, status codes"]
+    n18["DTOs to batch remote calls"]
+    n19["RequestProvider"]
+    n20["GET\/POST\/DELETE"]
+    n21["Lazy&lt;HttpClient&gt;"]
+    n22["Bearer token header"]
+    n23["HandleResponse throws on non-success"]
+    n24["Caching"]
+    n25["cache-aside pattern"]
+    n26["private vs shared cache"]
+    n27["cache is transient"]
+    n28["expiration tuning"]
+    n29["eviction (LRU)"]
+    n30["image CacheValidity"]
+    n31["Resilience"]
+    n32["transient faults"]
+    n33["retry pattern"]
+    n34["retry\/delay\/cancel"]
+    n35["exponential backoff"]
+    n36["never endless"]
+    n37["circuit breaker"]
+    n38["proxy counting failures"]
+    n39["prevents doomed operations"]
+    n40["combine with retry"]
+    n41["Authentication"]
+    n42["OpenID Connect over OAuth 2.0"]
+    n43["identity token vs access token"]
+    n44["IdentityServer as STS"]
+    n45["clients (grant types, scopes, PKCE)"]
+    n46["hybrid flow"]
+    n47["OIDC client library"]
+    n48["sign-in\/sign-out"]
+    n49["Authorization"]
+    n50["Authorize attribute"]
+    n51["JWT bearer middleware"]
+    n52["token validation"]
+    n53["forward tokens on API calls"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n2 --> n6
+    n2 --> n7
+    n2 --> n8
+    n2 --> n9
+    n2 --> n10
+    n10 --> n11
+    n10 --> n12
+    n10 --> n13
+    n2 --> n14
+    n1 --> n15
+    n15 --> n16
+    n15 --> n17
+    n15 --> n18
+    n15 --> n19
+    n19 --> n20
+    n19 --> n21
+    n19 --> n22
+    n19 --> n23
+    n1 --> n24
+    n24 --> n25
+    n24 --> n26
+    n24 --> n27
+    n24 --> n28
+    n24 --> n29
+    n24 --> n30
+    n1 --> n31
+    n31 --> n32
+    n31 --> n33
+    n33 --> n34
+    n33 --> n35
+    n33 --> n36
+    n31 --> n37
+    n37 --> n38
+    n37 --> n39
+    n37 --> n40
+    n1 --> n41
+    n41 --> n42
+    n41 --> n43
+    n41 --> n44
+    n41 --> n45
+    n41 --> n46
+    n41 --> n47
+    n41 --> n48
+    n1 --> n49
+    n49 --> n50
+    n49 --> n51
+    n49 --> n52
+    n49 --> n53
 ```
 
 ## Containerized microservices (ch 9)

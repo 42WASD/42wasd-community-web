@@ -10,49 +10,90 @@ Testing lives in [testing-practices](../testing-practices/index.md); a
 one-page summary here.
 
 ```mermaid
-mindmap
-  root((Elm in production))
-    Testing (summary)
-      elm-test init
-      unit tests run once
-      fuzz tests run 100x
-        fuzzers & combinators
-        seeds reproduce failures
-      describe groups tests
-      test the update function
-      Query & Event for views
-    Data modeling at scale
-      Dict for key lookup
-      recursive custom types
-        Folder tree
-        recursive Msg (FolderPath)
-        recursive view functions
-      recursive JSON decoders
-        Decode.lazy
-        accumulate with foldl + Dict.union
-        two decoders over one JSON
-        map2 to join
-    SPA architecture
-      Browser.document → application
-      Route vs Page
-        similar but not the same
-      Url.Parser oneOf
-      onUrlRequest\\/onUrlChange
-        Nav.load vs Nav.pushUrl
-        Nav.Key as capability token
-      page delegation
-        Html.map Sub.map Cmd.map
-      flags threaded through init
-    Performance
-      Html.Lazy
-        same args ⇒ same result
-        no side effects ⇒ skip safe
-        memory-location check
-        top-level named functions only
-      Packages & semver
-        elm.json dependencies
-        enforced semantic versioning
-      Debug.log & Debug.todo
+flowchart LR
+    n1(["Elm in production"])
+    n2["Testing (summary)"]
+    n3["elm-test init"]
+    n4["unit tests run once"]
+    n5["fuzz tests run 100x"]
+    n6["fuzzers &amp; combinators"]
+    n7["seeds reproduce failures"]
+    n8["describe groups tests"]
+    n9["test the update function"]
+    n10["Query &amp; Event for views"]
+    n11["Data modeling at scale"]
+    n12["Dict for key lookup"]
+    n13["recursive custom types"]
+    n14["Folder tree"]
+    n15["recursive Msg (FolderPath)"]
+    n16["recursive view functions"]
+    n17["recursive JSON decoders"]
+    n18["Decode.lazy"]
+    n19["accumulate with foldl + Dict.union"]
+    n20["two decoders over one JSON"]
+    n21["map2 to join"]
+    n22["SPA architecture"]
+    n23["Browser.document → application"]
+    n24["Route vs Page"]
+    n25["similar but not the same"]
+    n26["Url.Parser oneOf"]
+    n27["onUrlRequest\/onUrlChange"]
+    n28["Nav.load vs Nav.pushUrl"]
+    n29["Nav.Key as capability token"]
+    n30["page delegation"]
+    n31["Html.map Sub.map Cmd.map"]
+    n32["flags threaded through init"]
+    n33["Performance"]
+    n34["Html.Lazy"]
+    n35["same args ⇒ same result"]
+    n36["no side effects ⇒ skip safe"]
+    n37["memory-location check"]
+    n38["top-level named functions only"]
+    n39["Packages &amp; semver"]
+    n40["elm.json dependencies"]
+    n41["enforced semantic versioning"]
+    n42["Debug.log &amp; Debug.todo"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n5 --> n6
+    n5 --> n7
+    n2 --> n8
+    n2 --> n9
+    n2 --> n10
+    n1 --> n11
+    n11 --> n12
+    n11 --> n13
+    n13 --> n14
+    n13 --> n15
+    n13 --> n16
+    n11 --> n17
+    n17 --> n18
+    n17 --> n19
+    n17 --> n20
+    n17 --> n21
+    n1 --> n22
+    n22 --> n23
+    n22 --> n24
+    n24 --> n25
+    n22 --> n26
+    n22 --> n27
+    n27 --> n28
+    n27 --> n29
+    n22 --> n30
+    n30 --> n31
+    n22 --> n32
+    n1 --> n33
+    n33 --> n34
+    n34 --> n35
+    n34 --> n36
+    n34 --> n37
+    n34 --> n38
+    n33 --> n39
+    n39 --> n40
+    n39 --> n41
+    n33 --> n42
 ```
 
 ## Testing in one page (full page: [testing-practices](../testing-practices/index.md))

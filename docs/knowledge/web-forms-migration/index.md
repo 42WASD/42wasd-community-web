@@ -8,42 +8,76 @@ The end-to-end "move a Web Forms app to Blazor" guide, with the concept
 mapping that explains *why* each step exists.
 
 ```mermaid
-mindmap
-  root((Migration))
-    Why (or why not)
-      Web Forms still supported
-      New features need .NET Core\\/Blazor
-        Span<T>, WebAssembly, cross-platform
-      Decision is business-driven
-    Architecture shift
-      Page-centric request\\/reply
-        .aspx pages, lifecycle events
-        ViewState postback
-      Component-centric event-driven
-        RenderTree diffing
-        SynchronizationContext
-        no request-reply
-    Pipeline mapping
-      HTTP modules \\/ handlers
-      Global.asax lifecycle
-      IIS modules
-        to ASP.NET Core middleware
-    Security migration
-      universal providers
-        aspnet_ tables
-      ASP.NET Core Identity
-        claims & policies
-        schema & data migration
-      web.config authorization
-        to attributes & AuthorizeView
-    Data & config
-      EF6 on .NET Core
-        async data access
-      web.config to appsettings
-    Page conversion
-      .aspx + code-behind + designer
-        to .razor single file
-      validators to EditForm
+flowchart LR
+    n1(["Migration"])
+    n2["Why (or why not)"]
+    n3["Web Forms still supported"]
+    n4["New features need .NET Core\/Blazor"]
+    n5["Span&lt;T&gt;, WebAssembly, cross-platform"]
+    n6["Decision is business-driven"]
+    n7["Architecture shift"]
+    n8["Page-centric request\/reply"]
+    n9[".aspx pages, lifecycle events"]
+    n10["ViewState postback"]
+    n11["Component-centric event-driven"]
+    n12["RenderTree diffing"]
+    n13["SynchronizationContext"]
+    n14["no request-reply"]
+    n15["Pipeline mapping"]
+    n16["HTTP modules \/ handlers"]
+    n17["Global.asax lifecycle"]
+    n18["IIS modules"]
+    n19["to ASP.NET Core middleware"]
+    n20["Security migration"]
+    n21["universal providers"]
+    n22["aspnet_ tables"]
+    n23["ASP.NET Core Identity"]
+    n24["claims &amp; policies"]
+    n25["schema &amp; data migration"]
+    n26["web.config authorization"]
+    n27["to attributes &amp; AuthorizeView"]
+    n28["Data &amp; config"]
+    n29["EF6 on .NET Core"]
+    n30["async data access"]
+    n31["web.config to appsettings"]
+    n32["Page conversion"]
+    n33[".aspx + code-behind + designer"]
+    n34["to .razor single file"]
+    n35["validators to EditForm"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n4 --> n5
+    n2 --> n6
+    n1 --> n7
+    n7 --> n8
+    n8 --> n9
+    n8 --> n10
+    n7 --> n11
+    n11 --> n12
+    n11 --> n13
+    n11 --> n14
+    n1 --> n15
+    n15 --> n16
+    n15 --> n17
+    n15 --> n18
+    n18 --> n19
+    n1 --> n20
+    n20 --> n21
+    n21 --> n22
+    n20 --> n23
+    n23 --> n24
+    n23 --> n25
+    n20 --> n26
+    n26 --> n27
+    n1 --> n28
+    n28 --> n29
+    n29 --> n30
+    n28 --> n31
+    n1 --> n32
+    n32 --> n33
+    n33 --> n34
+    n32 --> n35
 ```
 
 ## Should you migrate at all?

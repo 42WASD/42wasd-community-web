@@ -9,64 +9,120 @@ MVVM = View knows ViewModel knows Model — **never backwards**. The ViewModel
 adapts the model for the view, making both testable and replaceable.
 
 ```mermaid
-mindmap
-  root((MVVM patterns))
-    The pattern
-      View (XAML, no business logic)
-      ViewModel (properties & commands, INotifyPropertyChanged)
-      Model (domain data, DTOs\\/POCOs)
-      view knows VM, VM knows model, never backwards
-      view-first vs view-model-first composition
-    Change notification
-      PropertyChanged rules
-        raise on change & on calculated props
-        raise at end of method
-        never if unchanged or in constructor
-      ObservableCollection<T>
-      ExtendedBindableObject\\/lambda names
-    Commands & behaviors
-      ICommand (Execute\\/CanExecute)
-      RelayCommand\\/AsyncRelayCommand
-        IsRunning, cancellation
-        no concurrent execution
-      EventToCommandBehavior
-      expose ICommand not implementation
-    Dependency injection
-      constructor injection
-      Microsoft.Extensions.DependencyInjection
-      singleton vs transient lifetimes
-      register in MauiProgram.CreateMauiApp
-      container immutable after Build
-      Shell resolves views on navigation
-    Messaging
-      publish-subscribe without references
-      WeakReferenceMessenger vs Strong
-      ValueChangedMessage<T>
-      Send\\/Register\\/Unregister
-      marshal to UI thread
-    Navigation
-      view-model-first via service
-      INavigationService (route + parameters)
-      Shell routes (XAML & RegisterRoute)
-      QueryProperty receives parameters
-      confirm\\/cancel navigation in VM
-    Validation
-      ValidatableObject<T>
-      IValidationRule<T> (Check + message)
-      manual & on-property-change triggers
-      DataTrigger highlighting
-      first-error converter
-    Settings
-      app settings vs user settings
-      ISettingsService proxy over Preferences
-      const keys & defaults
-      bindable through the VM
-    MVVM Toolkit
-      ObservableObject
-      source generators
-        [ObservableProperty]
-        [RelayCommand]
-      partial classes
+flowchart LR
+    n1(["MVVM patterns"])
+    n2["The pattern"]
+    n3["View (XAML, no business logic)"]
+    n4["ViewModel (properties &amp; commands, INotifyPropertyChanged)"]
+    n5["Model (domain data, DTOs\/POCOs)"]
+    n6["view knows VM, VM knows model, never backwards"]
+    n7["view-first vs view-model-first composition"]
+    n8["Change notification"]
+    n9["PropertyChanged rules"]
+    n10["raise on change &amp; on calculated props"]
+    n11["raise at end of method"]
+    n12["never if unchanged or in constructor"]
+    n13["ObservableCollection&lt;T&gt;"]
+    n14["ExtendedBindableObject\/lambda names"]
+    n15["Commands &amp; behaviors"]
+    n16["ICommand (Execute\/CanExecute)"]
+    n17["RelayCommand\/AsyncRelayCommand"]
+    n18["IsRunning, cancellation"]
+    n19["no concurrent execution"]
+    n20["EventToCommandBehavior"]
+    n21["expose ICommand not implementation"]
+    n22["Dependency injection"]
+    n23["constructor injection"]
+    n24["Microsoft.Extensions.DependencyInjection"]
+    n25["singleton vs transient lifetimes"]
+    n26["register in MauiProgram.CreateMauiApp"]
+    n27["container immutable after Build"]
+    n28["Shell resolves views on navigation"]
+    n29["Messaging"]
+    n30["publish-subscribe without references"]
+    n31["WeakReferenceMessenger vs Strong"]
+    n32["ValueChangedMessage&lt;T&gt;"]
+    n33["Send\/Register\/Unregister"]
+    n34["marshal to UI thread"]
+    n35["Navigation"]
+    n36["view-model-first via service"]
+    n37["INavigationService (route + parameters)"]
+    n38["Shell routes (XAML &amp; RegisterRoute)"]
+    n39["QueryProperty receives parameters"]
+    n40["confirm\/cancel navigation in VM"]
+    n41["Validation"]
+    n42["ValidatableObject&lt;T&gt;"]
+    n43["IValidationRule&lt;T&gt; (Check + message)"]
+    n44["manual &amp; on-property-change triggers"]
+    n45["DataTrigger highlighting"]
+    n46["first-error converter"]
+    n47["Settings"]
+    n48["app settings vs user settings"]
+    n49["ISettingsService proxy over Preferences"]
+    n50["const keys &amp; defaults"]
+    n51["bindable through the VM"]
+    n52["MVVM Toolkit"]
+    n53["ObservableObject"]
+    n54["source generators"]
+    n55["ObservableProperty"]
+    n56["RelayCommand"]
+    n57["partial classes"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n2 --> n6
+    n2 --> n7
+    n1 --> n8
+    n8 --> n9
+    n9 --> n10
+    n9 --> n11
+    n9 --> n12
+    n8 --> n13
+    n8 --> n14
+    n1 --> n15
+    n15 --> n16
+    n15 --> n17
+    n17 --> n18
+    n17 --> n19
+    n15 --> n20
+    n15 --> n21
+    n1 --> n22
+    n22 --> n23
+    n22 --> n24
+    n22 --> n25
+    n22 --> n26
+    n22 --> n27
+    n22 --> n28
+    n1 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
+    n29 --> n33
+    n29 --> n34
+    n1 --> n35
+    n35 --> n36
+    n35 --> n37
+    n35 --> n38
+    n35 --> n39
+    n35 --> n40
+    n1 --> n41
+    n41 --> n42
+    n41 --> n43
+    n41 --> n44
+    n41 --> n45
+    n41 --> n46
+    n1 --> n47
+    n47 --> n48
+    n47 --> n49
+    n47 --> n50
+    n47 --> n51
+    n1 --> n52
+    n52 --> n53
+    n52 --> n54
+    n54 --> n55
+    n54 --> n56
+    n52 --> n57
 ```
 
 ## The pattern (ch 3)

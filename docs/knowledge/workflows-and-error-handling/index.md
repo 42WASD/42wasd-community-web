@@ -9,59 +9,110 @@ with types, the function toolkit, wiring it together, and the two-track
 error model.
 
 ```mermaid
-mindmap
-  root((Workflows as pipelines))
-    Modeling (types)
-      commands as input
-        Command<'data> generic envelope
-        choice type for dispatch
-      states as types
-        one type per state
-        no flags
-      state machines
-        transitions = functions
-        forces edge-case thinking
-      steps
-        dependencies first (partial application)
-        document effects
-          Result (errors)
-          Async (I\\/O)
-          AsyncResult
-      events out
-        choice type of events
-        list of events
-    Functional toolkit
-      functions are things
-        higher-order functions
-        currying
-        partial application
-      total functions
-        restrict input
-        extend output
-      composition
-        pipe |>
-        adapters fix mismatched shapes
-        lifting to common type
-    Implementation
-      implement a named function type
-      helper "to*" converters
-      bake dependencies (partial application)
-      composition root
-      testable with stubs
-    Error handling
-      domain vs panic vs infrastructure
-      two-track model
-        bind: switch -> two-track
-        map: one-track -> two-track
-        mapError: common error type
-      adapters
-        exception adapter
-        tee for dead-ends
-      computation expressions
-        "result &#123; let! &#125;"
-        asyncResult
-      sequence\\/traverse lists of Results
-      monads & applicatives
+flowchart LR
+    n1(["Workflows as pipelines"])
+    n2["Modeling (types)"]
+    n3["commands as input"]
+    n4["Command&lt;'data&gt; generic envelope"]
+    n5["choice type for dispatch"]
+    n6["states as types"]
+    n7["one type per state"]
+    n8["no flags"]
+    n9["state machines"]
+    n10["transitions = functions"]
+    n11["forces edge-case thinking"]
+    n12["steps"]
+    n13["dependencies first (partial application)"]
+    n14["document effects"]
+    n15["Result (errors)"]
+    n16["Async (I\/O)"]
+    n17["AsyncResult"]
+    n18["events out"]
+    n19["choice type of events"]
+    n20["list of events"]
+    n21["Functional toolkit"]
+    n22["functions are things"]
+    n23["higher-order functions"]
+    n24["currying"]
+    n25["partial application"]
+    n26["total functions"]
+    n27["restrict input"]
+    n28["extend output"]
+    n29["composition"]
+    n30["pipe |&gt;"]
+    n31["adapters fix mismatched shapes"]
+    n32["lifting to common type"]
+    n33["Implementation"]
+    n34["implement a named function type"]
+    n35["helper #quot;to*#quot; converters"]
+    n36["bake dependencies (partial application)"]
+    n37["composition root"]
+    n38["testable with stubs"]
+    n39["Error handling"]
+    n40["domain vs panic vs infrastructure"]
+    n41["two-track model"]
+    n42["bind: switch -&gt; two-track"]
+    n43["map: one-track -&gt; two-track"]
+    n44["mapError: common error type"]
+    n45["adapters"]
+    n46["exception adapter"]
+    n47["tee for dead-ends"]
+    n48["computation expressions"]
+    n49["result { let! }"]
+    n50["asyncResult"]
+    n51["sequence\/traverse lists of Results"]
+    n52["monads &amp; applicatives"]
+    n1 --> n2
+    n2 --> n3
+    n3 --> n4
+    n3 --> n5
+    n2 --> n6
+    n6 --> n7
+    n6 --> n8
+    n2 --> n9
+    n9 --> n10
+    n9 --> n11
+    n2 --> n12
+    n12 --> n13
+    n12 --> n14
+    n14 --> n15
+    n14 --> n16
+    n14 --> n17
+    n2 --> n18
+    n18 --> n19
+    n18 --> n20
+    n1 --> n21
+    n21 --> n22
+    n22 --> n23
+    n22 --> n24
+    n22 --> n25
+    n21 --> n26
+    n26 --> n27
+    n26 --> n28
+    n21 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
+    n1 --> n33
+    n33 --> n34
+    n33 --> n35
+    n33 --> n36
+    n33 --> n37
+    n33 --> n38
+    n1 --> n39
+    n39 --> n40
+    n39 --> n41
+    n41 --> n42
+    n41 --> n43
+    n41 --> n44
+    n39 --> n45
+    n45 --> n46
+    n45 --> n47
+    n39 --> n48
+    n48 --> n49
+    n48 --> n50
+    n39 --> n51
+    n39 --> n52
 ```
 
 ## Model the workflow (ch 7)

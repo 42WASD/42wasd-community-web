@@ -7,36 +7,64 @@ The infrastructure around components: startup, DI, configuration, state
 survival, and the hosting-model trade-offs.
 
 ```mermaid
-mindmap
-  root((App services))
-    Startup
-      Program.cs builder
-      Services collection (DI)
-      Middleware pipeline
-      Endpoints MapBlazorHub
-    Hosting models
-      Blazor Server
-        SignalR circuit
-        state on server
-        sticky sessions
-      Blazor WebAssembly
-        runtime downloaded
-        static hosting possible
-        sandbox limits
-      Same component model either way
-    Configuration
-      appsettings.json
-      environment-specific json
-      user secrets
-      environment variables (\\:\\= \\_\\_)
-      command line
-      Options pattern (IOptions)
-    State management
-      circuit replaces ViewState
-      Session discouraged
-      singleton app state
-      localStorage / sessionStorage
-      backing store for durability
+flowchart LR
+    n1(["App services"])
+    n2["Startup"]
+    n3["Program.cs builder"]
+    n4["Services collection (DI)"]
+    n5["Middleware pipeline"]
+    n6["Endpoints MapBlazorHub"]
+    n7["Hosting models"]
+    n8["Blazor Server"]
+    n9["SignalR circuit"]
+    n10["state on server"]
+    n11["sticky sessions"]
+    n12["Blazor WebAssembly"]
+    n13["runtime downloaded"]
+    n14["static hosting possible"]
+    n15["sandbox limits"]
+    n16["Same component model either way"]
+    n17["Configuration"]
+    n18["appsettings.json"]
+    n19["environment-specific json"]
+    n20["user secrets"]
+    n21["environment variables (\:\= \_\_)"]
+    n22["command line"]
+    n23["Options pattern (IOptions)"]
+    n24["State management"]
+    n25["circuit replaces ViewState"]
+    n26["Session discouraged"]
+    n27["singleton app state"]
+    n28["localStorage / sessionStorage"]
+    n29["backing store for durability"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n2 --> n6
+    n1 --> n7
+    n7 --> n8
+    n8 --> n9
+    n8 --> n10
+    n8 --> n11
+    n7 --> n12
+    n12 --> n13
+    n12 --> n14
+    n12 --> n15
+    n7 --> n16
+    n1 --> n17
+    n17 --> n18
+    n17 --> n19
+    n17 --> n20
+    n17 --> n21
+    n17 --> n22
+    n17 --> n23
+    n1 --> n24
+    n24 --> n25
+    n24 --> n26
+    n24 --> n27
+    n24 --> n28
+    n24 --> n29
 ```
 
 ## Startup: `Global.asax` → `Program.cs`

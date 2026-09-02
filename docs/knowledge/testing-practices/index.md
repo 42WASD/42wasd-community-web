@@ -9,45 +9,82 @@ model. MAUI: DI + MVVM. DMMF: dependencies as explicit parameters. Same
 message, three books.
 
 ```mermaid
-mindmap
-  root((Testing practices))
-    Elm (elm-test)
-      unit tests (run once)
-      fuzz tests (100 random runs)
-        fuzzers prioritize edge cases
-        seeds reproduce failures
-      test & describe & only\\/skip
-      testing update
-        call update with a crafted Msg
-        inspect (Model, Cmd Msg)
-        generic test-generator functions
-      testing decoders
-        Json.Encode fixtures
-        decodeValue
-        narrow assertions (Result.map .title)
-      testing views
-        Query.fromHtml
-        findAll & selectors & count
-        Event.simulate & Event.expect
-        keep list fuzzers small
-    MAUI (MSTest)
-      arrange-act-assert
-      mocks via DI (IAppEnvironmentService)
-      async tests
-      INotifyPropertyChanged tests
-      message-based communication tests
-      exception tests (Assert.Throws)
-      validation tests (Value\\/IsValid\\/Errors)
-    Design for testability
-      pure functions, no side effects
-      explicit dependencies as parameters
-      stubs without mocking libraries
-      DI + interface mocking
-      test one thing per test
-      test types of input
-        standard, boundary, incorrect
-      tests as design documentation
-      TDD option
+flowchart LR
+    n1(["Testing practices"])
+    n2["Elm (elm-test)"]
+    n3["unit tests (run once)"]
+    n4["fuzz tests (100 random runs)"]
+    n5["fuzzers prioritize edge cases"]
+    n6["seeds reproduce failures"]
+    n7["test &amp; describe &amp; only\/skip"]
+    n8["testing update"]
+    n9["call update with a crafted Msg"]
+    n10["inspect (Model, Cmd Msg)"]
+    n11["generic test-generator functions"]
+    n12["testing decoders"]
+    n13["Json.Encode fixtures"]
+    n14["decodeValue"]
+    n15["narrow assertions (Result.map .title)"]
+    n16["testing views"]
+    n17["Query.fromHtml"]
+    n18["findAll &amp; selectors &amp; count"]
+    n19["Event.simulate &amp; Event.expect"]
+    n20["keep list fuzzers small"]
+    n21["MAUI (MSTest)"]
+    n22["arrange-act-assert"]
+    n23["mocks via DI (IAppEnvironmentService)"]
+    n24["async tests"]
+    n25["INotifyPropertyChanged tests"]
+    n26["message-based communication tests"]
+    n27["exception tests (Assert.Throws)"]
+    n28["validation tests (Value\/IsValid\/Errors)"]
+    n29["Design for testability"]
+    n30["pure functions, no side effects"]
+    n31["explicit dependencies as parameters"]
+    n32["stubs without mocking libraries"]
+    n33["DI + interface mocking"]
+    n34["test one thing per test"]
+    n35["test types of input"]
+    n36["standard, boundary, incorrect"]
+    n37["tests as design documentation"]
+    n38["TDD option"]
+    n1 --> n2
+    n2 --> n3
+    n2 --> n4
+    n4 --> n5
+    n4 --> n6
+    n2 --> n7
+    n2 --> n8
+    n8 --> n9
+    n8 --> n10
+    n8 --> n11
+    n2 --> n12
+    n12 --> n13
+    n12 --> n14
+    n12 --> n15
+    n2 --> n16
+    n16 --> n17
+    n16 --> n18
+    n16 --> n19
+    n16 --> n20
+    n1 --> n21
+    n21 --> n22
+    n21 --> n23
+    n21 --> n24
+    n21 --> n25
+    n21 --> n26
+    n21 --> n27
+    n21 --> n28
+    n1 --> n29
+    n29 --> n30
+    n29 --> n31
+    n29 --> n32
+    n29 --> n33
+    n29 --> n34
+    n29 --> n35
+    n35 --> n36
+    n29 --> n37
+    n29 --> n38
 ```
 
 ## Why these architectures are testable
