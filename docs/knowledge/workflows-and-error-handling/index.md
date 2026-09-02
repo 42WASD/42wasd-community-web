@@ -61,7 +61,7 @@ mindmap
         exception adapter
         tee for dead-ends
       computation expressions
-        result { let! }
+        "result &#123; let! &#125;"
         asyncResult
       sequence\\/traverse lists of Results
       monads & applicatives

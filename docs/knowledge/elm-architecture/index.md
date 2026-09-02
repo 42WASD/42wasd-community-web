@@ -51,8 +51,8 @@ mindmap
     Talking to JavaScript
       custom elements (node)
       ports
-        out: port x : a -> Cmd msg
-        in: port x : (a -> msg) -> Sub msg
+        "out: port x : a -> Cmd msg"
+        "in: port x : &#40;a -> msg&#41; -> Sub msg"
       flags via init
       Html.Events.on + Decoder
       requestAnimationFrame timing

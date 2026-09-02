@@ -16,13 +16,13 @@ server, and render through a diffable tree rather than the DOM directly.
 mindmap
   root((Blazor components))
     Razor syntax
-      @expression / @() explicit
-      @code members
+      "@expression / &#40;&#41; explicit"
+      "@code members"
       Directives
-        @page @layout @inject
-        @inherits @implements @typeparam
+        "@page @layout @inject"
+        "@inherits @implements @typeparam"
       Directive attributes
-        @onclick @bind @key @ref
+        "@onclick @bind @key @ref"
     Composition
       Parameters
       ChildContent RenderFragment
