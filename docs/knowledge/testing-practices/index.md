@@ -4,10 +4,9 @@
 > Application Patterns Using .NET MAUI* ch 13 (Unit testing); *Domain Modeling
 > Made Functional* ch 9 §Testing dependencies.
 
-Two books, one message: **testability is an architectural property**, not an
-afterthought. Elm gets it from pure functions and a single model; MAUI gets
-it from dependency injection and MVVM; DMMF gets it from explicit function
-parameters. This page consolidates all three.
+**Testability is an architectural property.** Elm: pure functions + one
+model. MAUI: DI + MVVM. DMMF: dependencies as explicit parameters. Same
+message, three books.
 
 ```mermaid
 mindmap
@@ -53,59 +52,39 @@ mindmap
 
 ## Why these architectures are testable
 
-- **Elm**: the entire application state is one `Model` value; the model
-  changes *only* when `update` receives a `Msg`; `update`, `view`, and
-  decoders are plain functions with no side effects — so tests just call
-  them.
-- **MAUI/MVVM**: view models hold presentation logic with dependencies
-  declared as interfaces; the DI container resolves real services at runtime
-  and **mocks at test time**, so tests never touch web services, databases,
-  or platform features.
-- **DMMF**: every workflow step receives its dependencies as parameters;
-  stubs are one-line functions defined inline in the test — no mocking
-  framework needed.
+| Stack | Mechanism | Tests just… |
+| --- | --- | --- |
+| **Elm** | one `Model`; changes only via `update`; `update`/`view`/decoders are pure | call the function, inspect the output |
+| **MAUI/MVVM** | dependencies declared as interfaces, injected by the DI container | pass mocks — no web, DB, or platform touched |
+| **DMMF** | dependencies are parameters | write one-line inline stubs |
 
-## Elm: `elm-test` (ch 6)
+## Elm: `elm-test`
 
-Setup: `elm-test init` creates `tests/`, a starter module (rename it — module
-names must match filenames), and installs `elm-explorations/test` as a
-**test dependency** (importable only from `tests/`). Expose what tests need
-from the app module (`exposing (main, photoDecoder, update, view, …)`, and
-`Msg(..)` to use variants). Run with `elm-test`.
+Setup: `elm-test init` → creates `tests/` + a starter module (module name
+must match filename) → installs `elm-explorations/test` as a **test
+dependency** (importable only from `tests/`). Expose what tests need
+(`exposing (main, photoDecoder, update, view, …)`, `Msg(..)`).
 
-### Unit tests
-
-A **unit test runs once and performs no effects**:
+### Unit tests: run once, no effects
 
 ```elm
-decoderTest : Test
 decoderTest =
     test "title defaults to (untitled)" <|
         \_ ->
-            """{"url": "fruits.com", "size": 5}"""      -- triple quotes: multi-line, no escapes
+            """{"url": "fruits.com", "size": 5}"""
                 |> decodeValue PhotoGroove.photoDecoder
-                |> Result.map .title                    -- narrow the assertion
+                |> Result.map .title        -- narrow the assertion
                 |> Expect.equal (Ok "(untitled)")
 ```
 
 - `test : String -> (() -> Expectation) -> Test` — the anonymous wrapper
-  **delays evaluation** so the runner controls execution (incremental
-  progress, parallelism). Descriptions must be unique.
-- Expectations: `Expect.equal`, `Expect.atLeast`, `Expect.all checks` (run a
-  list of `subject -> Expectation` checks against one subject).
-- Write a **failing test first** deliberately, then fix — proof the test
-  verifies something.
-- **Narrow the assertion** (`Result.map .title` instead of comparing the
-  whole `Photo`): otherwise adding a model field breaks unrelated tests and
-  spurious failures clutter output.
-- `Test.describe "group"` labels a list of tests; `Test.only`/`Test.skip`
-  focus runs; you can also pass specific files to `elm-test`.
+  **delays evaluation** so the runner controls execution/parallelism.
+- Write a **failing test first**, then fix — proof the test can fail.
+- **Narrow assertions** (`Result.map .title`, not whole `Photo`) — adding a
+  model field won't break unrelated tests.
+- `Test.describe` groups; `Test.only`/`Test.skip` focus.
 
-### Fuzz tests
-
-A **fuzz test runs ~100× with randomly generated inputs** (a.k.a. property-
-based / generative testing) — one test covers a huge input space and surfaces
-edge cases:
+### Fuzz tests: ~100 random runs (property-based)
 
 ```elm
 decoderTest =
@@ -118,24 +97,16 @@ decoderTest =
                 |> Expect.equal (Ok "(untitled)")
 ```
 
-- **Fuzzers** generate values: `string`, `int`, `list f`, `Fuzz.intRange 1 5`,
-  and custom ones via `Fuzz.map` (e.g. `Fuzz.intRange 1 5 |> Fuzz.map
-  urlsFromCount`). Fuzzers **bias toward bug-likely values**: empty strings,
-  very short/long strings, 0, extremes.
-- Build fixtures with `Json.Encode` (`Encode.object [(k, v), …]`) and decode
-  with `decodeValue` (no string round-trip).
-- Failures print a **seed**: `elm-test --fuzz 100 --seed <n>` reproduces the
-  exact run; `--fuzz 5000` deepens coverage at the cost of time (a 5-person
-  team running the suite 10×/day gets 5,000 runs anyway).
-- **Keep generated collections small** — a `list string` fuzzer can emit
-  hundreds of items and a per-item DOM traversal turns that into millions of
-  node visits. Bound list sizes (`Fuzz.intRange 1 5`), or generate
-  `(elem, List elem)` pairs for a guaranteed non-empty list.
+- Fuzzers **bias toward bug-likely values**: empty strings, 0, extremes.
+- Build fixtures with `Json.Encode`, decode with `decodeValue` (no string
+  round-trip).
+- Failures print a **seed**: `elm-test --fuzz 100 --seed <n>` reproduces
+  exactly; `--fuzz 5000` for deeper runs.
+- ⚠️ **Keep generated collections small** — a `list string` fuzzer × DOM
+  traversal = millions of node visits. Bound with `Fuzz.intRange 1 5`, or
+  generate `(elem, List elem)` for guaranteed non-empty.
 
-### Testing `update`
-
-The pattern: craft a `Msg`, run it through `update` with `initialModel`,
-inspect the returned model:
+### Testing `update`: craft a Msg, inspect the model
 
 ```elm
 slidHueSetsHue =
@@ -148,9 +119,8 @@ slidHueSetsHue =
                 |> Expect.equal amount
 ```
 
-Because variants are functions (`SlidHue : Int -> Msg`) and field accessors
-are functions (`.hue : Model -> Int`), one **generic test generator** covers
-a whole family:
+Variants are functions (`SlidHue : Int -> Msg`) and accessors are functions
+(`.hue`) — so **one generic generator tests a whole family**:
 
 ```elm
 sliders =
@@ -159,63 +129,40 @@ sliders =
         , testSlider "SlidRipple" SlidRipple .ripple
         , testSlider "SlidNoise" SlidNoise .noise
         ]
-
-testSlider description toMsg amountFromModel =
-    fuzz int description <|
-        \amount ->
-            initialModel
-                |> update (toMsg amount)
-                |> Tuple.first
-                |> amountFromModel
-                |> Expect.equal amount
 ```
 
-Share code across tests **only when the behavior is genuinely identical**
-(duplication is fine — readable tests beat DRY tests; sharing is justified
-when divergence would itself be a bug). `elm-test` can't execute `Cmd`s
-directly; if you must assert on them, restructure `update` to return a
-custom `Commands` type plus a `toCmd` converter (rarely worth it in
-practice).
+- Share test code **only when behavior is genuinely identical** — readable
+  duplicated tests beat DRY tests.
+- `elm-test` can't execute `Cmd`s; asserting on them means restructuring
+  `update` to return a custom `Commands` type (rarely worth it).
 
-### Testing views
-
-Render, query, assert — no browser:
+### Testing views: render, query, assert — no browser
 
 ```elm
 noPhotosNoThumbnails =
     test "No thumbnails render when there are no photos to render." <|
         \_ ->
             initialModel
-                |> view                       -- Model → Html Msg
-                |> Query.fromHtml             -- → Query.Single (root node)
+                |> view
+                |> Query.fromHtml
                 |> Query.findAll [ tag "img" ]
                 |> Query.count (Expect.equal 0)
 ```
 
-- `Query.Single` (one node) vs `Query.Multiple` (many) are distinct types —
-  `findAll` returns `Multiple`; `find` returns `Single` and **fails if the
-  count isn't exactly one**.
-- Selectors: `tag`, `attribute (Attr.src …)`, `text`. Prefer `Expect.atLeast
-  1` over `Expect.equal 1` when duplicates are legal.
+- `Query.Single` vs `Query.Multiple` are distinct types; `find` **fails**
+  unless exactly one match.
 - **Simulate interaction**: `Query.find […] |> Event.simulate Event.click |>
-  Event.expect (ClickedPhoto url)` — asserts the *message* the runtime would
-  send to `update` (which other tests already verify handles it). Compose
-  fuzzers for position: `fuzz3 urlFuzzer string urlFuzzer` builds
-  `urlsBefore ++ clicked :: urlsAfter` with a uniquely-suffixed URL to click.
+  Event.expect (ClickedPhoto url)` — asserts the Msg the runtime would send
+  (`update`'s handling is covered by other tests).
 
-## MAUI: unit testing MVVM (ch 13)
+## MAUI: unit testing MVVM
 
-Unit testing isolates a small unit (typically a method) and verifies its
-behavior — **detecting a bug where it occurs beats observing it indirectly**.
-Tests are most valuable as part of the daily workflow: they double as design
-documentation and functional specs; write them for standard, boundary, and
-incorrect inputs (or **test-first** / TDD). They are the best defense against
-regressions. Use the **arrange-act-assert** structure; MSTest (`[TestMethod]`,
-`[DataSource]` for data-driven tests), NUnit, and xUnit all work. Discipline:
-**test one thing per test** — complex tests are hard to verify, read, and
-diagnose.
+Unit test = isolate one method, verify behavior — catching a bug where it
+occurs beats observing it indirectly. Tests double as design docs and specs;
+cover **standard, boundary, incorrect** inputs; **one thing per test**;
+arrange-act-assert. MSTest/NUnit/xUnit all work.
 
-### Mocks through dependency injection
+### Mocks through DI
 
 ```csharp
 public OrderDetailViewModel(
@@ -223,99 +170,51 @@ public OrderDetailViewModel(
     IDialogService dialogService,
     INavigationService navigationService,
     ISettingsService settingsService) { … }
-```
 
-At runtime the DI container injects real implementations; in tests, pass a
-**mock** — an object with the same interface, built to simulate behavior and
-supply test data. The view model under test never knows the difference:
-
-```csharp
 [TestMethod]
 public async Task OrderPropertyIsNotNullAfterViewModelInitializationTest()
 {
-    // Arrange
-    var orderService = new OrderMockService();
+    var orderService = new OrderMockService();              // Arrange
     var orderViewModel = new OrderDetailViewModel(orderService);
 
-    // Act
-    var order = await orderService.GetOrderAsync(1, GlobalSetting.Instance.AuthToken);
-    await orderViewModel.InitializeAsync(order);
+    await orderViewModel.InitializeAsync(order);            // Act
 
-    // Assert
-    Assert.IsNotNull(orderViewModel.Order);
+    Assert.IsNotNull(orderViewModel.Order);                 // Assert
 }
 ```
 
-This is exactly the DMMF stub pattern wearing a container: interfaces +
-injection = swappable dependencies.
+The DMMF stub pattern wearing a container: interfaces + injection =
+swappable dependencies.
 
-### Specific MVVM test recipes
+### MVVM test recipes
 
-- **Asynchronous functionality** — `async Task` test methods awaiting view
-  model methods, with mocked services (above).
-- **`INotifyPropertyChanged`** — attach a handler to `PropertyChanged`,
-  perform the change, assert the event fired with the right property name:
-
-  ```csharp
-  orderViewModel.PropertyChanged += (sender, e) =>
-      { if (e.PropertyName.Equals("Order")) invoked = true; };
-  await orderViewModel.InitializeAsync(order);
-  Assert.IsTrue(invoked);
-  ```
-
-  (Change notification drives far more than data — animations and control
-  enablement depend on it.)
-- **Message-based communication** — subscribe to the message the code under
-  test should publish, execute the command, assert receipt:
-
-  ```csharp
-  MessagingCenter.Subscribe<CatalogViewModel, CatalogItem>(
-      this, MessageKeys.AddProduct, (sender, arg) => messageReceived = true);
-  catalogViewModel.AddCatalogItemCommand.Execute(null);
-  Assert.IsTrue(messageReceived);
-  ```
-
-  (Same technique works for the MVVM Toolkit Messenger.)
-- **Exception handling** — `Assert.Throws<ArgumentException>(() =>
-  listView.Behaviors.Add(behavior));`. **Never assert on exception message
-  strings** — they change; such tests are brittle.
-- **Validation** — two layers: (1) each rule's logic (simple, input→output),
-  and (2) `ValidatableObject<T>` behavior — assert `Value`, `IsValid`, **and**
-  `Errors` after `Validate()`:
-
-  ```csharp
-  mockViewModel.Forename.Value = "John";           // Surname left empty
-  bool isValid = mockViewModel.Validate();
-  Assert.IsFalse(isValid);
-  Assert.IsTrue(mockViewModel.Forename.IsValid);
-  Assert.IsFalse(mockViewModel.Surname.IsValid);
-  Assert.AreEqual(mockViewModel.Forename.Errors.Count(), 0);
-  Assert.AreNotEqual(mockViewModel.Surname.Errors.Count(), 0);
-  ```
+| Target | How |
+| --- | --- |
+| **Async** | `async Task` test methods awaiting VM methods (mocked services) |
+| **INotifyPropertyChanged** | attach handler → change property → assert fired with right name. (Notification drives animations + enablement too) |
+| **Messaging** | subscribe to the expected message → execute the command → assert receipt |
+| **Exceptions** | `Assert.Throws<ArgumentException>(() => …)`. **Never assert message strings** — brittle |
+| **Validation** | assert `Value`, `IsValid`, **and** `Errors` after `Validate()` (both per-rule logic and `ValidatableObject<T>` behavior) |
 
 ## Design-for-testability checklist (all three books)
 
-1. **Pure logic, edges for effects** — workflows decide, edges do I/O (DMMF);
-   `update` returns tuples, the runtime performs effects (Elm); view models
-   orchestrate, services do I/O (MAUI).
-2. **Dependencies as explicit parameters/interfaces** — stubbed inline (Elm,
-   DMMF) or mocked via DI (MAUI).
-3. **One model/state value per scope** — trivially inspectable and
-   reconstructible in tests.
-4. **Test one concern per test**; cover standard, boundary, and invalid
-   inputs.
-5. **Prefer failing-first tests** (Elm) and tests-as-specs (MAUI); assert on
-   behavior and data, never on message strings (MAUI).
-6. **Let the type system pre-test invariants** — smart constructors and
-   "make illegal states unrepresentable" remove whole test categories (DMMF);
-   the compiler's missing-patterns and type checks remove others (Elm).
+1. **Pure logic, effects at the edges** — workflows decide (DMMF); the
+   runtime performs `Cmd`s (Elm); services do I/O (MAUI).
+2. **Dependencies as explicit parameters/interfaces** — inline stubs (Elm,
+   DMMF) or DI mocks (MAUI).
+3. **One state value per scope** — trivially inspectable and reconstructible.
+4. **One concern per test**; standard + boundary + invalid inputs.
+5. **Fail first** (Elm); tests as specs (MAUI); assert on behavior and data,
+   never on message strings.
+6. **Let types pre-test invariants** — smart constructors, illegal states
+   unrepresentable (DMMF), missing-patterns errors (Elm) delete whole test
+   categories.
 
 ## Cross-links
 
-- Elm test targets: `update`/view/decoders — [elm-architecture](../elm-architecture/index.md),
+- Test targets: `update`/view/decoders — [elm-architecture](../elm-architecture/index.md),
   [elm-in-production](../elm-in-production/index.md).
-- The DI and MVVM structures being tested: [mvvm-patterns](../mvvm-patterns/index.md).
-- Smart constructors & Result-based logic under test:
-  [functional-design-and-types](../functional-design-and-types/index.md),
+- The DI and MVVM structures under test: [mvvm-patterns](../mvvm-patterns/index.md).
+- Smart constructors & Results under test: [functional-design-and-types](../functional-design-and-types/index.md),
   [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Validated inputs at UI boundaries: [blazor-components](../blazor-components/index.md).
+- UI boundary validation: [blazor-components](../blazor-components/index.md).

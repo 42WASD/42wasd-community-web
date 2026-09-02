@@ -3,12 +3,9 @@
 > Source: *Domain Modeling Made Functional* — ch 4 (Understanding Types),
 > ch 5 (Domain Modeling with Types), ch 6 (Integrity and Consistency).
 
-Functional programming is "programming as if functions really mattered." A
-**type** is simply the name of a *set of possible values* — no behavior
-attached. Compound types are built two ways: **AND** (product types —
-records) and **OR** (sum types — discriminated unions / "choice types"). This
-algebraic type system is the material from which the domain model is carved,
-and it maps directly onto the AND/OR documentation from requirements.
+A type = a named set of possible values. Build models from **AND** types
+(records) and **OR** types (choice types). The same AND/OR shapes the
+requirements documents use become the code — design and code never drift.
 
 ```mermaid
 mindmap
@@ -59,21 +56,15 @@ mindmap
 
 ## Types and functions (ch 4)
 
-### Type signatures
+### The basics in five lines
 
-Functions are described by input → output: `int -> int`. F# infers types;
-`let` defines both values and functions (a function *is* a value). Multi-line
-functions use indentation, no braces; the last expression is the output.
-Generics are written `'a`: `areEqual : 'a -> 'a -> bool`. Equality is `=` (not
-`==`).
+- Signature: `int -> int`. Inferred; annotate for docs.
+- `let` defines values *and* functions (a function **is** a value).
+- Indentation, no braces; last expression = return.
+- Equality is `=` (not `==`); generics are `'a`.
+- Say **value**, never "variable"/"object" — immutable, no behavior.
 
-> Jargon: **values** vs **objects** — a value is just a member of a type,
-> immutable, no behavior. An object encapsulates data + methods + mutable
-> state. In FP, say "value," never "variable" or "object."
-
-### The two composition rules
-
-**AND types** — records; all fields required:
+### AND type = record (all fields required)
 
 ```fsharp
 type FruitSalad = {
@@ -83,8 +74,7 @@ type FruitSalad = {
 }
 ```
 
-**OR types** — choice types ("discriminated unions"); exactly one case, tags
-distinguish same-typed choices:
+### OR type = choice type (exactly one case)
 
 ```fsharp
 type FruitSnack =
@@ -93,162 +83,140 @@ type FruitSnack =
     | Cherries of CherryVariety
 ```
 
-Cases are *not* subclasses — `UnitQuantity 10` and `KilogramQuantity 2.5` both
-have type `OrderQuantity`. Deconstruction uses pattern matching
-(`match … with`), which forces every case to be handled.
+- Cases are **not subclasses**: `UnitQuantity 10` and `KilogramQuantity 2.5`
+  are both `OrderQuantity`.
+- Read them with `match … with` — the compiler forces every case.
 
-**Simple types** — single-case unions wrapping a primitive:
-`type ProductCode = ProductCode of string`. These give domain meaning to raw
-data and prevent mixing (`CustomerId 42` cannot be passed where `OrderId` is
-expected — compiler error).
+### Simple type = wrapper around a primitive
 
-Construction and deconstruction are symmetric (same curly braces / same case
-label on either side of `=`).
+```fsharp
+type ProductCode = ProductCode of string
+```
 
-### Modeling optional values, errors, collections, and "nothing"
+`CustomerId 42` can't go where `OrderId` is expected — compile error. This
+prevents "stringly-typed" bugs for free.
 
-- **Optional** — `Option<'a> = Some 'a | None`; written as a suffix:
-  `MiddleInitial: string option`. Records and choice types can never be
-  `null` in F#, so "required" is the default and optionality is explicit.
-- **Errors** — `Result<'Success,'Failure> = Ok 'Success | Error 'Failure`;
-  e.g. `PayInvoice = UnpaidInvoice -> Payment -> Result<PaidInvoice,PaymentError>`
-  with `PaymentError` a choice type of specific failure cases. Failures
-  become part of the documented signature (details in
-  [workflows-and-error-handling](../workflows-and-error-handling/index.md)).
-- **No value** — `unit` (`()`); every function returns something, so
-  `SaveCustomer = Customer -> unit`. A `unit` in a signature signals hidden
-  side effects — avoid in the domain core.
-- **Collections** — prefer the immutable `list` (`OrderLine list`);
-  literals use semicolons `[1; 2; 3]`, cons is `::`. Others: `array`
-  (mutable, indexed), `ResizeArray` (grow/shrink), `seq` (lazy).
+### The built-ins that matter
 
-### Sketching a model by composition
+| Need | Type | Written as |
+| --- | --- | --- |
+| Maybe missing | `Option<'a> = Some 'a \| None` | `MiddleInitial: string option` |
+| Can fail | `Result<'S,'F> = Ok 'S \| Error 'F` | `PayInvoice = UnpaidInvoice -> Payment -> Result<PaidInvoice,PaymentError>` |
+| Nothing | `unit` (`()`) | `SaveCustomer = Customer -> unit` |
+| Collection | immutable `list` | `OrderLine list`, literals `[1; 2; 3]`, cons `::` |
 
-~25 lines compose a payments model: wrappers (`CheckNumber of int`,
-`CardNumber of string`) → choices (`CardType = Visa | Mastercard`) → records
-(`CreditCardInfo = { CardType; CardNumber }`) → bigger choices with data
-(`PaymentMethod = Cash | Check of CheckNumber | Card of CreditCardInfo`) →
-top record (`Payment = { Amount; Currency; Method }`). **Verbs** (processes)
-are modeled as function types:
-`type PayInvoice = UnpaidInvoice -> Payment -> PaidInvoice`.
+- F# types are **never null** — required is the default; optionality is
+  explicit.
+- `unit` in a domain signature = hidden side effects — avoid in the core.
+
+### Sketch a model by composition (~25 lines)
+
+```
+wrappers:  CheckNumber of int, CardNumber of string
+choices:   CardType = Visa | Mastercard
+record:    CreditCardInfo = { CardType; CardNumber }
+choice:    PaymentMethod = Cash | Check of CheckNumber | Card of CreditCardInfo
+record:    Payment = { Amount; Currency; Method }
+```
+
+**Verbs are function types:**
+
+```fsharp
+type PayInvoice = UnpaidInvoice -> Payment -> PaidInvoice
+```
 
 ### Organizing types
 
-F# requires declaration-before-use within a file and across the compile
-order. Standard layout: shared types first, then per-context files
-(`Common.Types.fs`, `OrderTaking.Types.fs`, `OrderTaking.Functions.fs`, …);
-within a file, simple types at top, compound below in dependency order.
-`rec` modules (F# 4.1) or the `and` keyword allow forward references — fine
-for sketching, prefer dependency order for production.
+- Declaration before use (per file and compile order).
+- Layout: shared types → per-context files (`OrderTaking.Types.fs`,
+  `OrderTaking.Functions.fs`).
+- Simple types top, compound below, in dependency order.
+- `rec` modules / `and` allow forward references — sketching only.
 
 ## Domain modeling with types (ch 5)
 
-Four recurring patterns in any domain model, each with a type-level
-representation:
+Four patterns cover every domain model:
 
 | Pattern | Example | F# representation |
 | --- | --- | --- |
-| Simple values | `ProductId`, `ProductCode` | single-case union wrapper |
-| AND combinations | `PersonalName`, `Order` | record |
-| OR choices | `Unit` or `Kilogram` quantity | choice type |
-| Processes | "validate the order" | function type |
+| Simple value | `ProductId` | single-case union wrapper |
+| AND combination | `PersonalName`, `Order` | record |
+| OR choice | `Unit` vs `Kilogram` quantity | choice type |
+| Process | "validate the order" | function type |
 
-### Modeling unknown types
+### Unknown types? Placeholder now, define later
 
-Early in design you know names but not structures. Use an explicit
-placeholder: `type Undefined = exn` (an exception type alias), then
-`type CustomerInfo = Undefined`. The model compiles; when you write functions
-that *use* the types you're forced to replace each `Undefined` with a real
-definition. This keeps top-down modeling flow possible.
+```fsharp
+type Undefined = exn
+type CustomerInfo = Undefined
+```
 
-### Value objects vs entities — a question of identity
+The model compiles today. Writing functions that *use* `CustomerInfo`
+forces you to replace each `Undefined` — top-down modeling stays possible.
 
-- **Value Object** — no persistent identity; interchangeable when contents
-  match. "Chris has the same *name* as me" — the names are equal even though
-  we aren't. F# gives this **structural equality** by default (records equal
-  when all fields equal). Value objects *must* be immutable — change any part
-  and it's a different value.
-- **Entity** — has an identity that persists as properties change ("I'm still
-  me after moving house"). Modeled with an Id field. Identity is
-  **context-dependent**: a phone is an entity during manufacture (serial
-  number), a value object on the shelf (specs are all that matter), an entity
-  again once sold (the customer's phone, even after a screen replacement).
-- Entities usually represent documents with a lifecycle: Orders, Invoices,
-  Customer profiles.
+### Value Object vs Entity — a question of identity
 
-**Where to put the id on a choice type**: prefer the *inside* approach —
-each case is its own record carrying its own id (`UnpaidInvoice {InvoiceId}`,
-`PaidInvoice {InvoiceId}`), with a top-level choice between them. Pattern
-matching then has all data (including the id) in one place.
+| | Value Object | Entity |
+| --- | --- | --- |
+| Identity | none — contents are everything | an `Id` that persists as fields change |
+| Equality | structural (all fields) | by id |
+| Example | "Chris has the same *name* as me" | "I'm still me after moving house" |
+| Mutation | forbidden — change anything = new value | copy-with-changes: `{initial with Name="Joe"}` |
 
-**Equality for entities**: F#'s default all-fields equality is wrong for
-entities. Options: override `Equals`/`GetHashCode` with
-`[<CustomEquality; NoComparison>]` (equality by id), or — often better —
-`[<NoEquality; NoComparison>]` to *forbid* object equality entirely and
-compare ids explicitly. Multiple key fields can be exposed as a synthetic
-`Key` member.
+Identity is **context-dependent**: a phone is an entity in the factory
+(serial number), a value object on the shelf (specs only), an entity again
+once sold (the customer's phone survives a screen swap).
 
-**Immutability + identity**: entity updates are copies-with-changes:
-`let updated = {initial with Name="Joe"}` — same id, new value. Because
-immutability forces changes through the signature, an update function must
-return the new entity: `UpdateName = Person -> Name -> Person` (never
-`Person -> Name -> unit`, which implies hidden mutation).
+Updates must return the new entity —
+`UpdateName = Person -> Name -> Person`, **never**
+`Person -> Name -> unit` (that's hidden mutation).
+
+**Ids on choice types go inside** — each case carries its own id
+(`UnpaidInvoice {InvoiceId}` / `PaidInvoice {InvoiceId}`); pattern matching
+then has all data in one place.
+
+**Entity equality**: F#'s all-fields default is wrong for entities. Either
+`[<CustomEquality; NoComparison>]` (compare by id) or — usually better —
+`[<NoEquality; NoComparison>]` to forbid object equality; compare ids
+explicitly.
 
 ### Aggregates
 
-Changing one `OrderLine` inside an immutable `Order` forces a new `Order` —
-immutability creates a **ripple effect** up the containment tree, so updates
-must happen at the `Order` level. This is exactly the DDD **aggregate**: a
-collection of related entities treated as one unit, with the top-level entity
-as the **aggregate root**.
+Immutability ripples: changing one `OrderLine` forces a new `Order`. That
+ripple boundary **is** the DDD aggregate — related entities updated as one
+unit, through the **root**.
 
 Rules:
 
-- all changes inside an aggregate go through the root; the root is the
-  **consistency boundary** (e.g. recompute `AmountToBill` when a line price
-  changes — the root is the only component that knows how);
-- invariants are enforced at the aggregate (e.g. "at least one order line");
-- other aggregates are referenced **by id only** (`Order` holds a
-  `CustomerId`, never an embedded `Customer`) — Customer and Order are
-  independent aggregates connected by identifiers;
-- an aggregate is the **atomic unit of persistence, transactions, and data
-  transfer** (load/save/serialize whole aggregates, never parts);
-- not every collection of entities is an aggregate — a list of Customers has
-  no root and no consistency role.
+- all changes go through the root (it recomputes `AmountToBill`, enforces
+  "at least one order line");
+- other aggregates are referenced **by id only** — `Order` holds a
+  `CustomerId`, never an embedded `Customer`;
+- the aggregate is the atomic unit of **persistence, transactions, and
+  transfer** (load/save/serialize whole, never parts);
+- not every collection is an aggregate — a customer list has no root and no
+  consistency role.
 
-### Putting it together
-
-The complete order model lives in a namespace-per-context
-(`OrderTaking.Domain`): simple types (all value objects), `Undefined` for
-unknowns, entity records with ids, the workflow input
-(`UnvalidatedOrder` built from primitives "as-is"), a
-`PlaceOrderEvents` record of outputs, a `PlaceOrderError` choice type, and
-the top-level function:
+### The finished order model
 
 ```fsharp
 type PlaceOrder =
     UnvalidatedOrder -> Result<PlaceOrderEvents, PlaceOrderError>
 ```
 
-**Can types replace documentation?** Yes — the F# model is nearly identical
-to the AND/OR text documentation, but it *compiles*. The design can never
-drift from the code, because **the design *is* the code**, and domain experts
-can read (and even write) it.
+**Can types replace documentation?** Yes — the F# model ≈ the AND/OR text
+doc, but it compiles. **The design *is* the code**, and domain experts can
+read (even write) it.
 
 ## Integrity and consistency (ch 6)
 
-**Integrity** (validity) = data follows the business rules. **Consistency** =
-different parts of the model agree about facts (total = sum of lines; a
-voucher used is marked used).
+**Integrity** = data follows the rules. **Consistency** = parts of the model
+agree (total = sum of lines; a used voucher is marked used).
 
-### Integrity of simple values: smart constructors
-
-Constraints belong in the type, not in comments. Make the constructor
-**private** and expose a **smart constructor** in a same-named module that
-validates and returns a `Result`:
+### Smart constructors: constraints live in the type
 
 ```fsharp
-type UnitQuantity = private UnitQuantity of int
+type UnitQuantity = private UnitQuantity of int   // private constructor!
 
 module UnitQuantity =
     let create qty =
@@ -258,49 +226,56 @@ module UnitQuantity =
     let value (UnitQuantity qty) = qty
 ```
 
-Because data is immutable, the constraint is checked **once** at creation and
-can be trusted forever — no defensive checks downstream, and no unit tests
-for the constraint. (A `value` function unwraps, since private constructors
-can't be pattern-matched outside the module.) Helper modules reduce
-repetition across many constrained types.
+Data is immutable → checked **once at creation**, trusted forever. No
+defensive checks downstream. No unit tests for the constraint.
 
-**Units of measure** add a second dimension of safety for numbers:
-`[<Measure>] type kg` … `KilogramQuantity of decimal<kg>`. The compiler
-rejects mixing units (`fiveKilos = fiveMeters` → error), with **zero runtime
-cost**. Useful beyond physics: seconds vs milliseconds, x vs y coordinates,
-currency.
+### Units of measure: compiler-checked numbers, zero runtime cost
 
-### Invariants in the type system
+```fsharp
+[<Measure>] type kg
+type KilogramQuantity = KilogramQuantity of decimal<kg>
+```
 
-An **invariant** is a condition that always holds. Some are directly
-encodable: "an order has at least one line" becomes a `NonEmptyList<'a> =
-{ First: 'a; Rest: 'a list }` — the type *cannot* be empty. Swap it in:
-`OrderLines : NonEmptyList<OrderLine>` and the rule is enforced by
-construction ("compile-time unit tests").
+`fiveKilos = fiveMeters` → compile error. Also: seconds vs milliseconds, x
+vs y coordinates, currency.
 
-### Business rules in types: make illegal states unrepresentable
+### Invariants in types: NonEmptyList
 
-The verified-email example. Naive: `{EmailAddress; IsVerified: bool}` —
-nothing stops a developer from marking an unverified address verified
-(security hole), and the "reset flag when email changes" rule is buried in
-comments. Type-driven design:
+```fsharp
+type NonEmptyList<'a> = { First: 'a; Rest: 'a list }
+```
+
+"An order has at least one line" → `OrderLines : NonEmptyList<OrderLine>`.
+The type *cannot* be empty — a compile-time unit test.
+
+### Make illegal states unrepresentable
+
+❌ Naive — nothing stops marking an unverified address verified:
+
+```fsharp
+type Customer = { EmailAddress: EmailAddress; IsVerified: bool }
+```
+
+✅ Type-driven — verification is a *different type* with a private
+constructor:
 
 ```fsharp
 type CustomerEmail =
     | Unverified of EmailAddress
-    | Verified   of VerifiedEmailAddress   // a DIFFERENT type
+    | Verified   of VerifiedEmailAddress
 
 type VerifiedEmailAddress = private VerifiedEmailAddress of EmailAddress
 ```
 
-Only the verification service can construct a `VerifiedEmailAddress` (private
-constructor), so the only way into the `Verified` case is through the
-service. Rules then live in signatures:
-`SendPasswordResetEmail = VerifiedEmailAddress -> …` — the compiler enforces
-"only send password resets to verified addresses."
+Only the verification service can construct `VerifiedEmailAddress`, so rules
+land in signatures — the compiler enforces them:
 
-Same technique for the contact rule "email **or** postal address" — two
-options allow *neither*, so enumerate the three legal cases instead:
+```fsharp
+type SendPasswordResetEmail = VerifiedEmailAddress -> …
+```
+
+Same technique for "email **or** postal address" — two option fields allow
+*neither*, so enumerate the legal cases:
 
 ```fsharp
 type ContactInfo =
@@ -309,45 +284,23 @@ type ContactInfo =
     | EmailAndAddr of BothContactMethods
 ```
 
-Applied to the order workflow: distinct `UnvalidatedAddress` /
-`ValidatedAddress` (private constructor, produced only by the validation
-service returning `ValidatedAddress option`), and `ValidatedOrder` requiring
-a `ValidatedAddress`. It becomes *impossible* to have an unvalidated address
-inside a validated order — guaranteed without a single test.
+And for the order workflow: `UnvalidatedAddress` / `ValidatedAddress`
+(private, produced only by the validation service). An unvalidated address
+inside a `ValidatedOrder` becomes **impossible** — zero tests needed.
 
-### Consistency
+### Consistency: expensive — avoid or delay it
 
-Consistency is a **business** term, context-dependent, and expensive —
-avoid or delay it when possible.
-
-- **Within one aggregate**: prefer *calculating* derived data (sum the lines
-  when needed) over storing it. If stored (e.g. `AmountToBill`), the root
-  updates it on every change, and the aggregate is persisted atomically.
-- **Across contexts** (order placed ⇒ invoice created): don't do
-  synchronous two-phase coordination ("Starbucks does not use two-phase
-  commit" — real businesses work asynchronously with messages). If a message
-  is lost, choose: (1) do nothing (errors rare + costs small), (2)
-  **reconciliation** (compare + fix), (3) **compensating actions** (undo/correct,
-  e.g. refunds). The system becomes consistent after some time — **eventual
-  consistency**, which is *not* "optional consistency."
-- **Between aggregates in one context**: guideline "only update one aggregate
-  per transaction"; use events + eventual consistency otherwise. Exception:
-  when the business sees one transaction (money transfer), consider that the
-  transaction itself is an entity — model `MoneyTransfer {Id; ToAccount;
-  FromAccount; Amount}` and compute account balances from transfers. This
-  both fixes the design *and* teaches you something about the domain.
-- **Multiple aggregates acting on the same data**: share constraints via
-  types (`NonNegativeMoney`) or shared validation functions — FP validation
-  isn't attached to objects, so it's reusable across workflows.
+| Scope | Guidance |
+| --- | --- |
+| Within one aggregate | **calculate** derived data (sum lines when needed); if stored (`AmountToBill`), the root updates it, and the aggregate persists atomically |
+| Across contexts | no synchronous two-phase commit — *"Starbucks does not use two-phase commit."* Async messages; if lost: do nothing, **reconcile**, or **compensate** (refunds) → **eventual consistency** |
+| Between aggregates (one context) | update **one aggregate per transaction**; else events. Exception: the business sees one transaction (money transfer)? Model the transfer itself as an entity: `MoneyTransfer {Id; ToAccount; FromAccount; Amount}` — compute balances from transfers |
+| Shared constraints | reuse types (`NonNegativeMoney`) and validation functions — FP validation isn't attached to objects, so it's shareable across workflows |
 
 ## Cross-links
 
-- How the modeled pipeline gets *implemented* (bind, map, computation
-  expressions): [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Choice types ↔ DTOs and DB columns (tag + nullable fields; one-table vs
-  per-case tables): [persistence-and-evolution](../persistence-and-evolution/index.md).
-- The same "explicit state, exhaustive handling" instinct drives Elm's
-  compiler-as-assistant: [elm-architecture](../elm-architecture/index.md).
-- Validation rules in UI form (data annotations) are the runtime cousin of
-  smart constructors: [blazor-components](../blazor-components/index.md),
+- Implementation of the pipeline (bind, map, CEs): [workflows-and-error-handling](../workflows-and-error-handling/index.md).
+- Choice types ↔ DTOs and DB columns: [persistence-and-evolution](../persistence-and-evolution/index.md).
+- Elm's compiler-as-assistant is the same instinct: [elm-architecture](../elm-architecture/index.md).
+- UI-level validation cousins: [blazor-components](../blazor-components/index.md),
   [mvvm-patterns](../mvvm-patterns/index.md).
