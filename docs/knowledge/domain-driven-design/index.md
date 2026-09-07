@@ -2,7 +2,8 @@
 
 > Source: *Domain Modeling Made Functional* (Scott Wlaschin) — ch 1
 > (Introducing DDD), ch 2 (Understanding the Domain), ch 3 (A Functional
-> Architecture).
+> Architecture). Echoed by *FSA* ch 7 (bounded contexts as quanta) and
+> ch 18 (microservices).
 
 Code is the easy part; understanding the problem is the hard part. DDD =
 build a **shared model** between domain experts and developers so the code
@@ -14,273 +15,119 @@ flowchart LR
     n2["Shared model"]
     n3["no translation loss"]
     n4["code reflects expert mental model"]
-    n5["benefits"]
-    n6["faster time to market"]
-    n7["less waste"]
-    n8["easier evolution"]
-    n9["Discover via events"]
-    n10["Event storming workshop"]
-    n11["Domain events (past tense)"]
-    n12["Commands (imperative)"]
-    n13["event → command → workflow → events"]
-    n14["Partition the domain"]
-    n15["domains &amp; subdomains"]
-    n16["core vs supportive vs generic"]
-    n17["Bounded contexts"]
-    n18["problem space → solution space"]
-    n19["context maps (upstream/downstream)"]
-    n20["relationships"]
-    n21["Shared Kernel"]
-    n22["Customer\/Supplier"]
-    n23["Conformist"]
-    n24["Anti-Corruption Layer"]
-    n25["Ubiquitous language"]
-    n26["one dialect per context"]
-    n27["no Manager\/Helper types"]
-    n28["Functional architecture"]
-    n29["workflows as pipelines"]
-    n30["DTOs at trust boundaries"]
-    n31["Onion Architecture"]
-    n32["I\/O at the edges"]
+    n5["Discover via events"]
+    n6["event storming workshop"]
+    n7["domain events: past tense"]
+    n8["commands: imperative"]
+    n9["event → command → workflow → events"]
+    n10["Partition the domain"]
+    n11["core vs supportive vs generic"]
+    n12["Bounded contexts"]
+    n13["one model per context"]
+    n14["context maps: upstream/downstream"]
+    n15["relationships"]
+    n16["Shared Kernel"]
+    n17["Customer/Supplier"]
+    n18["Conformist"]
+    n19["Anti-Corruption Layer"]
+    n20["Ubiquitous language"]
+    n21["one dialect per context"]
+    n22["no Manager/Helper types"]
+    n23["Functional architecture"]
+    n24["workflows as pipelines"]
+    n25["DTOs at trust boundaries"]
+    n26["Onion: dependencies point inward"]
+    n27["I/O at the edges only"]
     n1 --> n2
     n2 --> n3
     n2 --> n4
-    n2 --> n5
+    n1 --> n5
     n5 --> n6
     n5 --> n7
     n5 --> n8
-    n1 --> n9
-    n9 --> n10
-    n9 --> n11
-    n9 --> n12
-    n9 --> n13
-    n1 --> n14
-    n14 --> n15
-    n14 --> n16
-    n1 --> n17
-    n17 --> n18
-    n17 --> n19
-    n17 --> n20
+    n5 --> n9
+    n1 --> n10
+    n10 --> n11
+    n1 --> n12
+    n12 --> n13
+    n12 --> n14
+    n12 --> n15
+    n15 --> n16
+    n15 --> n17
+    n15 --> n18
+    n15 --> n19
+    n1 --> n20
     n20 --> n21
     n20 --> n22
-    n20 --> n23
-    n20 --> n24
-    n1 --> n25
-    n25 --> n26
-    n25 --> n27
-    n1 --> n28
-    n28 --> n29
-    n28 --> n30
-    n28 --> n31
-    n28 --> n32
+    n1 --> n23
+    n23 --> n24
+    n23 --> n25
+    n23 --> n26
+    n23 --> n27
 ```
 
-## The shared model (ch 1)
+## The shared model
 
-The children's game "Telephone" is what happens to requirements passed
-through documents and translators. Three ways to bridge the gap:
+A mismatch between the developer's understanding and the domain expert's
+understanding is fatal — like the children's game "Telephone". Three
+approaches to capturing requirements:
 
-1. **Written specs** — the document is the intermediary → distance.
-2. **Agile** — feedback loop, but the developer still translates lossily.
-3. **DDD** — experts, team, stakeholders, **and the code share one model**.
-
-Payoffs: faster time to market, less waste, easier evolution. (Sidebar: Dan
-North's "insanely effective delivery machine" — a trading firm whose
-developers were *trained as traders*, making them domain experts.)
-
-## Guideline 1 — discover the domain through business events
-
-A business doesn't *have* data, it **transforms** it. Value is created in
-the transformation.
-
-- Capture **Domain Events** — always **past tense** ("Order form received"):
-  facts that can't change.
-- Triggers: outside input (mail arrives), time (daily at 10am), observation
-  (inbox empty).
-
-### Event storming
-
-Sticky notes on a wall: events first, workflows beside them, timeline
-emerges. The session reveals:
-
-- a **shared model** ("us vs them" dissolves),
-- **all the teams** (billing: "we need Order placed too"),
-- **requirement gaps** (missing "Order acknowledgment sent" becomes visible),
-- **team connections** (one team's output = another's input),
-- **reporting needs** (read models are part of the domain too).
-
-Follow events out to the edges (what triggers the first? what happens after
-the last?) to catch missing requirements. Don't sweat paper-vs-digital —
-concepts are implementation-independent.
-
-**Vocabulary precision**: *scenario* = user goal ("place an order");
-*use-case* = detailed scenario; *business process* = goal-oriented scenario;
-**workflow** = the steps one person/team performs. A cross-team process
-splits into workflows per team.
-
-### Commands trigger workflows
-
-```
-Command "Place an order" → workflow → events "Order placed", "Order acknowledgment sent"
-```
-
-- Commands are **imperative**; events are **past tense**.
-- Some events have no command (schedulers: `MonthEndClose`, `OutOfStock`).
-- This pipeline shape (input → transform → outputs) is exactly how FP models
-  computation — the deep reason DDD + FP fit
-  ([workflows-and-error-handling](../workflows-and-error-handling/index.md)).
-
-## Guideline 2 — partition into subdomains
-
-- **Domain** = "an area of coherent knowledge" = what a domain expert is
-  expert *in*. Boundaries are fuzzy (CSS ∈ web programming **and** design).
-- **Subdomains**: department boundaries are strong clues (order-taking,
-  shipping, billing). Test: "do you know how billing works?" — "a little,
-  ask the billing team" ✅ separate domain.
-
-| Kind | Meaning | Action |
+| Approach | Mechanism | Problem |
 | --- | --- | --- |
-| **Core** | business advantage, the money | build yourself, first |
-| **Supportive** | needed, not differentiating | build later / simpler |
-| **Generic** | not unique (delivery) | outsource / buy |
+| ✅ DDD | code **is** the shared model | needs discipline |
+| Agile iteration | feedback loop corrects drift | developer still a translator |
+| ❌ Telephone | expert → translator → code | distortion at every hop |
 
-Don't implement all contexts at once — highest value first. The core may
-surprise you (e-commerce sometimes finds inventory is core).
+Guidelines: focus on **business events** and workflows (not data
+structures), partition into subdomains, model each subdomain, develop a
+**ubiquitous language** shared by everyone and used everywhere in the code.
 
-## Guideline 3 — bounded contexts
+## Discover the domain: events and commands
 
-Problem space (domain) → solution space (model). A **bounded context** =
-one subdomain as a subsystem with its own model and its own dialect.
-"Context" = the knowledge inside; "bounded" = low coupling, independent
-evolution. Maps to an assembly, a service, or a namespace — not always 1:1
-(one legacy system may cover order-taking *and* billing).
+Run an **event storming** workshop with domain experts:
 
-Getting boundaries right:
+- **Domain events** — things that happen, written in the past tense:
+  `OrderPlaced`, `BillableOrderShipped`.
+- **Commands** — requests to do something, imperative: `PlaceOrder`.
+- The pattern: `command → workflow (decision process) → events`.
 
-- listen to experts (same language → same subdomain);
-- respect team boundaries;
-- guard the "bounded" — scope creep kills the boundary;
-- design for **autonomy** (two teams pulling one context = a three-legged
-  race);
-- workflows keep bumping boundaries? **Refactor the boundaries** — business
-  value beats pure design.
+Focus on the *state changes* of the business, not the nouns. "What
+happened?" reveals more than "what table should we have?"
 
-### Context maps and relationship kinds
+## Partitioning: subdomains and bounded contexts
 
-Contexts relate **upstream → downstream** and agree on message formats:
+- **Core domain** = what makes money / competitive advantage. Supportive
+  and generic subdomains can be bought or simplified.
+- A large domain splits into multiple **bounded contexts** — each with its
+  own model, its own dialect, its own data.
+- Contexts relate via a **context map**: Shared Kernel, Customer/Supplier,
+  Conformist, or the all-important **Anti-Corruption Layer** (translate
+  foreign models at the boundary; never let them leak in).
 
-| Relationship | Meaning | Example |
-| --- | --- | --- |
-| **Shared Kernel** | co-owned common design; changes need collaboration | order-taking + shipping co-own the address design |
-| **Customer/Supplier** | downstream defines needs; upstream delivers exactly that | billing dictates `BillableOrderPlaced` contents |
-| **Conformist** | downstream accepts upstream's model as-is | order-taking adopts the catalog's model |
-| **Anti-Corruption Layer** | translator protecting your model from an external one | third-party address checker. Not about validation — about avoiding corruption & vendor lock-in |
+## The ubiquitous language
 
-Organizational too: some teams use the **Inverse Conway Manoeuvre** (align
-org structure to the desired architecture).
+- One dialect **per bounded context**. "Ship" means something different to
+  Sales and to the Warehouse — and that's fine.
+- ❌ `ProductManager`, `Helper`, `DataManager` — words that carry no
+  domain meaning.
+- ✅ `OrderAcknowledgementSent`, `UnpaidSupplyOrder` — the expert's words,
+  in the code. No translation step, no `Manager`.
 
-## Guideline 4 — the ubiquitous language
+## Functional architecture: the onion
 
-- Expert says "Order" → the code has an `Order` that behaves like one.
-- **No `OrderFactory`, `OrderManager`, `OrderHelper`** — experts don't know
-  what those are; tech terms don't leak into the design.
-- **Each context has its own dialect**: "Order" means quantities to shipping,
-  prices to billing. One global meaning = painful misunderstandings.
-
-## Interviewing a domain expert (ch 2)
-
-Short interviews, one workflow each, inputs/outputs only. Lessons from the
-Widgets Inc interview:
-
-| Lesson | Example |
-| --- | --- |
-| **Resist assumptions** | don't assume "e-commerce cart" — B2B experts order 200 items by product code. Listen like an anthropologist |
-| **Capture non-functional reqs** | ~200 orders/day, consistent latency; experts — don't slow them down; audit trails |
-| **Follow the money** | orders beat quotes — orders make money. Requirements aren't equal |
-| **Piles are real** | incoming forms, later-pile, invalid pile → piles have priorities (queues at implementation, not during design) |
-| **Discover dependencies** | `CheckAddressExists` external service; the product catalog is another context. Ollie keeps his own catalog copy — *"it's about control, not speed"* |
-| **Learn the words** | experts don't say "float"; they say "Order Quantity." "It depends" = complexity ahead (widgets by unit, gizmos by kilo → `UnitQuantity` vs `KilogramQuantity`) |
-| **Phase markers = lifecycle** | Unvalidated → Validated → Priced → Placed. A single `Order` record erases these (state machines: [functional-design-and-types](../functional-design-and-types/index.md)) |
-| **Output = events** | the workflow emits `OrderPlaced` — not the order document; the acknowledgment is a side effect |
-
-### Two requirements anti-patterns
-
-1. **Database-driven design** — sketching `Order`/`OrderLine` tables first.
-   The DB is not the ubiquitous language (persistence ignorance). DB
-   thinking loses subtleties (a quote needs no billing address — hard when
-   a foreign key does double duty).
-2. **Class-driven design** — inventing `OrderBase` classes that don't exist
-   in the expert's world.
-
-### Document with text, not UML
-
-```text
-data Order =
-  CustomerInfo AND ShippingAddress AND BillingAddress
-  AND list of OrderLines AND AmountToBill
-
-data WidgetCode = string starting with "W" then 4 digits
-data ProductCode = WidgetCode OR GizmoCode
-```
-
-AND = both required, OR = choice. Non-programmers can read — and review —
-this. It maps *directly* onto F# types: documentation and code converge
-([functional-design-and-types](../functional-design-and-types/index.md)).
-
-## A functional architecture (ch 3)
-
-**C4 levels**: system context → containers → components → classes. Goal:
-boundaries that keep the **cost of change** low.
-
-### Contexts as autonomous components
-
-- A context = module, assembly, service, or microservice (one workflow per
-  deployable).
-- **Decouple first, deploy later**: monolith → split when needed. Beware the
-  *microservice premium* and the *distributed monolith* (switching one
-  service off breaks others = you don't have microservices).
-
-### Communication = events
-
-```
-PlaceOrder workflow → OrderPlaced → (queue) → shipping converts to ShipOrder
-command → ShipOrder workflow → OrderShipped
-```
-
-The event→command translation lives at the downstream boundary or in a
-router/process manager.
-
-- Event payloads are **DTOs**, not domain objects:
-  domain → DTO → JSON out; JSON → DTO → domain in.
-- **Trust boundaries**: the **input gate** always validates untrusted input
-  (fail → bypass workflow with error); the **output gate** deliberately
-  *loses* data (never emit credit card numbers to shipping).
-
-### Workflow design rules
-
-- A workflow is one function: command in → **list of events** out.
-- **Don't publish events internally** — *return* them; publishing is
-  infrastructure. OO-style internal handlers create hidden dependencies and
-  global mutable state; functional "listeners" append to the end of the
-  pipeline.
-- **Consumer-driven contracts**: emit `BillableOrderPlaced`
-  (OrderId AND BillingAddress AND AmountToBill) for billing — only what the
-  consumer needs.
-
-### Onion, not layers
-
-- Horizontal layers (domain → services → DB → UI): one workflow change
-  touches every layer.
-- Vertical slices: better, but concerns intermingle inside the pipe.
-- **Onion Architecture**: domain at the center, infrastructure around it,
-  **dependencies point inward** (Hexagonal/Clean = same idea).
-- **I/O at the edges only** — no DB/randomness/mutation inside the workflow.
-  Pure workflows = testable workflows (the "IO sandwich":
-  [persistence-and-evolution](../persistence-and-evolution/index.md)).
+- Each bounded context = an autonomous component: a set of
+  **workflows as pipelines** (functions in, functions out).
+- **DTOs at trust boundaries** — serialize at the edge, pass domain types
+  inside.
+- **Onion / Hexagonal / Clean**: domain at the center, infrastructure
+  around it, **dependencies point inward**.
+- **I/O at the edges only** — no DB, randomness, or mutation inside a
+  workflow. Pure workflows are testable workflows ("IO sandwich").
 
 ## Cross-links
 
-- The event→command→workflow loop = TEA's msg→update→model: [elm-architecture](../elm-architecture/index.md).
-- DTO conversion guidelines: [persistence-and-evolution](../persistence-and-evolution/index.md).
-- eShop is these ideas in a client app: [mvvm-patterns](../mvvm-patterns/index.md).
-- Microservices owning data: [remote-data-and-security](../remote-data-and-security/index.md).
+- Modeling those events as types: [domain-modeling-with-types](../domain-modeling-with-types/index.md).
+- Workflows as pipelines in code: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
+- Bounded contexts as architecture quanta: [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md).
+- Domain partitioning and microservices: [architecture-styles](../architecture-styles/index.md).
+- The same "pages as programs" decomposition on the client: [scaling-and-routing](../scaling-and-routing/index.md).

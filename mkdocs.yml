@@ -400,18 +400,19 @@ nav:
       - Final master checklist: reference-design/04-technical-reference/platform-order/final-master-checklist/index.md
 - Crash Course:
   - Overview: knowledge/index.md
+  - Architecture Thinking — The Architect's Eye: knowledge/architecture-thinking/index.md
   - Domain-Driven Design — Understanding the Problem First: knowledge/domain-driven-design/index.md
-  - Functional Design and Types — Modeling the Domain with the Type System: knowledge/functional-design-and-types/index.md
-  - Workflows and Error Handling — Pipelines, Two-Track, Composition: knowledge/workflows-and-error-handling/index.md
-  - The Elm Architecture — Model, Update, View, and Talking to the Outside: knowledge/elm-architecture/index.md
-  - Blazor Components: knowledge/blazor-components/index.md
-  - MVVM Patterns — ViewModel, Binding, Commands, Messaging, Navigation: knowledge/mvvm-patterns/index.md
-  - Blazor App Services — Startup, DI, Configuration, State, Hosting: knowledge/blazor-app-services/index.md
-  - Remote Data and Security — APIs, Caching, Resilience, Auth: knowledge/remote-data-and-security/index.md
-  - Testing Practices — Unit, Fuzz, and Testing the Architecture: knowledge/testing-practices/index.md
-  - Persistence and Evolution — Serialization, Databases, and Changing the Design: knowledge/persistence-and-evolution/index.md
-  - Elm in Production — Data Modeling at Scale, SPAs, Performance: knowledge/elm-in-production/index.md
-  - Web Forms → Blazor Migration: knowledge/web-forms-migration/index.md
+  - F# Style — Code Is Communication: knowledge/fsharp-style/index.md
+  - Domain Modeling with Types — Making Illegal States Unrepresentable: knowledge/domain-modeling-with-types/index.md
+  - Workflows and Error Handling — The Two-Track Model: knowledge/workflows-and-error-handling/index.md
+  - Functions and Composition — Small Parts, Big Programs: knowledge/functions-and-composition/index.md
+  - Fable and The Elm Architecture — State, Message, Update, View: knowledge/fable-and-elm-architecture/index.md
+  - Commands and Async Data — Side Effects in the Loop: knowledge/commands-and-async-data/index.md
+  - Scaling and Routing — Programs Made of Programs: knowledge/scaling-and-routing/index.md
+  - Dev Workflow — From Source to Browser: knowledge/dev-workflow/index.md
+  - Architecture Characteristics and Governance — Naming What Matters: knowledge/architecture-characteristics-and-governance/index.md
+  - Architecture Styles — The Catalog of Shapes: knowledge/architecture-styles/index.md
+  - Architecture Decisions and Soft Skills — The Human Layer: knowledge/architecture-decisions-and-soft-skills/index.md
 - Implementation:
   - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<
