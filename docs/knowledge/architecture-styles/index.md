@@ -8,6 +8,78 @@ fall within two families: **monolith** (one deployment unit) and
 **distributed** (many units, network calls). Every style is a trade-off
 bundle — none is "best".
 
+## One repo, three styles at once
+
+Style selection is not hypothetical — this repo uses three at once,
+chosen by elimination against the product goal:
+
+- **Modular monolith** for the server: one deployable, but
+  domain-partitioned (`Domain/`, `Remoting/` per concept) — no network
+  tax for a solo-maintained community site.
+- **Pipeline** inside it: `Cmd.OfAsync.either` fetches are
+  validate/load/notify chains — DMMF's workflow shape (see
+  [workflows-and-error-handling](../workflows-and-error-handling/index.md)).
+- **Microkernel-ish** on the client: a core program (`App.fs` update loop)
+  with pages as plug-ins (`Pages/Games.fs`, `Pages/Tournaments.fs`...),
+  each adding behavior without touching the core.
+
+Nobody announced "we adopt X" — each piece was picked because it fit a
+need. That is what the catalog is for: names for shapes you reach for
+when a need appears.
+
+## 1. Foundations: styles, partitioning, Conway
+
+- **Style** = topology + deployment + communication + data shapes.
+  **Pattern** = a smaller, reusable solution inside a style.
+- **Technical partitioning** (presentation/business/persistence layers):
+  familiar, cheap to staff — but every workflow cuts across all layers.
+  **Domain partitioning** (components by workflow, from DDD): workflows
+  change in one place.
+- **Conway's Law**: designs copy the organization's communication
+  structure. Want domain-partitioned software? Arrange teams that way
+  (**Inverse Conway Maneuver** / team topologies).
+
+## 2. The monolithic family
+
+| Style | Idea | Best when |
+| --- | --- | --- |
+| **Layered** | technical layers, top-down calls | simplicity/familiarity dominate; beware "accidental architecture" |
+| **Modular monolith** | domain-partitioned, single deploy | DDD fits, no distributed costs; the modern default candidate |
+| **Pipeline** | filters connected by pipes | streams, ETL, batch — each filter transforms independently (producers/consumers over topics, à la Kafka); including DMMF's workflow pipelines |
+| **Microkernel** | core system + plug-ins | product apps with per-customer customization |
+
+## 3. The distributed family
+
+- **Service-based**: a few coarse services (UI + domain + DB each),
+  pragmatic and cost-effective — microservices' calmer sibling.
+- **Event-driven**: decoupled processors reacting to events. Choreography
+  (broadcast) vs **mediator topology** (an orchestrator controls the
+  workflow); highly scalable, but eventual consistency and workflow
+  debugging are the price.
+- **Space-based**: replicate processing units + in-memory data grids to
+  shed the database bottleneck under bursty load.
+- **Microservices**: one service per bounded context, **database per
+  service**, independent deploys. Buys scalability/agility/fault
+  tolerance, pays in operational complexity and data consistency.
+- **Orchestration-driven SOA**: the ESB-centric predecessor — a lesson in
+  how eras age.
+
+## 4. Choosing: it depends, on what?
+
+- Never binary — score styles against the prioritized characteristics
+  from [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md)
+  and the domain's needs; pick the **least worst** fit.
+- Practice with **architecture katas** (Silicon Sandwiches is the book's
+  running case).
+- Monolith vs distributed is the first fork: distributed styles share
+  known challenges — network reliability, latency, bandwidth, security,
+  consistency. Don't pay that tax without a reason.
+
+## Revise
+
+The flowchart below is the **review map** of this page — each node a chunk
+you just walked. Don't try to learn from it; use it to check coverage.
+
 ```mermaid
 flowchart LR
     n1(["Architecture styles"])
@@ -60,54 +132,6 @@ flowchart LR
     n20 --> n24
     n20 --> n25
 ```
-
-## Foundations: styles, partitioning, Conway
-
-- **Style** = topology + deployment + communication + data shapes.
-  **Pattern** = a smaller, reusable solution inside a style.
-- **Technical partitioning** (presentation/business/persistence layers):
-  familiar, cheap to staff — but every workflow cuts across all layers.
-  **Domain partitioning** (components by workflow, from DDD): workflows
-  change in one place.
-- **Conway's Law**: designs copy the organization's communication
-  structure. Want domain-partitioned software? Arrange teams that way
-  (**Inverse Conway Maneuver** / team topologies).
-
-## The monolithic family
-
-| Style | Idea | Best when |
-| --- | --- | --- |
-| **Layered** | technical layers, top-down calls | simplicity/familiarity dominate; beware "accidental architecture" |
-| **Modular monolith** | domain-partitioned, single deploy | DDD fits, no distributed costs; the modern default candidate |
-| **Pipeline** | filters connected by pipes | streams, ETL, batch — each filter transforms independently (producers/consumers over topics, à la Kafka); including DMMF's workflow pipelines |
-| **Microkernel** | core system + plug-ins | product apps with per-customer customization |
-
-## The distributed family
-
-- **Service-based**: a few coarse services (UI + domain + DB each),
-  pragmatic and cost-effective — microservices' calmer sibling.
-- **Event-driven**: decoupled processors reacting to events. Choreography
-  (broadcast) vs **mediator topology** (an orchestrator controls the
-  workflow); highly scalable, but eventual consistency and workflow
-  debugging are the price.
-- **Space-based**: replicate processing units + in-memory data grids to
-  shed the database bottleneck under bursty load.
-- **Microservices**: one service per bounded context, **database per
-  service**, independent deploys. Buys scalability/agility/fault
-  tolerance, pays in operational complexity and data consistency.
-- **Orchestration-driven SOA**: the ESB-centric predecessor — a lesson in
-  how eras age.
-
-## Choosing: it depends, on what?
-
-- Never binary — score styles against the prioritized characteristics
-  from [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md)
-  and the domain's needs; pick the **least worst** fit.
-- Practice with **architecture katas** (Silicon Sandwiches is the book's
-  running case).
-- Monolith vs distributed is the first fork: distributed styles share
-  known challenges — network reliability, latency, bandwidth, security,
-  consistency. Don't pay that tax without a reason.
 
 ## Cross-links
 

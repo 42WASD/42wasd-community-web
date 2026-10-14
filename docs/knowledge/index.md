@@ -132,55 +132,58 @@ flowchart LR
    business events, subdomains, bounded contexts, ubiquitous language,
    functional architecture. *(DMMF ch 1–3; echoed by FSA's bounded-context
    scoping in ch 7.)*
+3. **[discovering-a-domain-alone](discovering-a-domain-alone/index.md)** —
+   the solo-developer companion: when you are business, product owner, and
+   developer in one, harvest the field's artifacts as your domain expert,
+   event-storm alone, and let the compiler interrogate the model.
+   *(Synthesis: DMMF ch 1–2 + Brandolini, solo-adapted.)*
 
 ### Part III — Model with types and functions
 
-3. **[fsharp-style](fsharp-style/index.md)** — code as communication: the
+4. **[fsharp-style](fsharp-style/index.md)** — code as communication: the
    four traits of unreadable code, designing functions with types, option
    instead of null, pattern matching, immutability. *(SF6 ch 1, 3, 5, 6.)*
-4. **[domain-modeling-with-types](domain-modeling-with-types/index.md)** —
+5. **[domain-modeling-with-types](domain-modeling-with-types/index.md)** —
    modeling the domain in the type system: simple values, choice types,
    records, value objects vs entities, aggregates, invariants, state
    machines. *(DMMF ch 4–6; SF6 ch 2, 7 for the same ideas in practice.)*
-5. **[workflows-and-error-handling](workflows-and-error-handling/index.md)** —
+6. **[workflows-and-error-handling](workflows-and-error-handling/index.md)** —
    workflows as pipelines; the two-track model; `Result`, `bind`, `map`,
    computation expressions; error types as choice types. *(DMMF ch 7, 10;
    SF6 ch 11 railway-oriented programming is the same idea in a factory
    analogy.)*
-6. **[functions-and-composition](functions-and-composition/index.md)** —
+7. **[functions-and-composition](functions-and-composition/index.md)** —
    functions as values, currying and partial application, composition,
    collections, and the discipline of performance measurement. *(SF6 ch 4,
    9, 12; DMMF ch 8 for total functions.)*
 
 ### Part IV — Build the application
 
-7. **[fable-and-elm-architecture](fable-and-elm-architecture/index.md)** —
+8. **[fable-and-elm-architecture](fable-and-elm-architecture/index.md)** —
    Fable compiles F# to JavaScript; The Elm Architecture (state / message /
    update / view); rendering and inputs. *(Elmish Book parts 1–2.)*
-8. **[commands-and-async-data](commands-and-async-data/index.md)** —
+9. **[commands-and-async-data](commands-and-async-data/index.md)** —
    `Cmd<'msg>` explained from first principles; async start/finish event
    pairs; `Deferred<'T>`; HTTP and JSON with Thoth. *(Elmish Book part 3.)*
-9. **[scaling-and-routing](scaling-and-routing/index.md)** — splitting an
-   app into nested programs; state-field composition; the Intent pattern;
-   routing and the `Url` type. *(Elmish Book part 4; composition echoes
-   DMMF bounded contexts.)*
-
+10. **[scaling-and-routing](scaling-and-routing/index.md)** — splitting an
+    app into nested programs; state-field composition; the Intent pattern;
+    routing and the `Url` type. *(Elmish Book part 4; composition echoes
 ### Part V — Ship and operate
 
-10. **[dev-workflow](dev-workflow/index.md)** — webpack modes, compiler
+11. **[dev-workflow](dev-workflow/index.md)** — webpack modes, compiler
     directives, configuration variables, hot module replacement, Sass,
     Femto for npm dependencies. *(Elmish Book part 5.)*
 
 ### Part VI — Govern and evolve
 
-11. **[architecture-characteristics-and-governance](architecture-characteristics-and-governance/index.md)** —
+12. **[architecture-characteristics-and-governance](architecture-characteristics-and-governance/index.md)** —
     identifying characteristics from domain concerns; measuring and
     governing with fitness functions; component-based thinking; modularity
     metrics. *(FSA ch 3–8.)*
-12. **[architecture-styles](architecture-styles/index.md)** — the style
+13. **[architecture-styles](architecture-styles/index.md)** — the style
     catalog from layered to microservices; monolith vs distributed;
     partitioning technical vs domain; choosing a style. *(FSA ch 9–19.)*
-13. **[architecture-decisions-and-soft-skills](architecture-decisions-and-soft-skills/index.md)** —
+14. **[architecture-decisions-and-soft-skills](architecture-decisions-and-soft-skills/index.md)** —
     ADRs, analyzing risk with risk storming, diagramming with C4, team
     personalities, negotiation. *(FSA ch 20–26.)*
 

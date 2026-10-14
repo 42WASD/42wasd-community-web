@@ -402,6 +402,7 @@ nav:
   - Overview: knowledge/index.md
   - Architecture Thinking — The Architect's Eye: knowledge/architecture-thinking/index.md
   - Domain-Driven Design — Understanding the Problem First: knowledge/domain-driven-design/index.md
+  - Discovering a Domain Alone — Solo Domain Research and Modeling: knowledge/discovering-a-domain-alone/index.md
   - F# Style — Code Is Communication: knowledge/fsharp-style/index.md
   - Domain Modeling with Types — Making Illegal States Unrepresentable: knowledge/domain-modeling-with-types/index.md
   - Workflows and Error Handling — The Two-Track Model: knowledge/workflows-and-error-handling/index.md

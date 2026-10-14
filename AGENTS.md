@@ -183,6 +183,65 @@ Keep the plugin set lean. Only add a plugin to `mkdocs.yml` +
 `projects/pyproject.toml` when a real need appears — every plugin adds a
 dependency, a failure surface, and warning risk against `--strict`.
 
+## Knowledge pages (docs/knowledge/) — tutorial-first, always
+
+The crash course exists to **teach the repo owner**, not to summarize the
+source books. The owner learns from **narrative and fully worked examples
+anchored in real (ideally repo-local) code**; factually-accurate rule lists
+teach him nothing. This is a hard requirement, learned the hard way: the v2
+pages were accurate but unreadable for learning ("scattered nuggets", no
+story) and were rejected wholesale by the reader they were written for.
+
+The proven format (owner-endorsed: **BBC Bitesize "learn" pages**; evidence:
+the **worked-example effect** — the most replicated result of cognitive load
+theory; novices learn from studying fully worked solutions, not from
+exercises) is chunked and example-dense, with **no homework**:
+
+1. **Open with a story, not a definition.** A real type/feature and the bug
+   or pain it invites. Prefer this repo's own code as the protagonist
+   (`Tournament.registrationOpen`, `RemoteData<'T>`, `Msg` DUs, `actionMsg`,
+   `Cmd.OfAsync.either`).
+2. **Define every technical term at first use, Bitesize-style** — one plain
+   English sentence the moment the term appears (owner verdict 2026-10-14:
+   "BBC Bitesize never fail to explain or define in a very easy to
+   understand way"). No term is used before it is defined.
+3. **✅ examples must be textbook-perfect F#** — taken from the source
+   books (DMMF's `PaymentMethod`/`OrderId`/`CustomerEmail`, SF6's
+   canonical forms) or blatantly clear canonical forms, NOT shapes copied
+   from this repo (owner verdict 2026-10-14: repo code "might not be
+   perfect example of F#"). Repo code appears only as the ❌ evidence of
+   what's wrong.
+4. **Teach in numbered chunks, Bitesize-style.** Each chunk = short point →
+   ❌ the common mistake in real code → ✅ the correct F#, worked. The
+   worked example is the teaching instrument itself, not a lead-in to
+   practice. **Keep examples Bitesize-weight** (owner verdict 2026-10-14:
+   long annotated examples are "boring, unimpressionable, hard to remember,
+   too verbose"): ≤10 lines each, ONE point per block, the why in one plain
+   prose sentence — never comment walls or per-line "why" annotations
+   inside the code. Real Bitesize chemistry pages teach with one plain
+   sentence + one small diagram; match that weight.
+5. **Frame decisions the way the owner makes them**: process of elimination
+   toward a stated product goal, trade-offs on the table, the *why* recorded.
+   No hero-narratives, no role-talk, no abstract hypotheticals without
+   grounded truth.
+6. **No exercises, no call-to-action.** The owner explicitly rejected
+   end-of-page "now go do X" sections (2026-10-14): pages teach *what is
+   wrong and what correct F# looks like*, fully worked. Never assign work;
+   never end the page at a demand.
+7. **The mermaid flowchart is the Revise section, not the lesson.** Keep the
+   diagram block byte-identical (existing rule), but place it at the END as
+   the "Revise" review map (Bitesize's closing step), after the narrative.
+   Walking its nodes in order is the encouraged structure for the tutorial
+   body.
+8. **❌/✅ snippets belong inside the narrative** as before/after evidence —
+   never as free-floating bullet nuggets.
+
+Bite-size rule-first bullets, comparison tables, and one-line concept
+statements are a **review layer** — fine for `docs/reference-design/`, never a
+teaching layer for `docs/knowledge/`.
+
+## Bolero work — REUSE before you write
+
 Read `scripts/docs/README.md` for the full technique and the four verification
 layers.
 

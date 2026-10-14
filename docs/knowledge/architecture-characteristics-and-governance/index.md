@@ -9,6 +9,106 @@ Before choosing a style, name what the system must be good at — the
 **-ilities** — then measure and *govern* them. Implicit requirements are
 still requirements.
 
+## A fitness function you already run
+
+This repo's `bash scripts/docs/verify.sh` *is* the concept of this page,
+running weekly: the golden tests regenerate nav from the manifest and
+**fail on drift** — an objective, automated check that the docs'
+structure stays consistent, with zero human judgment in the loop.
+
+FSA's definition names exactly that shape: an **architectural fitness
+function** is *any mechanism that provides an objective integrity
+assessment of some architecture characteristic*. Tests, monitors,
+regression suites — "not some new framework to download", a new
+perspective on existing tools. This page is: name what matters (the
+characteristics), measure it, and wire the check in so it runs itself.
+
+## 1. What counts as an architecture characteristic
+
+FSA's three-criteria test, verbatim — to count, a requirement must be:
+
+> a **nondomain design consideration**, influence some **structural
+> aspect** of the design, *and* be **critical or important to the
+> application's success**.
+
+- **Implicit** characteristics (availability, stability, security) appear
+  in no requirements document yet decide whether the site works. Explicit
+  ones (target response time, scalability) are specified.
+- They aren't binary checkboxes: each is a spectrum with real trade-offs
+  against the others (see [architecture-thinking](../architecture-thinking/index.md)).
+- The catalog: **operational** (availability, performance, scalability,
+  recoverability, robustness...), **structural** (extensibility,
+  maintainability, portability...), plus cloud and cross-cutting lists.
+
+## 2. Identifying: translate, then prioritize
+
+- Stakeholders say "mergers, time-to-market, user satisfaction";
+  architects say "interoperability, agility, performance". The book's
+  translation table (ch 5, verbatim rows):
+
+| Domain concern | Architectural characteristics |
+| --- | --- |
+| Mergers and acquisitions | Interoperability, scalability, adaptability, extensibility |
+| Time to market | Agility, testability, deployability |
+| User satisfaction | Performance, availability, fault tolerance, testability, deployability, agility, security |
+| Competitive advantage | Agility, testability, deployability, scalability, availability, fault tolerance |
+| Time and budget | Simplicity, feasibility |
+
+- Beware **false equivalences** — *agility* is a **composite**
+  characteristic composed of measurable things, not "time to market".
+- Ask of each candidate: **architecture or design?** (structural support
+  needed → architecture; Template Method suffices → design).
+- Prioritize: an architecture supporting everything supports nothing.
+
+## 3. Measuring modularity
+
+| Metric | Meaning |
+| --- | --- |
+| **Cohesion** | related code stays together (a module does one thing) |
+| **Afferent coupling** | how many components depend on *me* |
+| **Efferent coupling** | how many components *I* depend on |
+| **Abstractness** | abstract artifacts ÷ concrete artifacts |
+| **Instability** | efferent ÷ (efferent + afferent) |
+| **Distance from main sequence** | `D = |A + I − 1|` — 0 is the ideal abstractness/instability balance |
+
+Metrics steer; they don't decide. Too many abstractions is as real a
+failure as none.
+
+## 4. Governance: fitness functions
+
+- **Governance** = steering the development process so the important
+  characteristics survive schedule pressure. Modularity is important but
+  never urgent — hence it decays without a mechanism.
+- The definition (ch 6, verbatim): *any mechanism providing an objective
+  integrity assessment of some architecture characteristic* — the
+  `verify.sh` story above is one; a dependency test that fails when the
+  domain layer imports infrastructure; a performance regression suite; a
+  monitoring alert on error rate.
+
+## 5. Component-based thinking
+
+- A **logical component** = a container of related responsibilities
+  ("Reference Manager": GetData, SetData, ReloadCache...). Components are
+  the level an architect *sees*; classes are the developer's level.
+- The architect identifies components and their **roles and
+  relationships**; developers own their internal design. (This is the
+  "guide, don't specify" rule from [architecture-thinking](../architecture-thinking/index.md).)
+- **Component coupling** matters even without direct communication —
+  shared assumptions couple too.
+
+## 6. Bounded contexts as quanta
+
+- The **architecture quantum**: the smallest set of components that must
+  deploy together with their data, synchronously coupled. A bounded
+  context with its own store is usually a quantum.
+- Quanta connect this page to DDD and to the style catalog: monoliths
+  have one big quantum; microservices aim for many small ones.
+
+## Revise
+
+The flowchart below is the **review map** of this page — each node a chunk
+you just walked. Don't try to learn from it; use it to check coverage.
+
 ```mermaid
 flowchart LR
     n1(["Characteristics &amp; governance"])
@@ -71,68 +171,6 @@ flowchart LR
     n1 --> n29
     n29 --> n30
 ```
-
-## What counts as an architecture characteristic
-
-- **Implicit** characteristics (availability, stability, security) appear
-  in no requirements document yet decide whether the site works. Explicit
-  ones (target response time, scalability) are specified.
-- They aren't binary checkboxes: each is a spectrum with real trade-offs
-  against the others (see [architecture-thinking](../architecture-thinking/index.md)).
-
-## Identifying: translate, then prioritize
-
-- Stakeholders say "mergers, time-to-market, user satisfaction";
-  architects say "interoperability, time-to-release, performance". The
-  architect's job is **the translation**, not the vocabulary.
-- Ask of each candidate: **architecture or design?** (structural support
-  needed → architecture; Template Method suffices → design).
-- Prioritize: an architecture supporting everything supports nothing.
-  Pick the few that matter most and let those drive style selection.
-
-## Measuring modularity
-
-| Metric | Meaning |
-| --- | --- |
-| **Cohesion** | related code stays together (a module does one thing) |
-| **Afferent coupling** | how many components depend on *me* |
-| **Efferent coupling** | how many components *I* depend on |
-| **Abstractness** | abstract artifacts ÷ concrete artifacts |
-| **Instability** | efferent ÷ (efferent + afferent) |
-| **Distance from main sequence** | `D = |A + I − 1|` — 0 is the ideal abstractness/instability balance |
-
-Metrics steer; they don't decide. Too many abstractions is as real a
-failure as none.
-
-## Governance: fitness functions
-
-- **Governance** = steering the development process so the important
-  characteristics survive schedule pressure. Modularity is important but
-  never urgent — hence it decays without a mechanism.
-- An **architectural fitness function**: *any mechanism providing an
-  objective integrity assessment of some architecture characteristic*.
-  Not a framework — a perspective on existing tools: a dependency test
-  that fails when the domain layer imports infrastructure; a performance
-  regression suite; a monitoring alert on error rate.
-
-## Component-based thinking
-
-- A **logical component** = a container of related responsibilities
-  ("Reference Manager": GetData, SetData, ReloadCache...). Components are
-  the level an architect *sees*; classes are the developer's level.
-- The architect identifies components and their **roles and
-  relationships**; developers own their internal design. (This is the
-  "guide, don't specify" rule from [architecture-thinking](../architecture-thinking/index.md).)
-- **Component coupling** matters even without direct communication —
-  shared assumptions couple too.
-
-## Bounded contexts as quanta
-
-- The **architecture quantum**: the smallest set of components that must
-  deploy together with their data, synchronously coupled. A bounded
-  context with its own store is usually a quantum.
-- Quanta connect this page to DDD and to the style catalog: monoliths
-  have one big quantum; microservices aim for many small ones.
 
 ## Cross-links
 

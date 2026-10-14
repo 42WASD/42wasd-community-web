@@ -8,6 +8,98 @@ Technical brilliance fails without communication. Decisions need records,
 risk needs a shared language, and teams need the right kind of architect —
 not too tight, not too loose.
 
+## The decision that evaporates
+
+The Traefik/Argo CD health customization (from
+[architecture-thinking](../architecture-thinking/index.md)) *works* — but
+if its *why* lived only in one head, the first maintainer who didn't know
+the story would see a "weird" health override and rip it out. The app
+would silently regress to `Progressing` forever. **A decision without a
+record is a decision waiting to be undone.** That is the entire point of
+the ADR — this page's core tool.
+
+## 1. Making decisions: ADRs
+
+- Architectural decisions shape **structure** or technology choices that
+  impact characteristics; good ones **guide** teams to the right
+  technical choices rather than dictating every detail.
+- **Architecture Decision Record** (Nygard, 2011): a one- to two-page
+  markdown record per decision. The basic structure — **Title, Status,
+  Context, Decision, Consequences** — plus the authors' additions
+  **Compliance** (how it's enforced — possibly via fitness functions) and
+  **Notes**. ADRs fix the Second Law's problem: the *why* survives team
+  turnover.
+- The book's worked example, ADR 76 (abridged to the teaching skeleton):
+
+```text
+ADR 76. Separate Queues for Bid Streamer and Bidder Tracker Services
+STATUS:      Accepted
+CONTEXT:     Bid Capture must forward each bid to Bid Streamer and
+             Bidder Tracker — via one pub/sub topic, separate queues,
+             or REST. Streamer needs first-bid-only in FIFO order;
+             Tracker needs all bids.
+DECISION:    We will use separate queues for the two services.
+CONSEQUENCES: Requires clustering/HA of the message queues; Capture
+             sends the same info twice; bid events bypass API-layer
+             security checks (ARB reviewed and accepted this).
+COMPLIANCE:  Periodic manual code reviews ensure async messaging
+             stays in place.
+```
+
+Note the voice the book insists on: **"We will use..."** — affirmative
+and commanding, not "I think...". Status can be *Proposed*, *Accepted*,
+or *Superseded* (superseded ADRs stay, chained to their successor —
+decisions have history, not just a present).
+
+## 2. Analyzing risk
+
+- Risk = operational (availability, data integrity) **and** structural
+  (coupling, decay). Use a **risk matrix** (likelihood × impact, each
+  rated low 1 / medium 2 / high 3, multiplied) with characteristics as
+  assessment criteria.
+- **Risk storming**: (1) individuals assess alone — no anchoring;
+  (2) consensus on the hot spots; (3) mitigation plans. Repeat when the
+  architecture changes.
+
+## 3. Diagramming
+
+- **C4** (Simon Brown): zoom levels **Context → Container → Component →
+  Class**. Use layers **semantically** (each layer = real meaning), not
+  decoratively (boxes grouped for looks). Don't let one tool become an
+  irrational artifact attachment; pick the diagram the audience needs.
+
+## 4. Teams: three architect personalities
+
+| Personality | Boundaries | Result |
+| --- | --- | --- |
+| **Control freak** | too tight — writes the pseudocode, bans libraries | steals the craft; devs disengage |
+| **Armchair** | too loose — absent, diagrams too high-level | team does the architect's work, confusion |
+| **Effective** | right-sized constraints | guidance + availability + roadblocks removed |
+
+## 5. Negotiation
+
+- Architecture work is persuasion across audiences: developers, managers,
+  other architects. Bring **data and trade-off analysis**, not evangelism
+  — the objective arbiter of trade-offs is the one who gets trusted
+  (First Law in action). The book's 4 Cs of architecture leadership:
+  **communication, collaboration, clear, concise**.
+
+## 6. Intersections: architecture must align with…
+
+- **Implementation** — do components match the intended structure?
+- **Infrastructure** — deployment vs operational characteristics.
+- **Data topologies** — monolithic vs domain-databases vs database-per-
+  service must match the style.
+- **Engineering practices** — TDD/deployment pipeline vs the style.
+- **Team topologies** — org structure vs intended architecture.
+- **Systems integration** — what you must talk to; ignoring this is how
+  reliability dies.
+
+## Revise
+
+The flowchart below is the **review map** of this page — each node a chunk
+you just walked. Don't try to learn from it; use it to check coverage.
+
 ```mermaid
 flowchart LR
     n1(["Decisions &amp; soft skills"])
@@ -70,59 +162,6 @@ flowchart LR
     n26 --> n29
     n26 --> n30
 ```
-
-## Making decisions: ADRs
-
-- Architectural decisions shape **structure** or technology choices that
-  impact characteristics; good ones **guide** teams to the right
-  technical choices rather than dictating every detail.
-- **Architecture Decision Records**: one- to two-page text/markdown per
-  decision — **Title, Status, Context, Decision, Consequences** (+ the
-  authors' additions: **Compliance** — how it's enforced, possibly via
-  fitness functions — and **Notes**). ADRs fix the Second Law's problem:
-  the *why* survives team turnover.
-
-## Analyzing risk
-
-- Risk = operational (availability, data integrity) **and** structural
-  (coupling, decay). Use a **risk matrix** (likelihood × impact) with
-  characteristics as assessment criteria.
-- **Risk storming**: (1) individuals assess alone — no anchoring;
-  (2) consensus on the hot spots; (3) mitigation plans. Repeat when the
-  architecture changes.
-
-## Diagramming
-
-- **C4** (Simon Brown): zoom levels **Context → Container → Component →
-  Class**. Use layers **semantically** (each layer = real meaning), not
-  decoratively (boxes grouped for looks). Don't let one tool become an
-  irrational artifact attachment; pick the diagram the audience needs.
-
-## Teams: three architect personalities
-
-| Personality | Boundaries | Result |
-| --- | --- | --- |
-| **Control freak** | too tight — writes the pseudocode, bans libraries | steals the craft; devs disengage |
-| **Armchair** | too loose — absent, diagrams too high-level | team does the architect's work, confusion |
-| **Effective** | right-sized constraints | guidance + availability + roadblocks removed |
-
-## Negotiation
-
-- Architecture work is persuasion across audiences: developers, managers,
-  other architects. Bring **data and trade-off analysis**, not evangelism
-  — the objective arbiter of trade-offs is the one who gets trusted
-  (First Law in action).
-
-## Intersections: architecture must align with…
-
-- **Implementation** — do components match the intended structure?
-- **Infrastructure** — deployment vs operational characteristics.
-- **Data topologies** — monolithic vs domain-databases vs database-per-
-  service must match the style.
-- **Engineering practices** — TDD/deployment pipeline vs the style.
-- **Team topologies** — org structure vs intended architecture.
-- **Systems integration** — what you must talk to; ignoring this is how
-  reliability dies.
 
 ## Cross-links
 

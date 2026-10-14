@@ -64,10 +64,18 @@ Findings are steering, not gates — read them, don't chase 100%.
    `CHAPTER_MAP`, `DOC_BOOKS` in `audit_distill.py`.
 3. **Rebuild the index** — `python3 build_book_index.py build`.
 4. **Distill** — write/extend topic pages in `docs/knowledge/<topic>/index.md`
-   using the established shape: `> Source:` header → mermaid **flowchart LR**
-   (boxed nodes, thin edges; NOT mindmaps — mermaid 11 mindmap section edges
-   are unstyleable and paint over labels) → sections → `## Cross-links`.
-   Style: bite-size, rule-first bullets, ❌/✅ examples.
+   using the established shape: `> Source:` header → tutorial body → mermaid
+   **flowchart LR** at the END as the "Revise" review map (boxed nodes, thin
+   edges; NOT mindmaps — mermaid 11 mindmap section edges are unstyleable
+   and paint over labels) → `## Cross-links`.
+   **Style: worked-example-first — mandatory, see `AGENTS.md` § "Knowledge
+   pages (docs/knowledge/) — tutorial-first, always"** for the full rules
+   (BBC Bitesize chunking; define every term at first use; ❌ real-code
+   mistake → ✅ textbook-perfect F# from the source books, not repo shapes;
+   story opening; **no exercises**; examples Bitesize-weight — ≤10 lines,
+   one point per block, the why in one plain prose sentence, never comment
+   walls). Bite-size rule-first bullets are a review layer only; they
+   taught the owner nothing and were rejected.
 5. **Update the SSOT reading order** — add the topic to the numbered
    "Reading order" list in `docs/knowledge/index.md`. The nav generator
    (`scripts/docs/docs-generate-nav.py`, `knowledge_nav()`) parses exactly
