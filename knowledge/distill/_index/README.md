@@ -3,6 +3,12 @@
 Scripts that verify `docs/knowledge/` (the published crash course) against
 the four source books:
 
+> **Writing rules live in [`TUTORIAL-RULES.md`](./TUTORIAL-RULES.md)** —
+> the evidence-graded tutorial format (Mayer's multimedia principles,
+> worked-example effect, concreteness fading, plain language) and the
+> book-distillation macrorules (Brown & Day) with a 20–35% compression
+> budget. Read it before distilling or rewriting a page.
+
 - `build_book_index.py` — SQLite + FTS5 index over the sources.
   Commands: `build | search | term | glossary | outline | chapter | section`.
 - `audit_distill.py` — TF·IDF coverage/placement/alignment audit of the

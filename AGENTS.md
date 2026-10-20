@@ -240,6 +240,17 @@ Bite-size rule-first bullets, comparison tables, and one-line concept
 statements are a **review layer** — fine for `docs/reference-design/`, never a
 teaching layer for `docs/knowledge/`.
 
+**The full evidence-graded ruleset lives in
+`knowledge/distill/_index/TUTORIAL-RULES.md`** — read it before writing or
+rewriting a knowledge page. It covers tutorial format (segmenting,
+pre-training, coherence, redundancy, signalling, contiguity, concreteness
+fading, worked examples, plain language), the distillation macrorules for
+books (Brown & Day: deletion, redundancy, superordination, selection,
+invention), the compression budget (20–35%, never minimal), what must never
+be cut (causal chain, failure case, boundary conditions, trade-offs), and
+an explicit list of what the evidence does *not* support (SQ3R, learning
+styles, "shorter is always better").
+
 ## Bolero work — REUSE before you write
 
 Read `scripts/docs/README.md` for the full technique and the four verification
