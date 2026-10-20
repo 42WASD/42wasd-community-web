@@ -181,6 +181,91 @@ PARSERS = {
     "sf6": ("stylish-fsharp-6.md", parse_sf6),
 }
 
+# Official F# docs (dotnet/docs, CC BY 4.0) — one file per topic, flattened
+# names. Not a book: each file is treated as one "chapter" whose title is its
+# H1, and the front-matter `title:` is used when the H1 is generic.
+FSDOCS = os.path.join(REPO, "knowledge", "src", "fsharp-docs")
+
+# Reading order for the docs set: orientation first, then language areas.
+FSDOCS_ORDER = [
+    "tour", "what-is-fsharp",
+    "language-reference__index", "language-reference__keyword-reference",
+    "language-reference__basic-types", "language-reference__unit-type",
+    "language-reference__tuples", "language-reference__literals",
+    "language-reference__strings", "language-reference__interpolated-strings",
+    "language-reference__fsharp-types", "language-reference__type-inference",
+    "language-reference__type-abbreviations",
+    "language-reference__functions__index",
+    "language-reference__functions__let-bindings",
+    "language-reference__functions__lambda-expressions-the-fun-keyword",
+    "language-reference__functions__recursive-functions-the-rec-keyword",
+    "language-reference__parameters-and-arguments",
+    "language-reference__records",
+    "language-reference__copy-and-update-record-expressions",
+    "language-reference__discriminated-unions",
+    "language-reference__options", "language-reference__results",
+    "language-reference__lists", "language-reference__arrays",
+    "language-reference__sequences",
+    "language-reference__fsharp-collection-types",
+    "language-reference__pattern-matching",
+    "language-reference__match-expressions",
+    "language-reference__active-patterns",
+    "language-reference__modules", "language-reference__namespaces",
+    "language-reference__import-declarations-the-open-keyword",
+    "language-reference__classes", "language-reference__interfaces",
+    "language-reference__members__index", "language-reference__inheritance",
+    "language-reference__object-expressions",
+    "language-reference__generics__index",
+    "language-reference__generics__constraints",
+    "language-reference__computation-expressions",
+    "language-reference__async-expressions",
+    "language-reference__task-expressions",
+    "language-reference__units-of-measure",
+    "language-reference__casting-and-conversions",
+    "language-reference__access-control",
+    "language-reference__resource-management-the-use-keyword",
+    "language-reference__loops-for-in-expression",
+    "language-reference__loops-while-do-expression",
+    "language-reference__conditional-expressions-if-then-else",
+    "style-guide__conventions", "style-guide__formatting",
+]
+
+
+def _strip_yaml_front_matter(lines):
+    """Return (lines_without_front_matter, title_from_yaml_or_None)."""
+    if not lines or lines[0].strip() != "---":
+        return lines, None
+    end = None
+    for i in range(1, min(len(lines), 40)):
+        if lines[i].strip() == "---":
+            end = i
+            break
+    if end is None:
+        return lines, None
+    title = None
+    for l in lines[1:end]:
+        if l.strip().lower().startswith("title:"):
+            title = l.split(":", 1)[1].strip().strip('"').strip("'")
+            break
+    return lines[end + 1:], title
+
+
+def parse_fsdocs():
+    """Yield the F# docs as chapters, in FSDOCS_ORDER, skipping MS metadata."""
+    ch_no = 0
+    for stem in FSDOCS_ORDER:
+        path = os.path.join(FSDOCS, stem + ".md")
+        if not os.path.exists(path):
+            continue
+        ch_no += 1
+        raw = read_lines(path)
+        body, yaml_title = _strip_yaml_front_matter(raw)
+        h1 = next((l.lstrip("# ").strip() for l in body if l.startswith("# ")), None)
+        title = yaml_title or h1 or stem
+        # keep a stable 1-based line map over the ORIGINAL file
+        frags = [(i, l) for i, l in enumerate(raw, 1)]
+        yield (ch_no, title, "F# Documentation", frags)
+
 
 def md_section(frags):
     """Attribution helper for md sources: nearest '## ' heading above each line."""
@@ -330,6 +415,27 @@ def build() -> None:
         ("elmish",),
     )
     print(f"{'elmish':7s} {n_chunks:5d} chunks")
+    total_chunks += n_chunks
+
+    # official F# docs (dotnet/docs, CC BY 4.0)
+    n_chunks = 0
+    for ch_no, ch_title, part, frags in parse_fsdocs():
+        chunks = chunkify(frags)
+        sec_of = md_section(frags)
+        for (ls, le, text) in chunks:
+            con.execute(
+                "INSERT INTO chunks_fts VALUES (?,?,?,?,?,?,?,?)",
+                (clean(text), "fsdocs", ch_no, ch_title, part,
+                 sec_of.get(ls, ""), ls, le),
+            )
+            n_chunks += 1
+    con.execute(
+        "INSERT INTO chapters (book, chapter_no, chapter_title, part, line_start, line_end, chunk_count) "
+        "SELECT book, chapter_no, chapter_title, part, MIN(line_start), MAX(line_end), COUNT(*) "
+        "FROM chunks_fts WHERE book=? GROUP BY chapter_no, chapter_title, part",
+        ("fsdocs",),
+    )
+    print(f"{'fsdocs':7s} {n_chunks:5d} chunks")
     total_chunks += n_chunks
 
     # glossary term coverage

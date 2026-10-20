@@ -400,6 +400,7 @@ nav:
       - Final master checklist: reference-design/04-technical-reference/platform-order/final-master-checklist/index.md
 - Crash Course:
   - Overview: knowledge/index.md
+  - F# for Imperative Programmers — Python, C, C++ to F#: knowledge/fsharp-for-imperative-programmers/index.md
   - Architectural Thinking — Trade-offs, Not Vibes: knowledge/architectural-thinking/index.md
   - Architectural Characteristics — Naming What Must Be True: knowledge/architectural-characteristics/index.md
   - Modularity and Components — Drawing the Lines: knowledge/modularity-and-components/index.md
