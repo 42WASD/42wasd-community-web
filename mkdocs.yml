@@ -400,20 +400,33 @@ nav:
       - Final master checklist: reference-design/04-technical-reference/platform-order/final-master-checklist/index.md
 - Crash Course:
   - Overview: knowledge/index.md
-  - Architecture Thinking — The Architect's Eye: knowledge/architecture-thinking/index.md
+  - Architectural Thinking — Trade-offs, Not Vibes: knowledge/architectural-thinking/index.md
+  - Architectural Characteristics — Naming What Must Be True: knowledge/architectural-characteristics/index.md
+  - Modularity and Components — Drawing the Lines: knowledge/modularity-and-components/index.md
   - Domain-Driven Design — Understanding the Problem First: knowledge/domain-driven-design/index.md
-  - Discovering a Domain Alone — Solo Domain Research and Modeling: knowledge/discovering-a-domain-alone/index.md
-  - F# Style — Code Is Communication: knowledge/fsharp-style/index.md
-  - Domain Modeling with Types — Making Illegal States Unrepresentable: knowledge/domain-modeling-with-types/index.md
-  - Workflows and Error Handling — The Two-Track Model: knowledge/workflows-and-error-handling/index.md
-  - Functions and Composition — Small Parts, Big Programs: knowledge/functions-and-composition/index.md
-  - Fable and The Elm Architecture — State, Message, Update, View: knowledge/fable-and-elm-architecture/index.md
-  - Commands and Async Data — Side Effects in the Loop: knowledge/commands-and-async-data/index.md
-  - Scaling and Routing — Programs Made of Programs: knowledge/scaling-and-routing/index.md
-  - Dev Workflow — From Source to Browser: knowledge/dev-workflow/index.md
-  - Architecture Characteristics and Governance — Naming What Matters: knowledge/architecture-characteristics-and-governance/index.md
-  - Architecture Styles — The Catalog of Shapes: knowledge/architecture-styles/index.md
-  - Architecture Decisions and Soft Skills — The Human Layer: knowledge/architecture-decisions-and-soft-skills/index.md
+  - Discovering a Domain Alone — You Are the Whole Team: knowledge/discovering-a-domain-alone/index.md
+  - Modeling with Types — Make Illegal States Unrepresentable: knowledge/modeling-with-types/index.md
+  - Integrity and Invariants — Rules That Always Hold: knowledge/integrity-and-invariants/index.md
+  - Sense of Style — Naming, Layout, and Comments: knowledge/sense-of-style/index.md
+  - Designing Functions — Signatures That Can't Be Misused: knowledge/designing-functions/index.md
+  - Missing Data — Option and the Null Problem: knowledge/missing-data/index.md
+  - Collections — Lists, Arrays, Sequences: knowledge/collections/index.md
+  - Immutability and State — Change by Copying: knowledge/immutability-and-state/index.md
+  - Pattern Matching — Decomposing Values Safely: knowledge/pattern-matching/index.md
+  - Records and Unions — The Two Building Blocks: knowledge/records-and-unions/index.md
+  - Units and Measures — Numbers That Can't Be Confused: knowledge/units-and-measures/index.md
+  - Workflows as Pipelines — The I/O Sandwich: knowledge/workflows-as-pipelines/index.md
+  - Functions and Composition — Building by Gluing: knowledge/functions-and-composition/index.md
+  - Errors and Result — Failure as a Value: knowledge/errors-and-result/index.md
+  - Serialization and Persistence — The Trust Boundary: knowledge/serialization-and-persistence/index.md
+  - Fable and Elm — The Model-View-Update Loop: knowledge/fable-and-elm/index.md
+  - Commands and Async — Effects Without Breaking Purity: knowledge/commands-and-async/index.md
+  - Scaling and Routing — Composing a Large App: knowledge/scaling-and-routing/index.md
+  - Dev Workflow — Trace First, Fix Second: knowledge/dev-workflow/index.md
+  - Architecture Styles — Choosing a Shape: knowledge/architecture-styles/index.md
+  - Decisions and Risk — Recording the Why: knowledge/decisions-and-risk/index.md
+  - Teams and Negotiation — Architecture Is Social: knowledge/teams-and-negotiation/index.md
+  - Testing — Proving the Rules Hold: knowledge/testing/index.md
 - Implementation:
   - Progress: implementation/index.md
 # <<< nav-autogen (generated) <<<

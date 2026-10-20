@@ -1,143 +1,184 @@
-# Architecture Styles — The Catalog of Shapes
+# Architecture Styles — Choosing a Shape
 
-> Source: *Fundamentals of Software Architecture* (Richards & Ford) —
-> ch 9 (Foundations) through ch 19 (Choosing the Appropriate Style).
+> Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 9
+> (Foundations), ch 10 (Layered), ch 11 (Pipeline), ch 12 (Microkernel),
+> ch 13–15 (Service-based, Event-driven, Space-based), ch 16–17
+> (Orchestration-driven and Microservices).
 
-A style defines **topology** (component shapes, communication, data) and
-fall within two families: **monolith** (one deployment unit) and
-**distributed** (many units, network calls). Every style is a trade-off
-bundle — none is "best".
+An **architecture style** is a named, reusable structural pattern — layered,
+pipeline, microkernel, event-driven, microservices. Each one is a bundle of
+decisions with known trade-offs. Choosing a style is choosing which
+trade-offs to accept.
 
-## One repo, three styles at once
+## The style chosen for the wrong reason
 
-Style selection is not hypothetical — this repo uses three at once,
-chosen by elimination against the product goal:
+A team reads that microservices are what serious companies use, so they
+build fifteen services for a product with three users. Now every feature
+needs a distributed transaction, a network hop, and a deploy pipeline —
+costs paid against benefits nobody needed.
 
-- **Modular monolith** for the server: one deployable, but
-  domain-partitioned (`Domain/`, `Remoting/` per concept) — no network
-  tax for a solo-maintained community site.
-- **Pipeline** inside it: `Cmd.OfAsync.either` fetches are
-  validate/load/notify chains — DMMF's workflow shape (see
-  [workflows-and-error-handling](../workflows-and-error-handling/index.md)).
-- **Microkernel-ish** on the client: a core program (`App.fs` update loop)
-  with pages as plug-ins (`Pages/Games.fs`, `Pages/Tournaments.fs`...),
-  each adding behavior without touching the core.
+The book's framing is the antidote: styles are not a maturity ladder. They
+are **trade-off bundles**, and the correct one is the one whose *costs you
+can afford* and whose *benefits you actually need*.
 
-Nobody announced "we adopt X" — each piece was picked because it fit a
-need. That is what the catalog is for: names for shapes you reach for
-when a need appears.
+## 1. The two foundational styles
 
-## 1. Foundations: styles, partitioning, Conway
+Nearly every style is built from two primitives:
 
-- **Style** = topology + deployment + communication + data shapes.
-  **Pattern** = a smaller, reusable solution inside a style.
-- **Technical partitioning** (presentation/business/persistence layers):
-  familiar, cheap to staff — but every workflow cuts across all layers.
-  **Domain partitioning** (components by workflow, from DDD): workflows
-  change in one place.
-- **Conway's Law**: designs copy the organization's communication
-  structure. Want domain-partitioned software? Arrange teams that way
-  (**Inverse Conway Maneuver** / team topologies).
-
-## 2. The monolithic family
-
-| Style | Idea | Best when |
+| Style | Partitioning | Topology |
 | --- | --- | --- |
-| **Layered** | technical layers, top-down calls | simplicity/familiarity dominate; beware "accidental architecture" |
-| **Modular monolith** | domain-partitioned, single deploy | DDD fits, no distributed costs; the modern default candidate |
-| **Pipeline** | filters connected by pipes | streams, ETL, batch — each filter transforms independently (producers/consumers over topics, à la Kafka); including DMMF's workflow pipelines |
-| **Microkernel** | core system + plug-ins | product apps with per-customer customization |
+| **Layered** | technical (presentation, business, persistence) | closed layers — a request passes through each |
+| **Pipeline** | technical (filters) | one-way, unidirectional flow |
 
-## 3. The distributed family
+**Layered** is the default in most frameworks, and the book is blunt about
+its cost: it produces the **"architecture sinkhole"** — requests that pass
+through every layer doing nothing but forwarding. Its fitness function:
+*what percentage of requests are sinkholes?*
 
-- **Service-based**: a few coarse services (UI + domain + DB each),
-  pragmatic and cost-effective — microservices' calmer sibling.
-- **Event-driven**: decoupled processors reacting to events. Choreography
-  (broadcast) vs **mediator topology** (an orchestrator controls the
-  workflow); highly scalable, but eventual consistency and workflow
-  debugging are the price.
-- **Space-based**: replicate processing units + in-memory data grids to
-  shed the database bottleneck under bursty load.
-- **Microservices**: one service per bounded context, **database per
-  service**, independent deploys. Buys scalability/agility/fault
-  tolerance, pays in operational complexity and data consistency.
-- **Orchestration-driven SOA**: the ESB-centric predecessor — a lesson in
-  how eras age.
+**Pipeline** (pipes and filters) is right when a process is a sequence of
+independent transformations — ETL, compilers, request middleware. Its
+strength is composability; its weakness is that it is terrible at
+interactive, branching workflows.
 
-## 4. Choosing: it depends, on what?
+## 2. Microkernel: core plus plugins
 
-- Never binary — score styles against the prioritized characteristics
-  from [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md)
-  and the domain's needs; pick the **least worst** fit.
-- Practice with **architecture katas** (Silicon Sandwiches is the book's
-  running case).
-- Monolith vs distributed is the first fork: distributed styles share
-  known challenges — network reliability, latency, bandwidth, security,
-  consistency. Don't pay that tax without a reason.
+A **microkernel** splits a system into a small **core system** and
+independent **plugins**.
+
+- **Core**: the minimum to run — registry, contract, lifecycle.
+- **Plugins**: variable behaviour, added and removed independently.
+
+Choose it when the *variability* is the point: an IDE, a rules engine, a
+product with per-tenant customizations. The trade: the core must be designed
+up front, and plugin contracts are hard to change later.
+
+## 3. Event-driven: broker and mediator
+
+| | **Broker** | **Mediator** |
+| --- | --- | --- |
+| **Coordination** | none — events go to a topic | a central mediator orchestrates |
+| **Coupling** | very low | moderate |
+| **Workflow visibility** | none (emergent) | explicit |
+| **Failure handling** | hard to reason about | centralized |
+| **Best for** | high scalability, loose coupling | complex multi-step workflows |
+
+The broker's cost is exactly what makes it attractive: with no orchestrator,
+**nobody knows the end-to-end workflow**. That is fine for fire-and-forget
+events and painful for anything that must complete reliably.
+
+## 4. Service-based: the pragmatic middle
+
+A **service-based** architecture is a coarse-grained distributed system —
+typically a handful of services (4–12) sharing a database, with
+domain-partitioned services.
+
+It gives you most of the deployability of microservices without the
+distributed-data problem, which is why the book calls it the most pragmatic
+distributed style. If you are unsure whether you need microservices, you
+almost certainly want this.
+
+## 5. Microservices: the expensive one
+
+| Characteristic | Microservices |
+| --- | --- |
+| **Partitioning** | fine-grained, domain |
+| **Data** | database per service — no shared schema |
+| **Coupling** | very low, but *distributed* |
+| **Deployment** | independent |
+| **Cost** | distributed transactions, network failure, operational overhead |
+
+The book's warning: microservices solve **organizational** scaling problems
+(many teams shipping independently). If you do not have that problem, you are
+paying the costs for a benefit you cannot use.
+
+## 6. How to choose
+
+The method, in order:
+
+1. **Name the characteristics** you need (see
+   [architectural-characteristics](../architectural-characteristics/index.md)).
+2. **Eliminate** styles whose costs you cannot afford — this is usually the
+   decisive step, and it is subtraction, not ranking.
+3. **Check the fit** on the remaining candidates against your top two or
+   three characteristics.
+4. **Record the decision and its why** (see
+   [decisions-and-risk](../decisions-and-risk/index.md)).
+
+| If your priority is… | Consider |
+| --- | --- |
+| simplicity, small team | layered or modular monolith |
+| independent deployability, many teams | service-based, then microservices |
+| extensibility / per-tenant variation | microkernel |
+| throughput and loose coupling | event-driven (broker) |
+| complex orchestrated workflow | event-driven (mediator) |
+| volatile load | space-based / elastic |
+
+**The modular monolith deserves a mention** the book makes implicitly: if
+your domain is well partitioned (see
+[modularity-and-components](../modularity-and-components/index.md)), a
+monolith gives you most of the modularity benefits with none of the
+distributed costs. You can extract a service later — the partitioning is the
+hard part, and it is the same work either way.
 
 ## Revise
-
-The flowchart below is the **review map** of this page — each node a chunk
-you just walked. Don't try to learn from it; use it to check coverage.
 
 ```mermaid
 flowchart LR
     n1(["Architecture styles"])
-    n2["Style vs pattern"]
-    n3["style: named topology"]
-    n4["pattern: lower-level solution"]
-    n5["Partitioning"]
-    n6["technical: layers by capability"]
-    n7["domain: by workflow (DDD)"]
-    n8["Conway's law binds both"]
-    n9["Monolithic family"]
-    n10["layered: familiar, cheap"]
-    n11["modular monolith: DDD inside"]
-    n12["pipeline: pipes &amp; filters"]
-    n13["microkernel: core + plug-ins"]
-    n14["Distributed family"]
-    n15["service-based: pragmatic middle"]
-    n16["event-driven: async, reactive"]
-    n17["space-based: scale by replication"]
-    n18["microservices: domain-owned"]
-    n19["soa: the elder era"]
-    n20["Choosing"]
-    n21["it depends — on characteristics"]
-    n22["katas: practice the analysis"]
-    n23["monolith vs distributed"]
-    n24["distributed: fallacies apply"]
-    n25["picking the least worst"]
+    n2["The wrong-reason choice"]
+    n3["styles are trade-off bundles"]
+    n4["not a maturity ladder"]
+    n5["Foundations"]
+    n6["layered: technical"]
+    n7["architecture sinkhole"]
+    n8["pipeline: filters"]
+    n9["Microkernel"]
+    n10["core plus plugins"]
+    n11["variability is the point"]
+    n12["Event-driven"]
+    n13["broker: no coordination"]
+    n14["mediator: orchestrated"]
+    n15["Service-based"]
+    n16["coarse grained, shared db"]
+    n17["pragmatic middle"]
+    n18["Microservices"]
+    n19["database per service"]
+    n20["solves organizational scaling"]
+    n21["Choosing"]
+    n22["name characteristics"]
+    n23["eliminate unaffordable costs"]
+    n24["record the why"]
     n1 --> n2
     n2 --> n3
-    n2 --> n4
+    n3 --> n4
     n1 --> n5
     n5 --> n6
-    n5 --> n7
+    n6 --> n7
     n5 --> n8
     n1 --> n9
     n9 --> n10
-    n9 --> n11
-    n9 --> n12
-    n9 --> n13
-    n1 --> n14
-    n14 --> n15
-    n14 --> n16
-    n14 --> n17
-    n14 --> n18
-    n14 --> n19
-    n1 --> n20
-    n20 --> n21
-    n20 --> n22
-    n20 --> n23
-    n20 --> n24
-    n20 --> n25
+    n10 --> n11
+    n1 --> n12
+    n12 --> n13
+    n12 --> n14
+    n1 --> n15
+    n15 --> n16
+    n16 --> n17
+    n1 --> n18
+    n18 --> n19
+    n18 --> n20
+    n1 --> n21
+    n21 --> n22
+    n22 --> n23
+    n23 --> n24
 ```
 
 ## Cross-links
 
-- The laws that forbid "best" answers: [architecture-thinking](../architecture-thinking/index.md).
-- DDD → domain partitioning → modular monolith / microservices:
-  [domain-driven-design](../domain-driven-design/index.md).
-- Pipelines as code: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Quanta and fitness functions that police the style: [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md).
-- Recording the choice as an ADR: [architecture-decisions-and-soft-skills](../architecture-decisions-and-soft-skills/index.md).
+- The characteristics you choose between:
+  [architectural-characteristics](../architectural-characteristics/index.md).
+- Partitioning before distribution:
+  [modularity-and-components](../modularity-and-components/index.md).
+- Recording the decision: [decisions-and-risk](../decisions-and-risk/index.md).
+- The laws behind the trade-offs:
+  [architectural-thinking](../architectural-thinking/index.md).

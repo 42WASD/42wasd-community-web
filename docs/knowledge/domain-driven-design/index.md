@@ -1,81 +1,110 @@
 # Domain-Driven Design — Understanding the Problem First
 
-> Source: *Domain Modeling Made Functional* (Scott Wlaschin) — ch 1
-> (Introducing DDD), ch 2 (Understanding the Domain), ch 3 (A Functional
-> Architecture). Echoed by *FSA* ch 7 (bounded contexts as quanta) and
-> ch 18 (microservices).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 1 (Introducing
+> DDD), ch 2 (Understanding the Domain), ch 3 (A Functional Architecture).
 
-Code is the easy part; understanding the problem is the hard part. DDD =
-build a **shared model** between domain experts and developers so the code
-reflects the expert's mental model directly — no translation loss.
+Code is the easy part. The hard part is understanding what the business
+actually does — and building a model that everyone agrees on, in the same
+words, before anyone writes a line of it.
 
 ## "We call it a Placed Order"
 
-The canonical story is DMMF's event-storming session at the fictional
-Widgets Inc — watch a **ubiquitous language** get born in four lines
-(ch 1, abridged):
+DMMF's running example is a fictional company, Widgets Inc, and a
+requirements meeting. Watch a vocabulary get born:
 
 > **You:** "What would you call that as an event?"
 > **Sam (shipping):** "How about 'Order Available'?"
-> **Ollie (orders):** "We call an order that's completed and ready to
-> ship a 'Placed Order'. Can we agree on using that term everywhere?"
+> **Ollie (orders):** "We call an order that's completed and ready to ship
+> a 'Placed Order'. Can we agree on using that term everywhere?"
 > **Sam:** "So 'Order Placed' would be the event we care about, yes?"
 
-Sam said "Order Available", Ollie said "Placed Order" — same fact, two
-dialects. The moment they agree on **Order Placed**, the code has its name:
-the event type, the workflow, the message. That agreement *is* the
-**ubiquitous language** — the set of concepts and vocabulary shared by
-everyone on the team, used in speech and in code with no translation
-step.
+Sam said one thing, Ollie said another, and the same fact had two names.
+The moment they agreed, the code got its name: the event type, the
+workflow, the message. That agreement is the **ubiquitous language** — the
+shared vocabulary used in speech *and* in code, with no translation step
+between them.
 
-## 1. The shared model — and why "Telephone" fails
+When there is a translation step, meaning leaks at every hop. DMMF calls
+the failure "Telephone": expert → translator → code, with distortion at
+each hop.
 
-A mismatch between the developer's understanding and the domain expert's
-is fatal — like the children's game "Telephone". DMMF's three approaches:
+## 1. Why events, not data structures
 
-| Approach | Mechanism | Problem |
-| --- | --- | --- |
-| ✅ DDD | code **is** the shared model | needs discipline |
-| Agile iteration | feedback loop corrects drift | developer still a translator |
-| ❌ Telephone | expert → translator → code | distortion at every hop |
+A business doesn't have data; it **transforms** data. Value is created in
+the transformation, so the transformation is what you must understand.
+Static data sitting in a table contributes nothing.
 
-Guidelines: focus on **business events** and workflows (not data
-structures), partition into subdomains, model each subdomain, develop a
-ubiquitous language used everywhere in the code.
+That is why DDD starts with **domain events** — things that happened,
+always in the past tense, because a fact can't be changed:
 
-## 2. Discover the domain: events and commands
+```text
+Order form received
+Order placed
+Order shipped
+Order change requested
+Quote form received
+Quote provided
+```
 
-An **event storming** workshop puts everyone with questions and everyone
-with answers in one room, a wall, and sticky notes. Two vocabularies carry
-it:
+And **commands** — requests to do something, in the imperative:
 
-- **Domain events** — things that happened, always past tense, because a
-  fact can't be changed: `Order form received`, `Order placed`,
-  `Order shipped`.
-- **Commands** — requests to do something, always imperative:
-  `Place an order`. A command may fail; if it succeeds, a workflow runs
-  and emits new events.
+```text
+Place an order      → Order placed
+Send a shipment     → Shipment sent
+```
 
-The pattern: `event → command → workflow → events`. And when the wall
-shows a gap — "do you tell the customer the order was placed?" — the
-missing event (`Order acknowledgment sent`) *is* the missing requirement.
-Follow the event chain to the edges in both directions; gaps surface
-where you least expect them.
+The pattern that emerges: **event → command → workflow → events**. An
+event triggers a command; the command runs a workflow; the workflow emits
+new events. Those events trigger further commands.
+
+## 2. Event storming
+
+**Event storming** is the workshop that discovers all of this. DMMF's
+description: bring together "anyone who has questions, and anyone who has
+answers", give them a long wall and sticky notes, and have them post
+business events in rough chronological order.
+
+Three things the wall reveals that requirements documents hide:
+
+- **Gaps.** "Do you tell the customer the order was placed? I don't see it
+  on the wall." — the missing event *is* the missing requirement.
+- **Connections.** One team's output is another team's input, and it shows
+  up as adjacent notes.
+- **Vocabulary clashes.** Two departments naming the same thing differently,
+  settled on the spot.
+
+Follow the chain to the edges in both directions: what triggers the first
+event, and what happens after the last one? Both directions surface
+requirements nobody wrote down.
 
 ## 3. Partitioning: subdomains and bounded contexts
 
-- **Core domain** = what makes money / competitive advantage. Supportive
-  and generic subdomains can be bought or simplified.
-- A large domain splits into multiple **bounded contexts** — each with its
-  own model, its own dialect, its own data.
-- Contexts relate via a **context map**: Shared Kernel, Customer/Supplier,
-  Conformist, or the all-important **Anti-Corruption Layer** (translate
-  foreign models at the boundary; never let them leak in).
+A large domain splits into **bounded contexts** — each with its own model,
+its own dialect, and its own data.
 
-## 4. The ubiquitous language, in code
+- **Core domain** — what makes money or creates competitive advantage.
+  This is where your best effort goes.
+- **Supportive** and **generic** subdomains can be simplified, bought, or
+  outsourced.
 
-One dialect **per bounded context**. "Ship" means something different to
-Sales and to the Warehouse — and that's fine.
+Contexts relate through a **context map**. The four relationships the book
+covers:
+
+| Relationship | Meaning |
+| --- | --- |
+| **Shared Kernel** | two contexts share a small model, by agreement |
+| **Customer/Supplier** | downstream context has a say in upstream changes |
+| **Conformist** | downstream accepts upstream's model unchanged |
+| **Anti-Corruption Layer** | downstream translates upstream's model at the boundary |
+
+The **Anti-Corruption Layer** is the one to remember. Never let a foreign
+model leak into your domain — translate it at the edge, in one place.
+
+## 4. One dialect per context
+
+"Ship" means something different to Sales and to the Warehouse, and that is
+**fine**. Forcing one vocabulary across the whole company is how you get
+models that are wrong everywhere.
 
 ```fsharp
 // ❌ words that carry no domain meaning
@@ -87,51 +116,62 @@ type OrderPlaced = ...
 type OrderAcknowledgementSent = ...
 ```
 
-## 5. Functional architecture: the onion
+## 5. The functional architecture
 
-- Each bounded context = an autonomous component: **workflows as
-  pipelines** (functions in, functions out).
-- **DTOs at trust boundaries** — serialize at the edge, pass domain types
-  inside.
-- **Onion / Hexagonal / Clean**: domain at the center, infrastructure
-  around it, **dependencies point inward**.
-- **I/O at the edges only** — no DB, randomness, or mutation inside a
-  workflow. Pure workflows are testable workflows ("IO sandwich").
+Each bounded context becomes an autonomous component — a set of
+**workflows as pipelines**. Around it, the **onion** (also called
+hexagonal or clean) architecture:
+
+```text
+        ┌──────────────────────────────┐
+        │  Infrastructure (I/O, DB)    │   ← outer: replaceable
+        │  ┌────────────────────────┐  │
+        │  │  Workflows (pure)      │  │
+        │  │  ┌──────────────────┐  │  │
+        │  │  │  Domain types    │  │  │   ← inner: the business
+        │  │  └──────────────────┘  │  │
+        │  └────────────────────────┘  │
+        └──────────────────────────────┘
+             dependencies point INWARD
+```
+
+Two rules follow:
+
+- **Dependencies point inward.** The domain knows nothing about the
+  database, the web, or the clock.
+- **I/O at the edges only.** No DB calls, no randomness, no mutation inside
+  a workflow. Pure workflows are testable workflows — DMMF calls the result
+  an "I/O sandwich".
+
+**DTOs at the trust boundary**: serialize to a plain data-transfer object at
+the edge, and pass real domain types inside. The DTO has no rules; the
+domain type has all of them.
 
 ## Revise
 
-The flowchart below is the **review map** of this page — each node a chunk
-you just walked. Don't try to learn from it; use it to check coverage.
-
 ```mermaid
 flowchart LR
-    n1(["Domain-Driven Design"])
+    n1(["Domain-driven design"])
     n2["Shared model"]
     n3["no translation loss"]
-    n4["code reflects expert mental model"]
+    n4["ubiquitous language"]
     n5["Discover via events"]
-    n6["event storming workshop"]
-    n7["domain events: past tense"]
+    n6["event storming"]
+    n7["events: past tense"]
     n8["commands: imperative"]
-    n9["event → command → workflow → events"]
-    n10["Partition the domain"]
-    n11["core vs supportive vs generic"]
-    n12["Bounded contexts"]
-    n13["one model per context"]
-    n14["context maps: upstream/downstream"]
-    n15["relationships"]
-    n16["Shared Kernel"]
-    n17["Customer/Supplier"]
-    n18["Conformist"]
-    n19["Anti-Corruption Layer"]
-    n20["Ubiquitous language"]
-    n21["one dialect per context"]
-    n22["no Manager/Helper types"]
-    n23["Functional architecture"]
-    n24["workflows as pipelines"]
-    n25["DTOs at trust boundaries"]
-    n26["Onion: dependencies point inward"]
-    n27["I/O at the edges only"]
+    n9["event to command to workflow"]
+    n10["Partition"]
+    n11["core / supportive / generic"]
+    n12["bounded contexts"]
+    n13["context map"]
+    n14["anti-corruption layer"]
+    n15["One dialect per context"]
+    n16["no Manager or Helper types"]
+    n17["Functional architecture"]
+    n18["workflows as pipelines"]
+    n19["onion: dependencies inward"]
+    n20["I/O at the edges"]
+    n21["DTOs at trust boundaries"]
     n1 --> n2
     n2 --> n3
     n2 --> n4
@@ -142,28 +182,25 @@ flowchart LR
     n5 --> n9
     n1 --> n10
     n10 --> n11
-    n1 --> n12
+    n10 --> n12
     n12 --> n13
-    n12 --> n14
-    n12 --> n15
+    n13 --> n14
+    n1 --> n15
     n15 --> n16
-    n15 --> n17
-    n15 --> n18
-    n15 --> n19
-    n1 --> n20
-    n20 --> n21
-    n20 --> n22
-    n1 --> n23
-    n23 --> n24
-    n23 --> n25
-    n23 --> n26
-    n23 --> n27
+    n1 --> n17
+    n17 --> n18
+    n17 --> n19
+    n19 --> n20
+    n17 --> n21
 ```
 
 ## Cross-links
 
-- Modeling those events as types: [domain-modeling-with-types](../domain-modeling-with-types/index.md).
-- Workflows as pipelines in code: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Bounded contexts as architecture quanta: [architecture-characteristics-and-governance](../architecture-characteristics-and-governance/index.md).
-- Domain partitioning and microservices: [architecture-styles](../architecture-styles/index.md).
-- The same "pages as programs" decomposition on the client: [scaling-and-routing](../scaling-and-routing/index.md).
+- Researching a domain when you're the whole team:
+  [discovering-a-domain-alone](../discovering-a-domain-alone/index.md).
+- Turning the vocabulary into types:
+  [modeling-with-types](../modeling-with-types/index.md).
+- The workflows this architecture is made of:
+  [workflows-as-pipelines](../workflows-as-pipelines/index.md).
+- Partitioning decisions at the architecture level:
+  [modularity-and-components](../modularity-and-components/index.md).

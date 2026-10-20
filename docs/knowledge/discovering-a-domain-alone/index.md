@@ -1,156 +1,175 @@
-# Discovering a Domain Alone — Solo Domain Research and Modeling
+# Discovering a Domain Alone — You Are the Whole Team
 
-> Source: synthesis (2026-10-14). Draws on *Domain Modeling Made Functional*
-> (Wlaschin) ch 1–2 (event storming, ubiquitous language), Brandolini's
-> *Introducing EventStorming*, and the artifact-research practice of
-> building this very repo's domain types.
+> Source: synthesis. Draws on *Domain Modeling Made Functional* ch 1–2
+> (event storming, ubiquitous language) and Brandolini's *Introducing
+> EventStorming*, adapted for a solo developer.
 
-DDD books assume a room: domain experts, stakeholders, a wall of sticky
-notes. But **you are the whole team** — business, product owner, designer,
-developer in one person. The knowledge is already in your head; what you
-lack is a method to **research a field you are new to or weak in**, turn
-it into a model quickly, and trust the model enough to build on it.
+DDD assumes a room: domain experts, stakeholders, a wall of sticky notes.
+But if you are the business, the product owner, the designer, **and** the
+developer, there is no room and no expert to interview. This page is the
+method for that situation.
 
-## The proxy problem you don't have
+## The risk you don't have — and the two you do
 
-The canonical DDD failure mode is translation loss: Brandolini's law —
-*it is not the domain experts' knowledge that goes to production, it is
-the assumption of the developers*. Teams fight this with workshops and
-ubiquitous language. Solo, the fight is different: **you are both expert
-and developer**, so nothing is lost in translation — but two new risks
-appear:
+The canonical DDD failure is **translation loss**: Brandolini's line is
+that *it is not the domain experts' knowledge that goes to production, it
+is the assumption of the developers*. Solo, that failure disappears — you
+are both sides.
 
-1. **You think you know the field** ("how hard can tournaments be?") and
-model your assumptions instead of the field's actual rules.
-2. **Nobody corrects you** — no Ollie says "we call it a Placed Order", so
-a wrong vocabulary silently becomes the code's vocabulary.
+Two different risks replace it:
 
-The method below is the solo adaptation of event storming plus one move
-the books never needed: **treat the field's own artifacts as your domain
-expert.**
+1. **You think you already know the field.** ("How hard can tournaments
+   be?") So you model your assumptions, not the domain's actual rules.
+2. **Nobody corrects you.** No Ollie says "we call it a Placed Order", so a
+   wrong name quietly becomes the code's name and stays there.
 
-## 1. Harvest the vocabulary first
+Both are fixed the same way: **treat the field's own artifacts as your
+domain expert.**
 
-Before writing any type, collect the field's *own words* — the
-**ubiquitous language** (DMMF ch 1: the shared vocabulary used in speech
-and code) exists out there already; you just haven't read it yet:
+## 1. Harvest the vocabulary before you write a type
 
-- **Competitor apps**: sign up and click through them. Their nav items,
-  buttons, empty states, and error messages are their domain model made
-  visible. Write down every noun and verb.
-- **Rulebooks and docs**: for a game community — tournament rules
-  formats, registration windows, seeding and bracket rules.
-- **Community artifacts**: forum threads, Discord channels, subreddit
-  posts. What do players *complain about*? Complaints are unhandled
-  domain events ("tournament started while registration was still
-  open").
-- **APIs and schemas**: any competitor or platform with a public API
-  (Steam, Battle.net, Challonge for tournaments) publishes a **schema —
-  a pre-harvested vocabulary**.
+The ubiquitous language already exists — out in the world. Your job is to
+collect it, not invent it.
 
-Example: harvesting tournament platforms yields `bracket`,
-`seeding`, `check-in`, `bye`, `forfeit`, `round` — words this repo's
-`Tournament` type doesn't have yet. Their absence is the gap between the
-model and the field.
+| Source | What to take |
+| --- | --- |
+| **Competitor apps** | their nav labels, button text, empty states, error messages — a domain model made visible |
+| **Rulebooks and docs** | the actual rules: registration windows, seeding, brackets, forfeits |
+| **Community threads** | what people *complain* about — complaints are unhandled domain events |
+| **Public APIs** | a schema is a pre-harvested vocabulary, already formalized |
+
+A worked example. Harvesting real tournament platforms produces:
+
+```text
+bracket   seeding   check-in   bye   forfeit   round   swiss   double-elimination
+```
+
+Now compare with a first-draft model:
+
+```fsharp
+// ❌ first draft — the model has none of those words
+type Tournament =
+    { id: string
+      name: string
+      gameId: string
+      startsAt: DateTime
+      prize: string
+      registrationOpen: bool }
+```
+
+The gap between the harvested list and the type is the gap between the
+model and the field. That gap is the work.
 
 ## 2. Event-storm the wall alone
 
-Brandolini's workshop collapses to a solo protocol that keeps what
-matters — the **timeline of past-tense facts** — and drops what doesn't
-(the facilitator, the consensus building):
+The workshop collapses to a solo protocol that keeps the useful part — the
+**timeline of past-tense facts** — and drops the facilitation.
 
-1. Write **domain events** (past tense, DMMF ch 2: "something happened,
-   a fact that can't be changed") on sticky notes — real or digital:
-   `Tournament announced`, `Registration opened`, `Player registered`,
-   `Check-in started`, `Bracket generated`, `Match played`, `Winner
-   reported`.
-2. Lay them on a **timeline**. Gaps in the timeline are missing
-   requirements — DMMF's own trick from the Widgets Inc session
-   ("do you tell the customer the order was placed? I don't see that on
-   the wall").
-3. Add **commands** (imperative, the requests that trigger workflows):
-   `Open registration`, `Register player`, `Generate bracket`.
-4. Group the notes. The clusters that appear are your candidate
-   **bounded contexts**; the events are your candidate workflows.
+**Step 1 — write the events.** Past tense, one per note:
 
-Solo adaptation of the multi-person rule "anyone who has questions and
-anyone who has answers": **ask the artifacts the questions** — "what
-happens after check-in closes?" is answered by the rulebook's
-no-show/no-check-in policy, not by a colleague.
+```text
+Tournament announced
+Registration opened
+Player registered
+Check-in started
+Bracket generated
+Match played
+Winner reported
+```
+
+**Step 2 — put them on a timeline.** Order them. Every gap is a missing
+requirement, exactly as in the multi-person workshop: *what happens between
+"registration opened" and "bracket generated"?* (Answer: check-in — a phase
+the first-draft type has no room for.)
+
+**Step 3 — add commands.** The imperative requests that trigger each event:
+
+```text
+Open registration   → Registration opened
+Register player     → Player registered
+Generate bracket    → Bracket generated
+```
+
+**Step 4 — group.** Clusters that appear are candidate bounded contexts.
+
+Solo, the workshop's "anyone who has questions, anyone who has answers"
+becomes: **ask the artifacts the questions.** "What happens to a no-show?"
+is answered by the rulebook's forfeit policy, not by a colleague.
 
 ## 3. Let the compiler interrogate the model
 
-DMMF ch 4–5 turns the vocabulary and events into types; solo, the type
-system becomes your missing domain expert — every match is a question
-the model must answer:
+Here is where solo work gets its missing second opinion. Turn the wall into
+types, then let the compiler ask you the questions a domain expert would
+have asked:
 
 ```fsharp
-// ✅ straight from the event wall to types (DMMF's method):
-type TournamentState =
+// ✅ the event wall becomes the state machine
+type TournamentPhase =
     | Announced
     | RegistrationOpen
     | CheckInOpen
     | InProgress
     | Concluded
 
-type Msg =
-    | RegistrationOpened
-    | PlayerRegistered of PlayerId
-    | CheckInStarted
-    | BracketGenerated of Bracket
-    | MatchPlayed of MatchResult
+// each event is a transition; the type says which are legal
+let openRegistration (t: AnnouncedTournament) = ...
+let generateBracket (t: CheckInClosed) = ...
 ```
 
-Rules from step 1's artifacts become **invariants**: if the rulebook says
-check-in always precedes bracket generation, the transition function
-`generateBracket : CheckInClosed -> Bracket` *requires* the prior state
-(see [domain-modeling-with-types](../domain-modeling-with-types/index.md)).
-When a later artifact contradicts the model, the change ripples as
-compiler errors at exactly the sites that care — the payoff of modeling
-with types, now doing double duty as your missing second opinion.
+Rules harvested in step 1 become **invariants**. If the rulebook says a
+bracket can only be generated after check-in closes, then
+`generateBracket` takes `CheckInClosed` — the illegal call does not
+compile. You did not have to remember the rule; the type remembers it.
+
+When a later artifact contradicts the model, the change ripples as compiler
+errors at exactly the sites that care — the payoff described in
+[modeling-with-types](../modeling-with-types/index.md), now doing double
+duty as your missing reviewer.
 
 ## 4. Close the loop against reality
 
-The workshop team validates by debate; you validate by checking the
-model against the artifacts again:
+The workshop team validates by debate. You validate by re-checking the
+model against the artifacts:
 
-- Can the model express **every event** on your timeline? If not, a
-  state or a case is missing.
-- Does the model **forbid** what the rules forbid (double registration,
-  bracket from an open tournament)? If not, an invariant is missing.
-- Would a **practitioner** recognize the vocabulary? Type names should
-  read like the forum posts from step 1.
+- **Coverage:** can the model express *every* event on your timeline? If
+  not, a case is missing.
+- **Prohibition:** does the model *forbid* what the rules forbid (double
+  registration, a bracket from an open tournament)? If not, an invariant is
+  missing.
+- **Recognition:** would a practitioner recognize the names? Type names
+  should read like the forum posts you harvested.
+
+When all three pass, the model is as validated as a solo developer can make
+it — and better grounded than most team models, because every name traces
+back to a real artifact.
 
 ## Revise
 
-The flowchart below is the **review map** of this page — each node a chunk
-you just walked. Don't try to learn from it; use it to check coverage.
-
 ```mermaid
 flowchart LR
-    n1(["Solo domain research"])
+    n1(["Discovering a domain alone"])
     n2["You are the whole team"]
     n3["no translation loss"]
-    n4["risk: model your assumptions"]
+    n4["risk: modelling assumptions"]
     n5["risk: nobody corrects you"]
-    n6["Harvest the vocabulary"]
+    n6["Harvest vocabulary"]
     n7["competitor apps"]
-    n8["rulebooks &amp; docs"]
-    n9["community artifacts"]
-    n10["public APIs &amp; schemas"]
+    n8["rulebooks and docs"]
+    n9["community complaints"]
+    n10["public API schemas"]
     n11["Event-storm alone"]
-    n12["domain events: past tense"]
+    n12["events: past tense"]
     n13["timeline reveals gaps"]
     n14["commands: imperative"]
-    n15["clusters = bounded contexts"]
-    n16["Types interrogate the model"]
-    n17["events become DU cases"]
+    n15["clusters are contexts"]
+    n16["Compiler interrogates"]
+    n17["events become cases"]
     n18["rules become invariants"]
-    n19["compiler = missing 2nd opinion"]
+    n19["illegal calls do not compile"]
     n20["Close the loop"]
-    n21["express every event?"]
-    n22["forbid every illegal thing?"]
-    n23["vocabulary recognizable?"]
+    n21["covers every event"]
+    n22["forbids every illegal thing"]
+    n23["practitioners recognize it"]
     n1 --> n2
     n2 --> n3
     n2 --> n4
@@ -168,7 +187,7 @@ flowchart LR
     n1 --> n16
     n16 --> n17
     n16 --> n18
-    n16 --> n19
+    n18 --> n19
     n1 --> n20
     n20 --> n21
     n20 --> n22
@@ -177,9 +196,8 @@ flowchart LR
 
 ## Cross-links
 
-- The modeling move this method feeds:
-  [domain-modeling-with-types](../domain-modeling-with-types/index.md).
-- Event storming and ubiquitous language, team-sized:
+- The team version of this method:
   [domain-driven-design](../domain-driven-design/index.md).
-- Workflows the events trigger: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Partitioning the discovered contexts: [architecture-styles](../architecture-styles/index.md).
+- Turning the model into types:
+  [modeling-with-types](../modeling-with-types/index.md).
+- Rules that must always hold: [integrity-and-invariants](../integrity-and-invariants/index.md).

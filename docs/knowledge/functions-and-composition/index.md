@@ -1,218 +1,203 @@
-# Functions and Composition — Small Parts, Big Programs
+# Functions and Composition — Building by Gluing
 
-> Source: *Stylish F# 6* (Kit Eason) — ch 4 (Collection Functions), ch 9
-> (Programming with Functions), ch 12 (Performance). *DMMF* ch 8
-> (Understanding Functions) for total functions; *The Elmish Book* uses
-> these idioms throughout.
+> Source: *Stylish F# 6* (Eason) — ch 7 (Coping with Complexity), ch 9
+> (Functions); *Domain Modeling Made Functional* ch 8.
 
-Functions are things: they can be named, passed, returned, and combined.
-Composition — building pipelines from small functions — is how F# programs
-grow without collapsing.
+**Composition** is building a new function from existing ones without
+naming the argument in between. It is the core reason functional code stays
+readable as it grows: the pipeline describes *what*, and each named step
+describes *how*.
 
-## The signature that lied
-
-DMMF ch 8 opens with a function whose type is a **lie**:
+## The function with eleven locals
 
 ```fsharp
-// ❌ from DMMF ch 8 — the signature says int -> int
-let twelveDividedBy n =
-    match n with
-    | 6 -> 2
-    | 5 -> 2
-    | 4 -> 3
-    // ...
-    | 0 -> failwith "Can't divide by zero"   // ...but zero has no answer
+// ❌ every intermediate value is named, and the flow is buried
+let processOrders orders =
+    let filtered = List.filter (fun o -> o.Paid) orders
+    let mapped = List.map (fun o -> o.Amount) filtered
+    let sorted = List.sort mapped
+    let summed = List.sum sorted
+    summed
 ```
 
-The type promises *any int in, some int out* — but zero **crashes**. A
-function that answers for *every* input of its type is a **total
-function**; this one is **partial**. DMMF's two cures, both moving the
-truth into the type:
+Every `let` is a new name the reader must hold in working memory, and most
+of them exist only to be used once, immediately. This is the imperative
+habit leaking into F# — it compiles, and it hides the shape of the
+transformation.
+
+## 1. Pipe: apply a value
 
 ```fsharp
-// ✅ cure 1 — restrict the input (a type that excludes zero)
-let twelveDividedBy (NonZeroInteger n) = (* ... *)   // NonZeroInteger -> int
-
-// ✅ cure 2 — extend the output (answer "undefined" explicitly)
-let twelveDividedBy n =
-    match n with
-    // ...
-    | 0 -> None
-    | m -> Some (12 / m)                    // int -> int option
+// ✅ the flow reads top to bottom, no intermediate names
+let processOrders orders =
+    orders
+    |> List.filter (fun o -> o.Paid)
+    |> List.map (fun o -> o.Amount)
+    |> List.sum
 ```
 
-"This function does not lie. Everything is explicit." This page is the
-toolkit around that idea.
+`|>` is defined as `let (|>) x f = f x` — it takes a value and a function and
+applies the function. Nothing more. It exists purely so the *data* reads
+first and each transformation follows.
 
-## 1. Functions are values
+Why it works: F# puts the collection **last** in its library signatures
+(`List.filter predicate list`), which is what lets `list |> List.filter pred`
+line up. That argument-order convention is the whole reason pipelines feel
+natural — see [designing-functions](../designing-functions/index.md).
+
+## 2. Compose: build a function
 
 ```fsharp
-let add a b = a + b
-let addUp = add            // bind a function to another label
-let applyAndPrint f a b = printfn "%i" (f a b)   // pass as argument
+// ✅ a new function, defined without naming its argument
+let processOrders =
+    List.filter (fun o -> o.Paid)
+    >> List.map (fun o -> o.Amount)
+    >> List.sum
 ```
 
-A function's type — `float -> float -> float` — is a **contract** readable
-at a glance: two floats in, one float out. Write signatures first (see
-[fsharp-style](../fsharp-style/index.md)); add explicit type hints where
-inference would be ambiguous.
+`>>` is `let (>>) f g = fun x -> g (f x)` — apply `f`, then `g`.
 
-## 2. Currying and partial application
+The distinction that matters:
 
-**Currying** means parameters are written separately (not tupled), so a
-function "takes one argument and returns a function that takes the next".
-**Partial application** supplies only some arguments — the result is a
-specialized function. SF6 ch 9's canonical demo:
+| | `|>` | `>>` |
+| --- | --- | --- |
+| **Operates on** | a value | functions |
+| **Produces** | a value | a function |
+| **Read as** | "take this and pass it to" | "then" |
+| **Use when** | you have data now | you are defining a pipeline |
+
+`<<` is composition in the other direction (`g << f` = "g after f"). Prefer
+`>>` — it reads in execution order.
+
+## 3. Partial application: supply arguments later
+
+Because F# functions are curried, giving fewer arguments than expected
+returns a function waiting for the rest:
 
 ```fsharp
-// ✅ from SF6 ch 9 — int -> int -> int
-let add a b = a + b
+// ✅ the prefix is fixed; the list arrives later
+let paidOnly = List.filter (fun o -> o.Paid)
+let amounts = List.map (fun o -> o.Amount)
 
-// partial application: int -> int
-let addTwo = add 2
-
-// 5
-printfn "%i" (addTwo 3)
+let processOrders = paidOnly >> amounts >> List.sum
 ```
 
-The reuse payoff — one function, many specialized variants:
+This is why the `fun` parameter comes first: `List.filter predicate` is a
+ready-made pipeline stage, while `List.filter list` would not be.
+
+## 4. Composition with effects
+
+Composition is not limited to pure functions. `Result` composes with
+`Result.bind`, `Async` with `Async.bind` — and F# has **computation
+expressions** to make those chains read like ordinary code:
 
 ```fsharp
-// ✅ from SF6 ch 9 — surround: prefix -> suffix -> s
-let surround prefix suffix s =
-    sprintf "%s%s%s" prefix s suffix
-
-let roundParen = surround "(" ")"
-let xmlComment = surround "<!--" "-->"
-let doubleQuote = surround "\"" "\""
+// ✅ async workflows compose with let! — no callback nesting
+let loadDashboard (api: IApi) = async {
+    let! games = api.GetGames()
+    let! news = api.GetNews()
+    let! standings = api.GetStandings()
+    return { Games = games; News = news; Standings = standings } }
 ```
 
-DMMF's domain use: **dependencies first, data last** — partial application
-becomes dependency injection:
+`let!` is **bind** with nicer syntax: it unwraps the value and continues.
+Each `let!` is a step in an implicit pipeline, and failures/awaits propagate
+without manual nesting.
+
+The composition operators still apply underneath — `async { ... }` is
+`Async.bind` written readably.
+
+## 5. Where composition stops paying
+
+Composition is a tool, not a rule. It stops paying when:
+
+- **A step is used once and has no name worth having.** Inline it.
+- **The pipeline is longer than a screen.** Split it into named sub-pipelines
+  — a 20-stage pipe is as unreadable as a 200-line function.
+- **The types stop lining up without adapters.** If you need `fun x -> ...`
+  wrappers at every step, the underlying functions have the wrong argument
+  order — fix them, don't paper over it.
+
+The honest test: **can you read the pipeline out loud as a sentence?**
+"Take the orders, keep the paid ones, take their amounts, sum them." If yes,
+the composition is doing its job. If you have to stop and trace, it isn't.
+
+## 6. Function values are first-class
+
+The reason all of this works is that functions are values — you can store
+them, pass them, and return them:
 
 ```fsharp
-// ✅ from DMMF ch 8 — bake the deps in once
-let sayGreeting greeting name =            // string -> string -> unit
-    printfn "%s %s" greeting name
+// ✅ behaviour as a value, chosen at runtime
+type SortOrder = Ascending | Descending
 
-let sayHello = sayGreeting "Hello"         // string -> unit
-let sayGoodbye = sayGreeting "Goodbye"     // string -> unit
+let comparer =
+    match sortOrder with
+    | Ascending -> id
+    | Descending -> List.rev
+
+let sorted = players |> List.sortBy (fun p -> p.Rating) |> comparer
 ```
 
-## 3. The collection vocabulary
-
-- Learn the core chords so they're instinctive: `map`, `filter`, `fold`,
-  `groupBy`, `sortBy`, `sumBy`, `collect`.
-- Pipes make chains read top-to-bottom — SF6 ch 4's canonical shape:
-
-```fsharp
-// ✅ from SF6 ch 4 — the collection *is* the first parameter
-House.getRandom 20
-|> Array.filter (fun h -> h.Price > 100_000m)
-|> Array.iter (fun h ->
-    printfn "Address: %s Price: %f" h.Address h.Price)
-```
-
-- Choose the right collection type: `List` = prepended, immutable stacks;
-  `Array` = indexed mutation, performance; `Seq` = lazy pipelines;
-  `Map`/`Set` = lookup.
-
-## 4. Composition operators
-
-- `|>` pipes a value into a function — the data flows left-to-right.
-- `>>` composes two functions into one — pipelines become values:
-
-```fsharp
-// ✅ from SF6 ch 9 — fixTypographic via composition, then point-free
-let fixTypographic (s : string) =
-    s |> (fixSingle >> fixDouble)
-
-// same thing, parameter eliminated:
-let fixTypographic = fixSingle >> fixDouble
-```
-
-SF6's restraint warning: *composition isn't a goal in itself* —
-motivational transparency and semantic focus trump conciseness. Don't
-compress code "down to the most concise expression humanly possible".
-
-## 5. Performance: measure, then fix
-
-- Design is a **compromise between abstraction and efficiency** — F#'s
-  high level can land you on the wrong end. Fix with measurement, not
-  folklore: **BenchmarkDotNet**, and keep tests green while tuning.
-- SF6 ch 12's discipline, verbatim: code a baseline that works, put tests
-  and benchmarks in place, *then* tackle bottlenecks — "improvements of
-  several orders of magnitude without compromising clarity".
-- Classic traps: `List` where random access is needed (O(n) indexing →
-  O(n²) loops), naive string concatenation in loops (quadratic copies),
-  short-lived object churn in hot paths.
+This replaces most of what other languages do with strategy interfaces and
+factories. See [records-and-unions](../records-and-unions/index.md) for why
+that trade is worth it.
 
 ## Revise
 
-The flowchart below is the **review map** of this page — each node a chunk
-you just walked. Don't try to learn from it; use it to check coverage.
-
 ```mermaid
 flowchart LR
-    n1(["Functions &amp; composition"])
-    n2["Functions are values"]
-    n3["bind to a new name"]
-    n4["pass as arguments"]
-    n5["return from functions"]
-    n6["Function types everywhere"]
-    n7["a -&gt; b readable as a contract"]
-    n8["type hints at boundaries"]
-    n9["Currying &amp; partial application"]
-    n10["one argument at a time"]
-    n11["supply deps → specialized fn"]
-    n12["collections: the vocabulary"]
-    n13["map / filter / fold / groupBy"]
-    n14["pipe chains read top-to-bottom"]
-    n15["pick the right collection type"]
-    n16["Total functions"]
-    n17["handle every input"]
-    n18["no exceptions, no nulls"]
-    n19["restrict input, extend output"]
-    n20["Composition operators"]
-    n21["&gt;&gt; forward composition"]
-    n22["|&gt; pipe"]
-    n23["Performance discipline"]
-    n24["measure first: BenchmarkDotNet"]
-    n25["wrong collection type = O(n²)"]
-    n26["string building: builder or Seq"]
-    n27["abstraction vs efficiency trade-off"]
+    n1(["Functions and composition"])
+    n2["The eleven locals"]
+    n3["names exist to be used once"]
+    n4["flow is buried"]
+    n5["Pipe applies a value"]
+    n6["data first"]
+    n7["collection argument last"]
+    n8["Compose builds a function"]
+    n9["then"]
+    n10["no argument named"]
+    n11["Partial application"]
+    n12["prefix fixed, rest later"]
+    n13["why the fun parameter comes first"]
+    n14["Effects compose too"]
+    n15["computation expressions"]
+    n16["let bang is bind"]
+    n17["Where it stops paying"]
+    n18["step used once"]
+    n19["pipeline longer than a screen"]
+    n20["adapters mean wrong argument order"]
+    n21["Functions are values"]
+    n22["store, pass, return behaviour"]
     n1 --> n2
     n2 --> n3
     n2 --> n4
-    n2 --> n5
-    n1 --> n6
+    n1 --> n5
+    n5 --> n6
     n6 --> n7
-    n6 --> n8
-    n1 --> n9
-    n9 --> n10
-    n9 --> n11
-    n1 --> n12
+    n1 --> n8
+    n8 --> n9
+    n8 --> n10
+    n1 --> n11
+    n11 --> n12
     n12 --> n13
-    n12 --> n14
-    n12 --> n15
-    n1 --> n16
-    n16 --> n17
-    n16 --> n18
-    n16 --> n19
-    n1 --> n20
-    n20 --> n21
-    n20 --> n22
-    n1 --> n23
-    n23 --> n24
-    n23 --> n25
-    n23 --> n26
-    n23 --> n27
+    n1 --> n14
+    n14 --> n15
+    n15 --> n16
+    n1 --> n17
+    n17 --> n18
+    n17 --> n19
+    n17 --> n20
+    n1 --> n21
+    n21 --> n22
 ```
 
 ## Cross-links
 
-- Signatures as design: [fsharp-style](../fsharp-style/index.md); total
-  functions in pipelines: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Partial application as DI in workflows: [workflows-and-error-handling](../workflows-and-error-handling/index.md).
-- Composition of UI programs: [scaling-and-routing](../scaling-and-routing/index.md).
-- Trade-off thinking (abstraction vs efficiency): [architecture-thinking](../architecture-thinking/index.md).
+- Argument order that makes pipes work:
+  [designing-functions](../designing-functions/index.md).
+- Pipelines of business steps:
+  [workflows-as-pipelines](../workflows-as-pipelines/index.md).
+- Collections these operate on: [collections](../collections/index.md).
+- Async composition in the browser:
+  [commands-and-async](../commands-and-async/index.md).
