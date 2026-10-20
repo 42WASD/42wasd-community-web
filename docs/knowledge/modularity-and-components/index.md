@@ -1,11 +1,11 @@
 # Modularity and Components — Drawing the Lines
 
 > Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 3
-> (Modularity), ch 8 (Component-Based Thinking).
+> «Modularity», ch 8 «Component-Based Thinking».
 
-Modularity is the property that lets one part of a system change without
-forcing every other part to change. **Cohesion** and **coupling** are the
-two forces that decide whether you have it.
+Modularity is the property that lets one part of a system change without forcing every other part to change.
+
+**Cohesion** and **coupling** are the two forces that decide whether you have it.
 
 ## The file that everyone edits
 

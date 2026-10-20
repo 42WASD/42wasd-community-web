@@ -1,7 +1,8 @@
 # Serialization and Persistence — The Trust Boundary
 
 > Source: *Domain Modeling Made Functional* (Wlaschin) — ch 11
-> (Serialization), ch 12 (Persistence); *Stylish F# 6* ch 13 (Testing).
+> «Serialization», ch 12 «Persistence», ch 13 «Evolving a Design and
+> Keeping It Clean».
 
 Your domain model and your storage model are **different things**, and the
 boundary between them is where most real systems accumulate their worst
@@ -28,13 +29,15 @@ A **DTO** (data transfer object) is a plain record with no rules, whose only
 job is to be the shape on the wire or in the table:
 
 ```fsharp
-// ✅ DTO: flat, dumb, stable
+// ✅ DTO: flat, dumb, stable — the wire shape
 type TournamentDto =
     { id: string
       name: string
-      phase: string }        // "announced" | "registrationOpen" | ...
+      phase: string }
+```
 
-// ✅ domain: rich, typed, rules
+```fsharp
+// ✅ domain: rich, typed, rules — the workflow shape
 type Tournament =
     { Id: TournamentId
       Name: string
@@ -50,23 +53,32 @@ nonsense, which is why it is the only thing the workflow sees.
 The boundary is exactly two functions, and both must handle every case:
 
 ```fsharp
-// ✅ domain → wire: total, no failure possible
+// ✅ domain → wire: exhaustive, so a new phase fails the build
+let private phaseToWire =
+    function
+    | Announced -> "announced"
+    | RegistrationOpen -> "registrationOpen"
+    | CheckInOpen -> "checkInOpen"
+    | InProgress -> "inProgress"
+    | Concluded -> "concluded"
+```
+
+```fsharp
+// ✅ toDto is now total and cannot fail
 let toDto (t: Tournament) : TournamentDto =
     { id = TournamentId.value t.Id
       name = t.Name
-      phase =
-        match t.Phase with
-        | Announced -> "announced"
-        | RegistrationOpen -> "registrationOpen"
-        | CheckInOpen -> "checkInOpen"
-        | InProgress -> "inProgress"
-        | Concluded -> "concluded" }
+      phase = phaseToWire t.Phase }
+```
 
+```fsharp
 // ✅ wire → domain: can fail, and says so
 let fromDto (dto: TournamentDto) : Result<Tournament, string> =
     match dto.phase with
-    | "announced" -> Ok { Id = TournamentId.create dto.id; Name = dto.name; Phase = Announced }
-    | "registrationOpen" -> Ok { Id = TournamentId.create dto.id; Name = dto.name; Phase = RegistrationOpen }
+    | "announced" ->
+        Ok { Id = TournamentId.create dto.id; Name = dto.name; Phase = Announced }
+    | "registrationOpen" ->
+        Ok { Id = TournamentId.create dto.id; Name = dto.name; Phase = RegistrationOpen }
     | other -> Error $"unknown phase: {other}"
 ```
 
@@ -112,9 +124,7 @@ Two things this buys:
 - **Tests can substitute an in-memory implementation** with no database,
   because the interface is expressed in domain types.
 
-Where a **transaction** is needed, the boundary is the **aggregate** (see
-[integrity-and-invariants](../integrity-and-invariants/index.md)): save the
-aggregate root and its children together, or not at all.
+Where a *transaction* is needed, the boundary is the **aggregate** (see [integrity-and-invariants](../integrity-and-invariants/index.md)): save the aggregate root and its children together, or not at all.
 
 ## 5. The event-sourcing option
 

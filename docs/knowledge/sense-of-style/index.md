@@ -1,7 +1,7 @@
 # Sense of Style — Naming, Layout, and Comments
 
-> Source: *Stylish F# 6* (Eason) — ch 1 (The Sense of Style), ch 2
-> (Designing Functions and Types with Your Domain).
+> Source: *Stylish F# 6* (Eason) — ch 1 «The Sense of Style», ch 13
+> «Layout and Naming».
 
 F# code is read far more often than it is written, and most of the reading
 happens when something is broken at 2 a.m. Style is not decoration; it is

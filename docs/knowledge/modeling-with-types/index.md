@@ -1,13 +1,13 @@
 # Modeling with Types — Make Illegal States Unrepresentable
 
-> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 4
-> (Understanding Types), ch 5 (Domain Modeling with Types).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 4 «Understanding
+> Types», ch 5 «Domain Modeling with Types», ch 6 «Integrity and Consistency
+> in the Domain», ch 9 «Implementation: Composing a Pipeline» (the `OrderId`
+> smart constructor).
 
-An F# type system is **algebraic**: it has **AND types** (records, where all
-fields exist together) and **OR types** (choice types, where the value is
-exactly one case). Domain modeling is the act of expressing the business
-rules as combinations of those two — so that nonsense is rejected by the
-compiler instead of by a runtime check.
+An F# type system is *algebraic*: it has **AND types** (records, where all fields exist together) and *OR types* (choice types, where the value is exactly one case).
+
+Domain modeling is the act of expressing the business rules as combinations of those two — so that nonsense is rejected by the compiler instead of by a runtime check.
 
 ## The flag that lies
 
@@ -62,11 +62,9 @@ type RemoteData<'T> =
     | Failed of string
 ```
 
-A **choice type** — also called a **discriminated union** or DU — is a type
-whose value must be exactly one of a fixed list of named cases. Two
-booleans give four combinations and answer no real question; four cases
-answer every one of them, and the compiler forces every consumer to handle
-each.
+A **choice type** — also called a *discriminated union* or DU — is a type whose value must be exactly one of a fixed list of named cases.
+
+Two booleans give four combinations and answer no real question; four cases answer every one of them, and the compiler forces every consumer to handle each.
 
 **A type is a claim about what can exist.** `bool` claims almost nothing.
 
@@ -121,13 +119,15 @@ type TournamentPhase =
     | CheckInOpen
     | InProgress
     | Concluded
+```
 
+```fsharp
+// ✅ the record holds the phase instead of a bool
 type Tournament =
     { id: TournamentId
       name: string
       gameId: GameId
       startsAt: DateTime
-      prize: string
       phase: TournamentPhase }
 ```
 
@@ -146,10 +146,9 @@ let countdown t =
     | Announced | RegistrationOpen | CheckInOpen -> countDown t.startsAt
 ```
 
-`Concluded` **cannot reach** the countdown branch. And when `Cancelled` is
-added next month, the compiler lists every `match` that must decide — new
-requirements arrive as **compiler errors at the sites that care**, not as
-runtime surprises in a page you forgot.
+`Concluded` **cannot reach** the countdown branch.
+
+And when `Cancelled` is added next month, the compiler lists every `match` that must decide — new requirements arrive as **compiler errors at the sites that care**, not as runtime surprises in a page you forgot.
 
 ## 4. Wrap the primitives
 
@@ -157,9 +156,9 @@ runtime surprises in a page you forgot.
 That was deliberate. In this repo, `persist t.gameId t.id` compiles today —
 and it is backwards.
 
-DMMF calls this **primitive obsession**: letting raw built-in types stand in
-for domain concepts. The fix is a **single-case choice type** — a one-case
-DU wrapping one primitive:
+DMMF calls this **primitive obsession**: letting raw built-in types stand in for domain concepts.
+
+The fix is a **single-case choice type** — a one-case DU wrapping one primitive:
 
 ```fsharp
 // ❌ both are strings — this compiles, and it's backwards
@@ -171,7 +170,8 @@ type GameId = GameId of string
 persist t.gameId t.id          // rejected: the types don't match
 ```
 
-To go further, make the constructor **private** — a **smart constructor**.
+To go further, make the constructor *private* — a **smart constructor**.
+
 DMMF's canonical `OrderId`:
 
 ```fsharp
@@ -180,17 +180,11 @@ module Domain =
     type OrderId = private OrderId of string
 
     module OrderId =
-        /// Smart constructor: string -> OrderId
         let create str =
             if System.String.IsNullOrEmpty str then
                 failwith "OrderId must not be null or empty"
-            elif str.Length > 50 then
-                failwith "OrderId must not be more than 50 chars"
             else
                 OrderId str
-
-        /// Extract the inner value: OrderId -> string
-        let value (OrderId str) = str
 ```
 
 With `create` as the only door in, an invalid `OrderId` **cannot exist**.

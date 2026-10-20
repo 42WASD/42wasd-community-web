@@ -1,7 +1,13 @@
 # Testing — Proving the Rules Hold
 
-> Source: *Stylish F# 6* (Eason) — ch 13 (Testing); *Domain Modeling Made
-> Functional* ch 12 (Persistence) on decoupling for testability.
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 9
+> «Implementation: Composing a Pipeline», §Testing Dependencies; ch 6
+> «Integrity and Consistency in the Domain» on compile-time unit tests;
+> *Fundamentals of Software Architecture* ch 24 «Making Teams Effective»,
+> §Unit and Functional Testing Checklist.
+>
+> Note: *Stylish F# 6* has no testing chapter — ch 2 says explicitly that
+> unit testing is "an important topic, but I'm not getting into that here".
 
 A test is only cheap if it needs nothing but the function it tests. The
 functional style is built for that: pure functions need no database, no
@@ -28,13 +34,13 @@ The payoff of [workflows-as-pipelines](../workflows-as-pipelines/index.md):
 `update` takes values and returns values.
 
 ```fsharp
-// ✅ no setup, no teardown, no mocks — one line of arrange
+// ✅ DMMF ch 9 — dependencies are stubs passed in, so the test is one line
 [<Test>]
-let ``valid order produces a priced order`` () =
-    let dto = { CustomerId = "c1"; Lines = [ { Product = "p1"; Quantity = 2 } ] }
-    match validate dto with
-    | Ok order -> price order |> shouldEqual expected
-    | Error e -> failwithf "expected Ok, got %A" e
+let ``If product doesn't exist, validation fails`` () =
+    let checkAddressExists address = ...
+    let checkProductCodeExists productCode = false   // fail
+    let result = validateOrder checkProductCodeExists checkAddressExists ...
+    // assert: check that result is a failure
 ```
 
 The rule: **if a test is painful to write, the production code has an I/O

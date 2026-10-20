@@ -1,7 +1,7 @@
 # Integrity and Invariants — Rules That Always Hold
 
-> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 6 (Integrity and
-> Consistency in the Domain).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 6 «Integrity and
+> Consistency in the Domain».
 
 An **invariant** is a rule that must always be true of your data — "an
 order's total equals the sum of its lines", "a verified email was verified
@@ -110,8 +110,9 @@ let validateOrder (dto: OrderDto) : Result<ValidatedOrder, ValidationError list>
 
 ## 3. Aggregates: where consistency is enforced
 
-An **aggregate** is a cluster of entities with one **root** that owns all
-the consistency rules. Outsiders touch the children only through the root.
+An **aggregate** is a cluster of entities with one *root* that owns all the consistency rules.
+
+Outsiders touch the children only through the root.
 
 The rule of thumb the book gives: **the aggregate is the boundary of what
 must be updated in one transaction.**
@@ -131,14 +132,16 @@ type Order = private {
     Lines: OrderLine list
     Total: decimal
 }
+```
 
+```fsharp
+// ✅ the only way to change lines recalculates the total
 module Order =
     let private recalculate order =
         { order with Total = order.Lines |> List.sumBy (fun l -> l.Price) }
 
     let addLine line order =
         recalculate { order with Lines = line :: order.Lines }
-    // there is no `setTotal` — the total is derived, never assigned
 ```
 
 Note what is missing: there is no way to set the total independently. That

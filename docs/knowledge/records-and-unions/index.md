@@ -1,12 +1,12 @@
 # Records and Unions — The Two Building Blocks
 
-> Source: *Stylish F# 6* (Eason) — ch 3 (Records, Unions, and Classes),
-> ch 8 (Interfaces and Classes).
+> Source: *Stylish F# 6* (Eason) — ch 7 «Record Types», ch 8 «Classes»;
+> *Domain Modeling Made Functional* ch 4 «Understanding Types», ch 9
+> «Implementation: Composing a Pipeline».
 
-Almost every F# domain type is one of two things: a **record** (all fields
-together — an AND) or a **choice type** (exactly one case — an OR). Learn
-those two shapes and the rest of the language's type machinery is
-decoration.
+Almost every F# domain type is one of two things: a *record* (all fields together — an AND) or a **choice type** (exactly one case — an OR).
+
+Learn those two shapes and the rest of the language's type machinery is decoration.
 
 ## The class with 14 fields
 
@@ -77,9 +77,8 @@ Real models alternate between the two shapes:
 type Customer =
     { Id: CustomerId
       Name: string
-      Email: CustomerEmail }        // Unverified | Verified
+      Email: CustomerEmail }
 
-// and the choice type's cases carry records / single-case wrappers
 type CustomerEmail =
     | Unverified of EmailAddress
     | Verified of VerifiedEmailAddress
@@ -97,11 +96,17 @@ patterns in the language — it gives a primitive a distinct type:
 // ✅ from DMMF ch 9 — two ids that can no longer be confused
 type OrderId = OrderId of string
 type CustomerId = CustomerId of string
+```
 
-// with a smart constructor, the value is also guaranteed valid
+With a smart constructor, the value is also guaranteed valid:
+
+```fsharp
+// ✅ private case + validating create = the only door in
 type OrderId = private OrderId of string
 module OrderId =
-    let create s = if System.String.IsNullOrEmpty s then Error "required" else Ok (OrderId s)
+    let create s =
+        if System.String.IsNullOrEmpty s then Error "required"
+        else Ok (OrderId s)
     let value (OrderId s) = s
 ```
 
@@ -120,18 +125,30 @@ F# has classes, and SF6 is clear about when they earn their place:
 The mechanics, in the book's form:
 
 ```fsharp
-// ✅ SF6 Listing 8-17 — an interface with an abstract member
+// ✅ SF6 Listing 8-17 — abstract members, no behaviour
 type IMediaPlayer =
-    abstract member Play: unit -> unit
-    abstract member Stop: unit -> unit
+    abstract member Open : mediaId: MediaId -> unit
+    abstract member Play : unit -> unit
+    abstract member Stop : unit -> unit
+    abstract member Eject : unit -> unit
+    abstract member Status : unit -> Status
+```
 
-// ✅ SF6 Listing 8-18 — implementing it
+```fsharp
+// ✅ SF6 Listing 8-18 — implementing it explicitly
 type DummyPlayer() =
     interface IMediaPlayer with
+        member _.Open(mediaId) = ()
         member _.Play() = ()
         member _.Stop() = ()
+        member _.Eject() = ()
+        member _.Status() = Empty
+```
 
-// ✅ SF6 Listing 8-19 — using it as the interface type
+Using it requires an upcast, which is Listing 8-19:
+
+```fsharp
+// ✅ the upcast exposes the interface, not the concrete class
 let player = new DummyPlayer() :> IMediaPlayer
 ```
 

@@ -1,7 +1,7 @@
 # Missing Data — Option and the Null Problem
 
-> Source: *Stylish F# 6* (Eason) — ch 6 (Missing Data), ch 7 (Coping with
-> Complexity).
+> Source: *Stylish F# 6* (Eason) — ch 3 «Missing Data», ch 7 «Record
+> Types».
 
 **Missing data** is the everyday case where a value may or may not exist: a
 middle name, a discount code, a search result. F# has no `null` for these —

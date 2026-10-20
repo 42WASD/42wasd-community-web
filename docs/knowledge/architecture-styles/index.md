@@ -1,9 +1,10 @@
 # Architecture Styles — Choosing a Shape
 
 > Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 9
-> (Foundations), ch 10 (Layered), ch 11 (Pipeline), ch 12 (Microkernel),
-> ch 13–15 (Service-based, Event-driven, Space-based), ch 16–17
-> (Orchestration-driven and Microservices).
+> «Foundations», ch 10 «Layered», ch 11 «The Modular Monolith», ch 12
+> «Pipeline», ch 13 «Microkernel», ch 14 «Service-Based», ch 15
+> «Event-Driven», ch 16 «Space-Based», ch 18 «Microservices», ch 19
+> «Choosing the Appropriate Architecture Style».
 
 An **architecture style** is a named, reusable structural pattern — layered,
 pipeline, microkernel, event-driven, microservices. Each one is a bundle of
@@ -42,8 +43,7 @@ interactive, branching workflows.
 
 ## 2. Microkernel: core plus plugins
 
-A **microkernel** splits a system into a small **core system** and
-independent **plugins**.
+A **microkernel** splits a system into a small *core system* and independent *plugins*.
 
 - **Core**: the minimum to run — registry, contract, lifecycle.
 - **Plugins**: variable behaviour, added and removed independently.

@@ -1,8 +1,8 @@
 # Decisions and Risk — Recording the Why
 
-> Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 19
-> (Architecture Decisions), ch 20 (Analyzing Architecture Risk), ch 21
-> (Diagramming and Presenting).
+> Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 21
+> «Architectural Decisions», ch 22 «Analyzing Architecture Risk», ch 23
+> «Diagramming Architecture», ch 20 «Architectural Patterns».
 
 An **architecture decision record** (ADR) is a short document capturing one
 decision, its context, and its consequences. The book's argument for them is
@@ -53,9 +53,9 @@ If a decision is none of those, a code comment is enough.
 
 ## 3. Immutable, not edited
 
-An ADR is **never rewritten**. When a decision changes, you write a new ADR
-that **supersedes** the old one, and update the old one's status to
-`Superseded by ADR-N`.
+An ADR is **never rewritten**.
+
+When a decision changes, you write a new ADR that **supersedes** the old one, and update the old one's status to `Superseded by ADR-N`.
 
 The reason: the value of the record is historical. If you edit an ADR to
 match today's reality, you lose the ability to answer "why did we believe
@@ -63,9 +63,9 @@ that then?" — which is often the more useful question.
 
 ## 4. Risk: analyze before it bites
 
-The book's **risk matrix** — a grid with **impact** on one axis and
-**likelihood** on the other. Each risk lands in a cell; the cells near
-high-impact/high-likelihood get attention first.
+The book's **risk matrix** — a grid with *impact* on one axis and *likelihood* on the other.
+
+Each risk lands in a cell; the cells near high-impact/high-likelihood get attention first.
 
 **Risk storming** is the group technique: everyone individually marks risks
 on the matrix, then the marks are compared. Disagreement is the output —

@@ -1,7 +1,9 @@
 # Errors and Result — Failure as a Value
 
-> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 8 (Understanding
-> Functions), ch 10 (Working with Errors); *Stylish F# 6* ch 8.
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 8 «Understanding
+> Functions», ch 10 «Implementation: Working with Errors»; *Stylish F# 6*
+> ch 11 «Railway Oriented Programming» for the same idea in a different
+> metaphor.
 
 In F# an error is a **value**, not an event. A function that can fail says so
 in its return type, and the caller must handle it — the compiler will not

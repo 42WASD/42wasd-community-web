@@ -1,7 +1,8 @@
 # Domain-Driven Design — Understanding the Problem First
 
-> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 1 (Introducing
-> DDD), ch 2 (Understanding the Domain), ch 3 (A Functional Architecture).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 1 «Introducing
+> Domain-Driven Design», ch 2 «Understanding the Domain», ch 3 «A
+> Functional Architecture».
 
 Code is the easy part. The hard part is understanding what the business
 actually does — and building a model that everyone agrees on, in the same
@@ -118,9 +119,9 @@ type OrderAcknowledgementSent = ...
 
 ## 5. The functional architecture
 
-Each bounded context becomes an autonomous component — a set of
-**workflows as pipelines**. Around it, the **onion** (also called
-hexagonal or clean) architecture:
+Each bounded context becomes an autonomous component — a set of **workflows as pipelines**.
+
+Around it, the **onion** (also called hexagonal or clean) architecture:
 
 ```text
         ┌──────────────────────────────┐

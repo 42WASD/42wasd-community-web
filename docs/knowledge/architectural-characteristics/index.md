@@ -1,8 +1,9 @@
 # Architectural Characteristics — Naming What Must Be True
 
 > Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 4
-> (Architectural Characteristics Defined), ch 5 (Identifying), ch 6
-> (Measuring and Governing), ch 7 (The Scope of Characteristics).
+> «Architectural Characteristics Defined», ch 5 «Identifying Architectural
+> Characteristics», ch 6 «Measuring and Governing Architecture
+> Characteristics», ch 7 «The Scope of Architectural Characteristics».
 
 Before you choose a style, you must name what the system has to be good at.
 Those qualities are called **architectural characteristics** — informally
@@ -53,9 +54,9 @@ customers". The architect's job is the translation — the book's table:
 | Competitive advantage | agility, testability, deployability, scalability, availability, fault tolerance |
 | Time and budget | simplicity, feasibility |
 
-One trap the book names: **false equivalence**. *Agility* is a **composite**
-characteristic — it has no single measurable definition; it is made of
-other measurable things. Don't treat a composite as if it were one dial.
+One trap the book names: **false equivalence**.
+
+*Agility* is a **composite** characteristic — it has no single measurable definition; it is made of other measurable things. Don't treat a composite as if it were one dial.
 
 ## 3. Prioritize ruthlessly
 
@@ -105,10 +106,9 @@ important-but-not-urgent characteristic fail loudly.
 
 ## 5. Scope: where a characteristic lives
 
-Characteristics have a **scope** — they apply to the whole system, or only
-to part of it. The book's unit is the **architecture quantum**: the
-smallest set of components that must be deployed together, with their data,
-synchronously coupled.
+Characteristics have a **scope** — they apply to the whole system, or only to part of it.
+
+The book's unit is the **architecture quantum**: the smallest set of components that must be deployed together, with their data, synchronously coupled.
 
 - A monolith usually has **one** quantum.
 - Microservices aim for **many small** ones.

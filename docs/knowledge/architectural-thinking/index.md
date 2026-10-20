@@ -1,8 +1,8 @@
 # Architectural Thinking — Trade-offs, Not Vibes
 
 > Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 1
-> (Introduction), ch 2 (Architectural Thinking), ch 27 (The Laws of
-> Software Architecture, Revisited).
+> «Introduction», ch 2 «Architectural Thinking», ch 27 «The Laws of
+> Software Architecture, Revisited».
 
 **Architecture** is the set of decisions that are expensive to change. This
 page is about the thinking that produces those decisions — and about the
@@ -107,10 +107,11 @@ The book's own example, and the template for how to write one down:
 | **Availability** | no extra hop | adds a failure point |
 | **Change** | redeploy every consumer | redeploy one service |
 
-There is no right answer. The decision depends on **change frequency**,
-**team topology**, and **availability needs**. The discipline is: name the
-trade-offs, pick the least-worst fit, and record the *why* so it survives
-you.
+There is no right answer.
+
+The decision depends on *change frequency*, *team topology*, and *availability needs*.
+
+The discipline is: name the trade-offs, pick the least-worst fit, and record the *why* so it survives you.
 
 ## Revise
 

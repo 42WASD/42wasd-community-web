@@ -1,7 +1,9 @@
 # Units and Measures — Numbers That Can't Be Confused
 
-> Source: *Stylish F# 6* (Eason) — ch 2 (Designing Types with Your Domain),
-> ch 10 (Working with Numbers).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 6 «Integrity and
+> Consistency in the Domain», §Integrity of Simple Values / §Units of
+> Measure; *Stylish F# 6* ch 2 «Designing Functions Using Types» for the
+> `MilesYards` case.
 
 F# lets you attach a **unit of measure** to a numeric type — `float<m>` is
 metres, `float<kg>` is kilograms. The compiler then rejects arithmetic that
@@ -29,7 +31,7 @@ burn thrustLbf seconds   // 1000.0 — of what? Wrong by a factor of 4.45
 ## 1. Define the units
 
 ```fsharp
-// ✅ SF6 ch 2 — units are a compile-time annotation, zero runtime cost
+// ✅ DMMF ch 6 — units are a compile-time annotation, zero runtime cost
 [<Measure>] type m        // metre
 [<Measure>] type kg       // kilogram
 [<Measure>] type s        // second
@@ -118,7 +120,8 @@ Units are a compile-time tool with real edges:
   you passing a negative mass. For rules, you need a single-case wrapper with
   a smart constructor (see [modeling-with-types](../modeling-with-types/index.md)).
 
-Use units for **dimensional** safety, and wrapper types for **validity**.
+Use units for *dimensional* safety, and wrapper types for **validity**.
+
 They solve different problems and combine well.
 
 ## Revise

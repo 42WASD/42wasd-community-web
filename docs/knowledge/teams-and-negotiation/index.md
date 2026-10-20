@@ -1,8 +1,8 @@
 # Teams and Negotiation — Architecture Is Social
 
-> Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 23
-> (Negotiating Requirements), ch 24 (Solving Problems), ch 25 (Diagramming
-> and Presenting), ch 26 (Making Teams Effective).
+> Source: *Fundamentals of Software Architecture* (Richards & Ford) — ch 24
+> «Making Teams Effective», ch 25 «Negotiation and Leadership Skills»,
+> ch 26 «Architectural Intersections», ch 23 «Diagramming Architecture».
 
 An architecture that nobody agrees to build is not an architecture. Most
 technical decisions must be **negotiated** — with stakeholders who want
@@ -74,15 +74,11 @@ The book's four characteristics of effective architecture teams:
 | **Competence** | the team has the skills the domain needs |
 | **Collaboration** | the team works with others rather than over them |
 
-A team missing one of the four fails in a predictable way. No **control**
-and it becomes a ticket queue; no **competence** and decisions are guesses;
-no **collaboration** and it builds what nobody asked for.
+A team missing one of the four fails in a predictable way.
 
-For a solo developer, the useful reading is that all four are yours: you
-have control and command by default, so the risks are **competence** (the
-reason for the knowledge pages) and **collaboration** (the reason for
-checking your model against real artifacts — see
-[discovering-a-domain-alone](../discovering-a-domain-alone/index.md)).
+No *control* and it becomes a ticket queue; no *competence* and decisions are guesses; no *collaboration* and it builds what nobody asked for.
+
+For a solo developer, the useful reading is that all four are yours: you have control and command by default, so the risks are *competence* (the reason for the knowledge pages) and *collaboration* (the reason for checking your model against real artifacts — see [discovering-a-domain-alone](../discovering-a-domain-alone/index.md)).
 
 ## 5. Presenting: the narrative
 

@@ -48,10 +48,11 @@ screen can change.
 
 ## 2. A complete program
 
-The book's counter, which is small enough to hold entirely in your head:
+The book's counter, which is small enough to hold entirely in your head.
+First the model, the messages, and the pure `update`:
 
 ```fsharp
-// ✅ the entire Elmish program
+// ✅ the entire state machine, and nothing else
 type Model = int
 
 type Msg =
@@ -59,19 +60,33 @@ type Msg =
     | Decrement
 
 let init () = 0
+```
 
+```fsharp
+// ✅ update is pure: (Msg, Model) -> Model
 let update msg model =
     match msg with
     | Increment -> model + 1
     | Decrement -> model - 1
+```
 
+Then the view, which turns the model into HTML and turns clicks into
+messages:
+
+```fsharp
+// ✅ view is a pure function of the model
 let view model dispatch =
     div [] [
         button [ OnClick (fun _ -> dispatch Decrement) ] [ str "-" ]
         div [] [ str (string model) ]
         button [ OnClick (fun _ -> dispatch Increment) ] [ str "+" ]
     ]
+```
 
+Then the runtime is started with the three functions:
+
+```fsharp
+// ✅ the program is the three pure functions, wired together
 Program.mkSimple init update view
 |> Program.withReactSynchronous "elmish-app"
 |> Program.run

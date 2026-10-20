@@ -419,11 +419,14 @@ nav:
   - Functions and Composition — Building by Gluing: knowledge/functions-and-composition/index.md
   - Errors and Result — Failure as a Value: knowledge/errors-and-result/index.md
   - Serialization and Persistence — The Trust Boundary: knowledge/serialization-and-persistence/index.md
+  - Evolving a Design — Changing the Model, Not the Code: knowledge/evolving-a-design/index.md
   - Fable and Elm — The Model-View-Update Loop: knowledge/fable-and-elm/index.md
   - Commands and Async — Effects Without Breaking Purity: knowledge/commands-and-async/index.md
+  - HTTP and JSON — Turning Text Into Types: knowledge/http-and-json/index.md
   - Scaling and Routing — Composing a Large App: knowledge/scaling-and-routing/index.md
   - Dev Workflow — Trace First, Fix Second: knowledge/dev-workflow/index.md
   - Architecture Styles — Choosing a Shape: knowledge/architecture-styles/index.md
+  - Architecture Patterns — Named Solutions, Not Styles: knowledge/architecture-patterns/index.md
   - Decisions and Risk — Recording the Why: knowledge/decisions-and-risk/index.md
   - Teams and Negotiation — Architecture Is Social: knowledge/teams-and-negotiation/index.md
   - Testing — Proving the Rules Hold: knowledge/testing/index.md

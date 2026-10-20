@@ -1,7 +1,8 @@
 # Designing Functions — Signatures That Can't Be Misused
 
-> Source: *Stylish F# 6* (Eason) — ch 2 (Designing Functions and Types with
-> Your Domain), ch 7 (Coping with Complexity).
+> Source: *Stylish F# 6* (Eason) — ch 2 «Designing Functions Using Types»,
+> ch 9 «Programming with Functions»; *Domain Modeling Made Functional*
+> ch 8 «Understanding Functions».
 
 A function **signature** is its name plus its parameter and return types. In
 F# the signature is unusually load-bearing: because there is no `null`, no
@@ -11,11 +12,12 @@ correctly and how it can fail.
 
 ## The signature that lied
 
-*Stylish F#* ch 8 opens with a function whose signature promises something
-it does not deliver:
+*Stylish F#* opens its functions chapter with a function whose signature
+promises something it does not deliver — and *Domain Modeling Made
+Functional* makes the same point with the same example:
 
 ```fsharp
-// ❌ SF6 ch 8 — "returns an int", but it might not return at all
+// ❌ DMMF ch 8 — "returns an int", but it might not return at all
 let twelveDividedBy (n: int) = 12 / n
 ```
 
@@ -26,6 +28,10 @@ handle it except a `try`.
 
 This is the central design problem of a signature: **the type must mention
 every outcome.**
+
+*Domain Modeling Made Functional* ch 8 makes the same point with the same
+example, and adds the vocabulary: a function that returns a value for every
+input is **total**; one that does not is **partial**.
 
 ## 1. Honest signatures for failure
 
@@ -104,8 +110,9 @@ pipeline that needs only one of them.
 
 ## 4. Total functions, or say so
 
-A **total function** returns a value for every possible input. A **partial
-function** does not — it throws, loops, or returns garbage for some inputs.
+A **total function** returns a value for every possible input.
+
+A **partial function** does not — it throws, loops, or returns garbage for some inputs.
 
 Total functions are better because the type tells the whole truth. The way
 to make a function total is to narrow its input type so illegal inputs
@@ -115,7 +122,9 @@ cannot be constructed — the move from
 ```fsharp
 // ❌ partial — what does 0 mean here? Negative?
 let area (radius: float) = System.Math.PI * radius * radius
+```
 
+```fsharp
 // ✅ total — a radius type that cannot be negative
 type Radius = private Radius of float
 module Radius =

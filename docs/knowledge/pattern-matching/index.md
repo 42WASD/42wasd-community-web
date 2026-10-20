@@ -1,7 +1,7 @@
 # Pattern Matching — Decomposing Values Safely
 
-> Source: *Stylish F# 6* (Eason) — ch 6 (Pattern Matching), ch 12
-> (Structuring a Project).
+> Source: *Stylish F# 6* (Eason) — ch 6 «Pattern Matching», ch 13 «Layout
+> and Naming».
 
 **Pattern matching** is F#'s way of taking a value apart: you write the
 shape you expect, and the compiler binds the pieces. Combined with choice
@@ -51,7 +51,9 @@ let describe status =
     match status with
     | Open -> "Open"
     | _ -> "not open"
+```
 
+```fsharp
 // ✅ only use _ when the remaining cases genuinely share behaviour
 let isActionable status =
     match status with
@@ -61,37 +63,32 @@ let isActionable status =
 
 ## 2. The pattern vocabulary
 
+| Pattern | Shape | Matches |
+| --- | --- | --- |
+| **literal** | `0 -> ...` | that exact value |
+| **variable** | `Some p -> p.Name` | anything, binding a name |
+| **tuple** | `0, 0 -> ...` | two values together |
+| **record field** | `{ Paid = true } -> ...` | a record whose field has that value |
+| **list shape** | `first :: _ -> ...` | head plus anything |
+| **type test** | `:? Circle as c -> ...` | a value of that .NET type |
+| **guard** | `when a > 1000m -> ...` | a pattern plus a condition |
+
+Two of these earn a worked example, because their shape is not obvious from
+the table. The list shape is what makes recursion cheap:
+
 ```fsharp
-// literal
-match n with 0 -> "zero" | _ -> "nonzero"
-
-// variable binding
-match player with Some p -> p.Name | None -> "?"
-
-// tuple
-match x, y with
-| 0, 0 -> "origin"
-| _, 0 -> "on x axis"
-| 0, _ -> "on y axis"
-| _ -> "elsewhere"
-
-// record field
-match order with
-| { Paid = true } -> "paid"
-| _ -> "unpaid"
-
-// list shape — head :: tail
+// ✅ head :: tail — O(1), and the compiler warns if [] is missing
 match items with
 | [] -> "empty"
 | [ single ] -> "exactly one"
 | first :: _ -> $"starts with {first}"
+```
 
-// type test
-match shape with
-| :? Circle as c -> c.Radius
-| _ -> 0.0
+A guard adds a condition to a pattern, so you can match on structure and
+value in one line:
 
-// guard — a condition on a pattern
+```fsharp
+// ✅ the pattern binds `a`; the guard tests it
 match order with
 | { Amount = a } when a > 1000m -> "large"
 | _ -> "small"
@@ -138,12 +135,12 @@ site in a way `if n > 0 then ... elif` never is.
 `match` is not only a statement — it appears in bindings and parameters:
 
 ```fsharp
-// ✅ destructure in a let
+// ✅ destructure in a let, and in a parameter
 let (OrderId id) = order.Id
-
-// ✅ destructure a parameter
 let area (Circle r) = System.Math.PI * r * r
+```
 
+```fsharp
 // ✅ function keyword: match without repeating the argument
 let describe =
     function

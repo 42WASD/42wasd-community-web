@@ -110,8 +110,12 @@ type TournamentPhase =
     | CheckInOpen
     | InProgress
     | Concluded
+```
 
-// each event is a transition; the type says which are legal
+Each event becomes a transition, and the type says which are legal:
+
+```fsharp
+// ✅ the parameter type forbids the illegal call
 let openRegistration (t: AnnouncedTournament) = ...
 let generateBracket (t: CheckInClosed) = ...
 ```

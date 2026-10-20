@@ -10,17 +10,13 @@ model/message/update, and the parent wires them together.
 ## The `update` that grew to 600 lines
 
 ```fsharp
-// ❌ one model, one message type, one update — forever
+// ❌ one message type for every page — forever
 type Msg =
     | GamesLoaded of Game list
     | NewsLoaded of News list
     | PlayerSelected of string
     | BracketGenerated of Bracket
     // ... 40 more cases
-
-let update msg model =
-    match msg with
-    // ... 600 lines, every page's logic interleaved
 ```
 
 Nothing is wrong with any individual branch. The problem is that every
@@ -30,18 +26,23 @@ and one mental model for all of it.
 ## 1. Composition: each page owns its own loop
 
 ```fsharp
-// ✅ a child: its own Model, Msg, update
+// ✅ a child: its own Model and Msg
 module Games =
     type Model = { Games: RemoteData<Game list> }
 
     type Msg =
         | Load
         | Loaded of Game list
+```
 
-    let update msg model =
-        match msg with
-        | Load -> { model with Games = Loading }, Cmd.OfAsync.either fetchGames () Loaded Failed
-        | Loaded games -> { model with Games = Loaded games }, Cmd.none
+```fsharp
+// ✅ the child's update returns its own model and command
+let update msg model =
+    match msg with
+    | Load ->
+        { model with Games = Loading },
+        Cmd.OfAsync.either fetchGames () Loaded Failed
+    | Loaded games -> { model with Games = Loaded games }, Cmd.none
 ```
 
 ```fsharp
@@ -54,7 +55,10 @@ type Model =
 type Msg =
     | GamesMsg of Games.Msg
     | NewsMsg of News.Msg
+```
 
+```fsharp
+// ✅ one branch per child; Cmd.map lifts the child's effects
 let update msg model =
     match msg with
     | GamesMsg m ->
@@ -104,13 +108,15 @@ and the parent decides what that means.
 type Intent =
     | NavigateTo of Page
     | ShowNotification of string
+```
 
+```fsharp
+// ✅ update returns model, command, AND an intent option
 type Msg =
     | Load
     | Loaded of Game list
     | UserClickedGame of Game
 
-// the update returns an intent option alongside model and command
 let update msg model : Model * Cmd<Msg> * Intent option = ...
 ```
 
@@ -130,7 +136,9 @@ type Page =
     | Games
     | GameDetail of GameId
     | NotFound of string
+```
 
+```fsharp
 // ✅ parse once, at the edge
 let parseUrl (url: string list) : Page =
     match url with

@@ -1,12 +1,12 @@
 # Collections — Lists, Arrays, Sequences
 
-> Source: *Stylish F# 6* (Eason) — ch 4 (Collections), ch 5 (Immutable Data
-> Structures).
+> Source: *Stylish F# 6* (Eason) — ch 4 «Working Effectively with
+> Collection Functions», ch 5 «Immutability and Mutation», ch 12
+> «Performance».
 
-F# gives you three everyday collections, and choosing the wrong one is a
-performance and correctness decision, not a matter of taste. **Lists** are
-immutable linked lists, **arrays** are fixed-size mutable blocks, and
-**sequences** are lazily evaluated views.
+F# gives you three everyday collections, and choosing the wrong one is a performance and correctness decision, not a matter of taste.
+
+**Lists** are immutable linked lists, **arrays** are fixed-size mutable blocks, and **sequences** are lazily evaluated views.
 
 ## The `List.append` in the loop
 
@@ -53,19 +53,12 @@ Rules of thumb:
 
 ## 2. The four functions that do most of the work
 
-```fsharp
-// map — transform every element
-let names = players |> List.map (fun p -> p.Name)
-
-// filter — keep some elements
-let active = players |> List.filter (fun p -> p.IsActive)
-
-// fold — collapse to a single value
-let total = orders |> List.fold (fun sum o -> sum + o.Amount) 0m
-
-// collect — map, then flatten
-let allLines = orders |> List.collect (fun o -> o.Lines)
-```
+| Function | Does | Example |
+| --- | --- | --- |
+| `map` | transform every element | `players \|> List.map (fun p -> p.Name)` |
+| `filter` | keep some elements | `players \|> List.filter (fun p -> p.IsActive)` |
+| `fold` | collapse to one value | `orders \|> List.fold (fun s o -> s + o.Amount) 0m` |
+| `collect` | map, then flatten | `orders \|> List.collect (fun o -> o.Lines)` |
 
 Note `fold`'s argument order: **state first, element second**. That shape is
 what makes it composable with partial application.
@@ -84,18 +77,16 @@ F# values are immutable unless you write `mutable`. SF6 ch 5 shows why that
 default pays — a linear search, written the imperative way:
 
 ```fsharp
-// ❌ SF6 Listing 5-4 — mutable index, mutable accumulator, manual loop
-let tryFindImperative (predicate: 'T -> bool) (items: 'T list) =
-    let mutable result = None
-    let mutable rest = items
-    let mutable found = false
-    while not found && not rest.IsEmpty do
-        let head = rest.Head
-        if predicate head then
-            result <- Some head
-            found <- true
-        rest <- rest.Tail
-    result
+// ❌ SF6 Listing 5-4 — mutable cursor, accumulator, and flag
+let mutable result = None
+let mutable rest = items
+let mutable found = false
+while not found && not rest.IsEmpty do
+    if predicate rest.Head then
+        result <- Some rest.Head
+        found <- true
+    rest <- rest.Tail
+result
 ```
 
 Four mutable things, a loop, and an off-by-one risk — to express "find the

@@ -1,7 +1,12 @@
 # Dev Workflow — Trace First, Fix Second
 
-> Source: *The Elmish Book* — `dev-flow/*` (project structure, hot reload,
-> debugging); plus this repo's `ELMISH_TRACE` practice.
+> Source: *The Elmish Book* — `elm/project-structure.md`,
+> `fable/development-mode.md`, `commands/elmish-hackernews-part1.md` (the
+> `Program.run` wiring and `init`); plus this repo's `ELMISH_TRACE` practice.
+>
+> The book's `dev-flow/` chapters (webpack modes, Sass, Femto, hot module
+> replacement) are **not** covered here — they describe a webpack toolchain
+> this repo does not use.
 
 The Elmish architecture gives you something no other UI framework does: a
 complete, replayable log of every state transition. A **development
@@ -20,9 +25,9 @@ it.
 
 ## 1. Read the trace before you change code
 
-The rule from this repo's `AGENTS.md`: **when something is wrong at runtime,
-read the MVU message trace first.** It runs in the **browser console**, not
-the server terminal.
+The rule from this repo's `AGENTS.md`:
+
+**when something is wrong at runtime, read the MVU message trace first.** It runs in the **browser console**, not the server terminal.
 
 What to look for, in order:
 
@@ -58,12 +63,13 @@ Two practical notes:
 
 ## 3. Structure the project for fast feedback
 
-The book's dev-flow guidance, condensed:
+The book's `elm/project-structure.md` guidance, condensed:
 
 - **`Client` / `Server` / `Shared`.** Shared holds the domain types and the
   remoting API definition, so both sides compile against one contract.
-- **Hot reload during UI work.** `dotnet fable watch` recompiles on save;
-  the browser reloads. Keep the server running separately.
+- **A development build.** `fable/development-mode.md` describes compiling
+  with `dotnet fable --run`, which recompiles on save and keeps the output
+  readable for debugging.
 - **Small modules.** A page per module means a save recompiles one page, not
   the app.
 
@@ -133,7 +139,7 @@ flowchart LR
     n12["browser console, not server"]
     n13["Structure for feedback"]
     n14["client, server, shared"]
-    n15["fable watch and hot reload"]
+    n15["development build and small modules"]
     n16["one module per page"]
     n17["Test the pure parts"]
     n18["assert on the model"]

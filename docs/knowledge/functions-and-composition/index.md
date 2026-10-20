@@ -1,7 +1,8 @@
 # Functions and Composition — Building by Gluing
 
-> Source: *Stylish F# 6* (Eason) — ch 7 (Coping with Complexity), ch 9
-> (Functions); *Domain Modeling Made Functional* ch 8.
+> Source: *Stylish F# 6* (Eason) — ch 9 «Programming with Functions», ch 4
+> «Working Effectively with Collection Functions»; *Domain Modeling Made
+> Functional* ch 8 «Understanding Functions».
 
 **Composition** is building a new function from existing ones without
 naming the argument in between. It is the core reason functional code stays

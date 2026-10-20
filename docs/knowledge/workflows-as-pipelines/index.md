@@ -1,13 +1,12 @@
 # Workflows as Pipelines — The I/O Sandwich
 
-> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 7 (Modeling
-> Workflows as Pipelines), ch 8 (Understanding Functions), ch 9
-> (Implementation: Composing a Pipeline).
+> Source: *Domain Modeling Made Functional* (Wlaschin) — ch 7 «Modeling
+> Workflows as Pipelines», ch 8 «Understanding Functions», ch 9
+> «Implementation: Composing a Pipeline».
 
-A **workflow** is a business process expressed as a pipeline of small
-functions. The pattern DMMF teaches: keep the pipeline **pure** — no
-database, no clock, no randomness — and push all I/O to the two ends, like
-bread around a filling.
+A **workflow** is a business process expressed as a pipeline of small functions.
+
+The pattern DMMF teaches: keep the pipeline **pure** — no database, no clock, no randomness — and push all I/O to the two ends, like bread around a filling.
 
 ## The function that did five things
 

@@ -1,12 +1,11 @@
 # Immutability and State — Change by Copying
 
-> Source: *Stylish F# 6* (Eason) — ch 5 (Immutable Data Structures), ch 11
-> (Concurrency).
+> Source: *Stylish F# 6* (Eason) — ch 5 «Immutability and Mutation»,
+> ch 10 «Asynchronous and Parallel Programming».
 
-An **immutable** value cannot be changed after it is created. In F# that is
-the default: `let` bindings cannot be reassigned, and records cannot be
-mutated. Change is expressed by making a **new** value that shares most of
-the old one.
+An **immutable** value cannot be changed after it is created. In F# that is the default: `let` bindings cannot be reassigned, and records cannot be mutated.
+
+Change is expressed by making a **new** value that shares most of the old one.
 
 ## The bug that only happens sometimes
 
